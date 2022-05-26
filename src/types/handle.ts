@@ -8,6 +8,11 @@ export type ShallowHandle = {
   uri: string
   /** URL of the material, if there is any */
   url?: string
+  /**
+   * Boolean indicating whether the handle has details data
+   * This means the handle contains all possible informations
+   */
+  withDetails?: boolean
 }
 
 export type Handle =
