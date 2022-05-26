@@ -3,7 +3,7 @@ import type { Relation } from './relation'
 import type { HandleTypeToType } from './utils'
 import type Category from './category'
 import type Name from './name'
-import type Image from './image'
+import type ImageData from './image'
 import type Synopsis from './synopsis'
 import type DateData from './date'
 import type Tag from './tag'
@@ -28,7 +28,7 @@ export type TitleHandle =
     season?: number
     number: number
     names: Name[]
-    images: Image[]
+    images: ImageData[]
     dates: DateData[]
     synopses: Synopsis[]
     tags: Tag[]

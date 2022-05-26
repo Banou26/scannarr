@@ -5,7 +5,7 @@ import type { HandleTypeToType } from './utils'
 import type { GenreHandle } from './genre'
 import type Category from './category'
 import type DateData from './date'
-import type Image from './image'
+import type ImageData from './image'
 import type Name from './name'
 import type Synopsis from './synopsis'
 import type Tag from './tag'
@@ -29,7 +29,7 @@ export type SeriesHandle =
     categories: Category[]
     names: Name[]
     dates: DateData[]
-    images: Image[]
+    images: ImageData[]
     synopses: Synopsis[]
     related: Relation<SeriesHandle>[]
     handles: SeriesHandle[]
