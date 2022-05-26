@@ -10,6 +10,8 @@ import type Name from './name'
 import type Synopsis from './synopsis'
 import type Tag from './tag'
 
+// todo: check if i can add any of https://newznab.readthedocs.io/en/latest/misc/api/#list-of-attributes
+
 export type SeriesRelation = 'spinoff' | 'adaptation' | 'prequel' | 'sequel'
 
 export type Series =
@@ -38,14 +40,3 @@ export type SeriesHandle =
     tags: Tag[]
     genres: GenreHandle[]
   }
-
-// https://newznab.readthedocs.io/en/latest/misc/api/#list-of-attributes
-// export type Series = {
-//   titles: Title[]
-//   id: string
-//   category: Category
-//   date: Date
-//   language: string
-//   genre: Genre
-//   // publisher
-// }

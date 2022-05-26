@@ -8,6 +8,7 @@ import type Synopsis from './synopsis'
 import type DateData from './date'
 import type Tag from './tag'
 
+// todo: check if i can add any of https://newznab.readthedocs.io/en/latest/misc/api/#list-of-attributes
 
 export type TitleType = 'iframe' | 'torrent' | 'custom'
 export type TitleRelation = 'previous' | 'next'
@@ -15,7 +16,7 @@ export type TitleRelation = 'previous' | 'next'
 export type Title =
   HandleTypeToType<
     TitleHandle,
-    'season' | 'number' | 'names' | 'images' |
+    'unit' | 'number' | 'names' | 'images' |
     'dates' | 'synopses' | 'tags' | 'number',
     {
       categories: (Handle & { category: Category })[]
@@ -25,7 +26,15 @@ export type Title =
 
 export type TitleHandle =
   Handle & {
-    season?: number
+    /**
+     * Usually refers to a tv show's season number or a book's number in a book series, if there's any
+     * If anyone has a better general name, we could change it to something that makes more sense
+    */
+    unit?: number
+    /**
+     * Title number (inside of the unit, if there's any)
+     * Generally a tv show episode number or a manga's chapter number
+    */
     number: number
     names: Name[]
     images: ImageData[]
@@ -37,55 +46,3 @@ export type TitleHandle =
     related: Relation<TitleHandle>[]
     size?: number
   }
-
-
-// https://newznab.readthedocs.io/en/latest/misc/api/#list-of-attributes
-// export type Title = {
-//   series: Series
-//   id: string
-//   size: number
-//   category: Category
-//   files: File
-//   poster: User
-//   // group
-//   team: Team
-//   downloads: number
-//   // password
-//   // comments
-//   date: Date
-//   // usenetdate
-//   // nfo
-//   // info
-//   year: number
-//   season: number
-//   Title: number
-//   // rageid
-//   // tvtitle
-//   // tvairdate
-//   video: string
-//   audio: string
-//   resolution: string
-//   framerate: string
-//   language: string
-//   subs: string[]
-//   // imdb
-//   // imdbscore
-//   // imdbtitle
-//   // imdbtagline
-//   // imdbplot
-//   // imdbyear
-//   // imdbdirector
-//   // imdbactors
-//   genre: Genre
-//   // artist
-//   // album
-//   publisher
-//   // tracks
-//   // coverurl
-//   // backdropcoverurl
-//   // review
-//   // booktitle
-//   // publishdate
-//   // author
-//   // pages
-// }
