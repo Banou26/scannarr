@@ -2,18 +2,20 @@
   "name": "scannar",
   "version": "0.0.1",
   "description": "",
-  "main": "src/index.ts",
+  "main": "build/index.js",
   "author": "Banou26",
   "type": "module",
   "scripts": {
     "copy-seal": "npx --yes copyfiles -u 3 ./node_modules/seal-wasm/build/*.wasm build",
     "test": "epk",
-    "test-watch": "epk -w"
+    "test-watch": "epk -w",
+    "dev": "node ./build.js -w"
   },
   "devDependencies": {
     "epk": "^0.16.0"
   },
   "dependencies": {
+    "rxjs": "^7.5.5",
     "seal-wasm": "^0.0.1"
   }
 }
