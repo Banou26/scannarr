@@ -2,7 +2,7 @@ import { Handle } from '../types/handle'
 
 export const fromUri = (uri: string) => {
   const [scheme, id] = uri.split(':')
-  return { scheme, id }
+  return { scheme, id } as { scheme: string, id: string }
 }
 
 export const toUri = ({ scheme, id }: { scheme: string, id: string }) => `${scheme}:${id}`

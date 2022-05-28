@@ -20,15 +20,14 @@ export type GetTitleOptions = (
   }
 ) & GetOptions
 
-export type GetSeries = (options: GetSeriesOptions) => Promise<SeriesHandle>
-export type GetTitle = (options: GetTitleOptions) => Promise<TitleHandle>
+export type GetSeries = (options: GetSeriesOptions) => Promise<SeriesHandle | undefined>
+export type GetTitle = (options: GetTitleOptions) => Promise<TitleHandle | undefined>
 
 export type SearchLatestOptions = {
-  latest?: boolean
+  latest: boolean
 }
 
-export type SearchOptions = {
-  search: string
+export type BaseSearchOptions = {
   scheme?: string
   categories?: Category[]
   genres?: Genre[]
@@ -36,16 +35,16 @@ export type SearchOptions = {
   score?: number
   // todo: check for a generalized way to handle pagination
   pagination?: number
-} & SearchLatestOptions
+}
 
-export type SearchSeriesOptions = {
+export type SearchSeriesOptions = ({
   search: string | SeriesHandle
-} & SearchOptions
+} | SearchLatestOptions) & BaseSearchOptions
 
-export type SearchTitlesOptions = {
+export type SearchTitlesOptions = ({
   series?: SeriesHandle
   search: string | TitleHandle
-} & SearchOptions
+} | SearchLatestOptions) & BaseSearchOptions
 
 export type SearchSeries = (options: SearchSeriesOptions) => Observable<SeriesHandle[]>
 export type SearchTitles = (options: SearchTitlesOptions) => Observable<TitleHandle[]>
