@@ -72,5 +72,5 @@ export const targets = new Map<string, Target>()
 
 export const getTargets = () => [...targets.values()]
 export const getTarget = (target: string | Target) => targets.get(typeof target === 'string' ? target : target.scheme)
-export const setTarget = (target: Target) => targets.set(target.scheme, target)
+export const addTarget = (target: Target) => targets.set(target.scheme, target)
 export const removeTarget = (target: Target) => targets.delete(target.scheme)

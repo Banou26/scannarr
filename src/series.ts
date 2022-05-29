@@ -1,4 +1,4 @@
-import { merge, scan, startWith } from 'rxjs'
+import { Observable, merge, scan, startWith } from 'rxjs'
 import type { GetSeries, SearchSeries } from './targets'
 import { getTarget, getTargets } from './targets'
 import { SeriesHandle } from './types'
@@ -13,7 +13,6 @@ const get: GetSeries = async (options) => {
 
 const search: SearchSeries = (options) => {
   const targets = getTargets()
-
   return merge(
     ...targets
       .filter(target => target.searchSeries)
