@@ -6,7 +6,7 @@ export type ReleaseDate = {
 export type AiringData = {
   language: string
   start: Date
-  end: Date
+  end?: Date
 }
 
 export type DateData = ReleaseDate | AiringData
