@@ -1,5 +1,9 @@
 import type { Observable } from 'rxjs'
-import type { Category, Genre, SeriesHandle, TitleHandle } from './types'
+import type { Category, FetchType, Genre, SeriesHandle, TitleHandle } from './types'
+
+export type ExtraOptions = {
+  fetch: FetchType
+}
 
 export type GetOptions = {
   uri: string
@@ -20,8 +24,8 @@ export type GetTitleOptions = (
   }
 ) & GetOptions
 
-export type GetSeries = (options: GetSeriesOptions) => Promise<SeriesHandle | undefined>
-export type GetTitle = (options: GetTitleOptions) => Promise<TitleHandle | undefined>
+export type GetSeries = (options: GetSeriesOptions, extraOptions: ExtraOptions) => Promise<SeriesHandle | undefined>
+export type GetTitle = (options: GetTitleOptions, extraOptions: ExtraOptions) => Promise<TitleHandle | undefined>
 
 export type SearchLatestOptions = {
   latest: boolean
@@ -46,8 +50,8 @@ export type SearchTitlesOptions = ({
   search: string | TitleHandle
 } | SearchLatestOptions) & BaseSearchOptions
 
-export type SearchSeries = (options: SearchSeriesOptions) => Observable<SeriesHandle[]>
-export type SearchTitles = (options: SearchTitlesOptions) => Observable<TitleHandle[]>
+export type SearchSeries = (options: SearchSeriesOptions, extraOptions: ExtraOptions) => Observable<SeriesHandle[]>
+export type SearchTitles = (options: SearchTitlesOptions, extraOptions: ExtraOptions) => Observable<TitleHandle[]>
 
 export type Target = {
   /** Origin URL, e.g: https://example.com/ */
