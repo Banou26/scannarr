@@ -13,16 +13,42 @@ import type Tag from './tag'
 export type TitleType = 'iframe' | 'torrent' | 'custom'
 export type TitleRelation = 'previous' | 'next'
 
+// export type Title =
+//   HandleTypeToType<
+//     TitleHandle,
+//     'unit' | 'number' | 'names' | 'images' |
+//     'dates' | 'synopses' | 'tags' | 'number',
+//     {
+//       categories: (Handle & { category: Category })[]
+//       related: Relation<Title>[]
+//     }
+//   >
+
 export type Title =
-  HandleTypeToType<
-    TitleHandle,
-    'unit' | 'number' | 'names' | 'images' |
-    'dates' | 'synopses' | 'tags' | 'number',
-    {
-      categories: (Handle & { category: Category })[]
-      related: Relation<Title>[]
-    }
-  >
+  {
+    uri: string
+    uris: string[]
+    /**
+     * Usually refers to a tv show's season number or a book's number in a book series, if there's any
+     * If anyone has a better general name, we could change it to something that makes more sense
+    */
+     unit?: number
+     /**
+      * Title number (inside of the unit, if there's any)
+      * Generally a tv show episode number or a manga's chapter number
+     */
+     number: number
+     names: Name[]
+     images: ImageData[]
+     dates: DateData[]
+     synopses: Synopsis[]
+     tags: Tag[]
+     handles: TitleHandle[]
+     categories: Category[]
+     recommended: TitleHandle[]
+     // todo: replace these TitleHandle by Title
+     related: Relation<TitleHandle>[]
+  }
 
 export type TitleHandle =
   Handle & {
@@ -43,6 +69,7 @@ export type TitleHandle =
     tags: Tag[]
     handles: TitleHandle[]
     categories: Category[]
+    recommended: TitleHandle[]
     related: Relation<TitleHandle>[]
     size?: number
   }

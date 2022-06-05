@@ -28,7 +28,7 @@ export type GetSeries = (options: GetSeriesOptions, extraOptions: ExtraOptions) 
 export type GetTitle = (options: GetTitleOptions, extraOptions: ExtraOptions) => Promise<TitleHandle | undefined>
 
 export type SearchLatestOptions = {
-  latest: boolean
+  latest?: boolean
 }
 
 export type BaseSearchOptions = {
@@ -45,10 +45,12 @@ export type SearchSeriesOptions = ({
   search: string | SeriesHandle
 } | SearchLatestOptions) & BaseSearchOptions
 
-export type SearchTitlesOptions = ({
+export type SearchTitlesOptions = (({
+  series: SeriesHandle
+} | {
   series?: SeriesHandle
   search: string | TitleHandle
-} | SearchLatestOptions) & BaseSearchOptions
+}) | SearchLatestOptions) & BaseSearchOptions
 
 export type SearchSeries = (options: SearchSeriesOptions, extraOptions: ExtraOptions) => Observable<SeriesHandle[]>
 export type SearchTitles = (options: SearchTitlesOptions, extraOptions: ExtraOptions) => Observable<TitleHandle[]>

@@ -1,21 +1,17 @@
 import { Observable, merge, scan, startWith } from 'rxjs'
-import type { GetSeries, SearchSeries } from './targets'
-import { getTarget, getTargets } from './targets'
-import { Series, SeriesHandle, SeriesHandle } from './types'
-import { fromUri } from './utils/uri'
 import { flatten, head, map, sortBy } from 'fp-ts/Array'
 import { contramap, reverse } from 'fp-ts/Ord'
 import * as S from 'fp-ts/string'
 import * as N from 'fp-ts/number'
 import { pipe } from 'fp-ts/function'
 
-const byScore = pipe(
-  N.Ord,
-  contramap((p: { score: number }) => p.score),
-  reverse
-)
+import { fromUri } from './utils/uri'
+import { byScore } from './utils'
+import type { GetSeries, SearchSeries } from './targets'
+import { getTarget, getTargets } from './targets'
+import { Series, SeriesHandle } from './types'
 
-const seriesHandleToSeries = (handles: SeriesHandle[]): Series => {
+const seriesHandlesToSeries = (handles: SeriesHandle[]): Series => {
   return {
     categories: pipe(handles, map(handle => handle.categories), flatten),
     names: pipe(handles, map(handle => handle.names), flatten, sortBy([byScore])),
@@ -33,7 +29,7 @@ const seriesHandleToSeries = (handles: SeriesHandle[]): Series => {
   }
 }
 
-const get: GetSeries = async (options, extraOptions) => {
+const get: GetSeries = async (options, extraOptions = { fetch }) => {
   const { scheme, id } = 'uri' in options ? fromUri(options.uri) : options
   console.log('get series', scheme)
   const target = await getTarget(scheme)
@@ -42,12 +38,12 @@ const get: GetSeries = async (options, extraOptions) => {
   const results = await target.getSeries({ id, ...options }, extraOptions)
   console.log('results', results)
   if (!results) return
-  const series = seriesHandleToSeries([results])
+  const series = seriesHandlesToSeries([results])
   console.log('series', series)
   return results
 }
 
-const search: SearchSeries = (options) => {
+const search: SearchSeries = (options, extraOptions) => {
   const targets = getTargets()
   return merge(
     ...targets
@@ -57,7 +53,7 @@ const search: SearchSeries = (options) => {
         !options.categories ||
         target.categories.some(category => options.categories?.includes(category))
       )
-      .map(target => target.searchSeries!(options))
+      .map(target => target.searchSeries!(options, extraOptions))
   ).pipe(
     startWith([]),
     scan((acc, result) => [...acc, ...result], [] as SeriesHandle[])

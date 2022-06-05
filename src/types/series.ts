@@ -35,6 +35,7 @@ export type Series =
     dates: DateData[]
     images: ImageData[]
     synopses: Synopsis[]
+    // todo: replace these SeriesHandle by Series
     related: Relation<SeriesHandle>[]
     handles: SeriesHandle[]
     titles: TitleHandle[]
