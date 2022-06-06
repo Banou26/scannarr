@@ -40,7 +40,6 @@ export type Series =
     handles: SeriesHandle[]
     titles: TitleHandle[]
     recommended: SeriesHandle[]
-    tags: Tag[]
     genres: GenreHandle[]
   }
 

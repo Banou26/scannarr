@@ -1,49 +1,47 @@
 import { Observable, merge, scan, startWith } from 'rxjs'
-import { flatten, head, map, sortBy } from 'fp-ts/Array'
-import { contramap, reverse } from 'fp-ts/Ord'
+import { map } from 'rxjs/operators'
+import * as A from 'fp-ts/Array'
 import * as S from 'fp-ts/string'
 import * as N from 'fp-ts/number'
 import { pipe } from 'fp-ts/function'
 
 import { fromUri } from './utils/uri'
 import { byScore } from './utils'
-import type { GetSeries, SearchSeries } from './targets'
+import type { ExtraOptions, GetSeries, GetSeriesOptions, SearchSeries, SearchSeriesOptions } from './targets'
 import { getTarget, getTargets } from './targets'
 import { Series, SeriesHandle } from './types'
 
 const seriesHandlesToSeries = (handles: SeriesHandle[]): Series => {
   return {
-    categories: pipe(handles, map(handle => handle.categories), flatten),
-    names: pipe(handles, map(handle => handle.names), flatten, sortBy([byScore])),
-    dates: pipe(handles, map(handle => handle.dates), flatten),
-    images: pipe(handles, map(handle => handle.images), flatten),
-    synopses: pipe(handles, map(handle => handle.synopses), flatten),
-    related: pipe(handles, map(handle => handle.related), flatten),
+    categories: pipe(handles, A.map(handle => handle.categories), A.flatten),
+    names: pipe(handles, A.map(handle => handle.names), A.flatten, A.sortBy([byScore])),
+    dates: pipe(handles, A.map(handle => handle.dates), A.flatten),
+    images: pipe(handles, A.map(handle => handle.images), A.flatten),
+    synopses: pipe(handles, A.map(handle => handle.synopses), A.flatten),
+    related: pipe(handles, A.map(handle => handle.related), A.flatten),
     handles,
-    titles: pipe(handles, map(handle => handle.titles), flatten),
-    recommended: pipe(handles, map(handle => handle.recommended), flatten),
-    tags: pipe(handles, map(handle => handle.tags), flatten),
+    titles: pipe(handles, A.map(handle => handle.titles), A.flatten),
+    recommended: pipe(handles, A.map(handle => handle.recommended), A.flatten),
     genres: [],
-    uri: pipe(handles, map(handle => handle.uri)).join(','),
-    uris: pipe(handles, map(handle => handle.uri))
+    uri: pipe(handles, A.map(handle => handle.uri)).join(','),
+    uris: pipe(handles, A.map(handle => handle.uri))
   }
 }
 
-const get: GetSeries = async (options, extraOptions = { fetch }) => {
+const get = async (options: GetSeriesOptions, extraOptions: ExtraOptions = { fetch }): Promise<Series | undefined> => {
   const { scheme, id } = 'uri' in options ? fromUri(options.uri) : options
-  console.log('get series', scheme)
   const target = await getTarget(scheme)
-  console.log('target', target)
   if (!target || !target.getSeries) return
   const results = await target.getSeries({ id, ...options }, extraOptions)
-  console.log('results', results)
   if (!results) return
   const series = seriesHandlesToSeries([results])
-  console.log('series', series)
-  return results
+  console.log('FOO', results)
+  console.log('BAR', series)
+  return series
+  // return series
 }
 
-const search: SearchSeries = (options, extraOptions) => {
+const search = (options: SearchSeriesOptions, extraOptions: ExtraOptions = { fetch }): Observable<Series[]> => {
   const targets = getTargets()
   return merge(
     ...targets
@@ -56,7 +54,10 @@ const search: SearchSeries = (options, extraOptions) => {
       .map(target => target.searchSeries!(options, extraOptions))
   ).pipe(
     startWith([]),
-    scan((acc, result) => [...acc, ...result], [] as SeriesHandle[])
+    scan((acc, result) => [...acc, ...result], [] as SeriesHandle[]),
+    map(seriesHandles =>
+      seriesHandles.map(handle => seriesHandlesToSeries([handle]))
+    )
   )
 }
 

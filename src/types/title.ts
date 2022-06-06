@@ -42,7 +42,6 @@ export type Title =
      images: ImageData[]
      dates: DateData[]
      synopses: Synopsis[]
-     tags: Tag[]
      handles: TitleHandle[]
      categories: Category[]
      recommended: TitleHandle[]

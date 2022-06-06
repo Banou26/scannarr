@@ -1,5 +1,5 @@
 import type { Observable } from 'rxjs'
-import type { Category, FetchType, Genre, SeriesHandle, TitleHandle } from './types'
+import type { Category, FetchType, Genre, Series, SeriesHandle, Title, TitleHandle } from './types'
 
 export type ExtraOptions = {
   fetch: FetchType
@@ -42,14 +42,14 @@ export type BaseSearchOptions = {
 }
 
 export type SearchSeriesOptions = ({
-  search: string | SeriesHandle
+  search: string | Series
 } | SearchLatestOptions) & BaseSearchOptions
 
 export type SearchTitlesOptions = (({
-  series: SeriesHandle
+  series: Series
 } | {
-  series?: SeriesHandle
-  search: string | TitleHandle
+  series?: Series
+  search: string | Title
 }) | SearchLatestOptions) & BaseSearchOptions
 
 export type SearchSeries = (options: SearchSeriesOptions, extraOptions: ExtraOptions) => Observable<SeriesHandle[]>

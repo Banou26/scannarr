@@ -1,10 +1,9 @@
-import { merge, scan, startWith } from 'rxjs'
-import { fromUri } from './utils/uri'
-import { flatten, head, map, sortBy } from 'fp-ts/Array'
+import { Observable, merge, scan, startWith, map } from 'rxjs'
+import * as A from 'fp-ts/Array'
 import { contramap, reverse } from 'fp-ts/Ord'
 import { pipe } from 'fp-ts/function'
 
-import type { GetTitle, SearchTitles } from './targets'
+import type { ExtraOptions, GetTitle, GetTitleOptions, SearchTitles, SearchTitlesOptions } from './targets'
 import { getTarget, getTargets } from './targets'
 import { Title, TitleHandle } from './types'
 import { fromUri } from './utils/uri'
@@ -23,26 +22,36 @@ export const findMostCommon = <T>(arr: T[]): T => {
   return instances.filter(([, instances]) => instances === max).map(([num]) => num).at(0)
 }
 
+// const commonItem = pipe(
+//   array,
+//   A.groupBy(x => x),
+//   A.map(arr => ({ item: arr[0], count: arr.length })),
+//   A.sort((x, y) => y.count - x.count),
+//   A.head
+// ).fold(
+//   () => none,
+//   x => some(x.item)
+// );
+
 
 const titleHandlesToTitle = (handles: TitleHandle[]): Title => {
   return {
-    uri: pipe(handles, map(handle => handle.uri)).join(','),
-    uris: pipe(handles, map(handle => handle.uri)),
-    unit: findMostCommon(pipe(handles, map(handle => handle.unit))),
-    number: findMostCommon(pipe(handles, map(handle => handle.number))),
-    names: pipe(handles, map(handle => handle.names), flatten, sortBy([byScore])),
-    images: pipe(handles, map(handle => handle.images), flatten),
-    dates: pipe(handles, map(handle => handle.dates), flatten),
-    synopses: pipe(handles, map(handle => handle.synopses), flatten),
-    tags: pipe(handles, map(handle => handle.tags), flatten),
+    uri: pipe(handles, A.map(handle => handle.uri)).join(','),
+    uris: pipe(handles, A.map(handle => handle.uri)),
+    unit: findMostCommon(pipe(handles, A.map(handle => handle.unit))),
+    number: findMostCommon(pipe(handles, A.map(handle => handle.number))),
+    names: pipe(handles, A.map(handle => handle.names), A.flatten, A.sortBy([byScore])),
+    images: pipe(handles, A.map(handle => handle.images), A.flatten),
+    dates: pipe(handles, A.map(handle => handle.dates), A.flatten),
+    synopses: pipe(handles, A.map(handle => handle.synopses), A.flatten),
     handles,
-    categories: pipe(handles, map(handle => handle.categories), flatten),
-    related: pipe(handles, map(handle => handle.related), flatten),
-    recommended: pipe(handles, map(handle => handle.recommended), flatten)
+    categories: pipe(handles, A.map(handle => handle.categories), A.flatten),
+    related: pipe(handles, A.map(handle => handle.related), A.flatten),
+    recommended: pipe(handles, A.map(handle => handle.recommended), A.flatten)
   }
 }
 
-const get: GetTitle = async (options, extraOptions) => {
+const get = async (options: GetTitleOptions, extraOptions: ExtraOptions = { fetch }): Promise<Title | undefined> => {
   const { scheme } = 'uri' in options ? fromUri(options.uri) : options
   const target = await getTarget(scheme)
   if (!target || !target.getTitles) return
@@ -51,7 +60,7 @@ const get: GetTitle = async (options, extraOptions) => {
   return titleHandlesToTitle([title])
 }
 
-const search: SearchTitles = (options, extraOptions) => {
+const search = <T extends SearchTitlesOptions>(options: T, extraOptions: ExtraOptions = { fetch }) => {
   const targets = getTargets()
 
   return merge(
@@ -60,7 +69,12 @@ const search: SearchTitles = (options, extraOptions) => {
       .map(target => target.searchTitles!(options, extraOptions))
   ).pipe(
     startWith([]),
-    scan((acc, result) => [...acc, ...result], [] as TitleHandle[])
+    scan((acc, result) => [...acc, ...result], [] as TitleHandle[]),
+    map(titleHandles => (
+      'search' in options && typeof options.search !== 'string'
+        ? titleHandlesToTitle(titleHandles)
+        : titleHandles.map(handle => titleHandlesToTitle([handle]))
+    ) as T extends { search: Title } ? Title : Title[])
   )
 }
 
