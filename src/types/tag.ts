@@ -6,7 +6,7 @@ type Tag = {
   type:
     'score' | 'tag' | 'genre' | 'type' | 'theme' |
     'demographic' | 'status' | 'producer' | 'rated' |
-    'size' | 'resolution' | 'batch' | 'type' | 'protocol-type'
+    'size' | 'resolution' | 'batch' | 'type' | 'protocol-type' | string
   value?: any
   extra?: any
 }
