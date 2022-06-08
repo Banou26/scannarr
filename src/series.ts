@@ -1,4 +1,4 @@
-import { Observable, merge, scan, startWith } from 'rxjs'
+import { Observable, merge, scan, startWith, combineLatest } from 'rxjs'
 import { map } from 'rxjs/operators'
 import * as A from 'fp-ts/Array'
 import * as S from 'fp-ts/string'
@@ -35,16 +35,16 @@ const get = async (options: GetSeriesOptions, extraOptions: ExtraOptions = { fet
   const results = await target.getSeries({ id, ...options }, extraOptions)
   if (!results) return
   const series = seriesHandlesToSeries([results])
-  console.log('FOO', results)
-  console.log('BAR', series)
+  // console.log('FOO', results)
+  // console.log('BAR', series)
   return series
   // return series
 }
 
 const search = (options: SearchSeriesOptions, extraOptions: ExtraOptions = { fetch }): Observable<Series[]> => {
   const targets = getTargets()
-  return merge(
-    ...targets
+  return combineLatest(
+    targets
       .filter(target => target.searchSeries)
       .filter(target =>
         !target.categories ||
@@ -54,9 +54,10 @@ const search = (options: SearchSeriesOptions, extraOptions: ExtraOptions = { fet
       .map(target => target.searchSeries!(options, extraOptions))
   ).pipe(
     startWith([]),
-    scan((acc, result) => [...acc, ...result], [] as SeriesHandle[]),
     map(seriesHandles =>
-      seriesHandles.map(handle => seriesHandlesToSeries([handle]))
+      seriesHandles
+        .flat()
+        .map(handle => seriesHandlesToSeries([handle]))
     )
   )
 }

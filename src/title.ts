@@ -1,4 +1,4 @@
-import { Observable, merge, scan, startWith, map } from 'rxjs'
+import { Observable, merge, scan, startWith, map, tap, combineLatest } from 'rxjs'
 import * as A from 'fp-ts/Array'
 import { contramap, reverse } from 'fp-ts/Ord'
 import { pipe } from 'fp-ts/function'
@@ -21,6 +21,13 @@ export const findMostCommon = <T>(arr: T[]): T => {
   const max = Math.max(...instances.map(([, instances]) => instances))
   return instances.filter(([, instances]) => instances === max).map(([num]) => num).at(0)
 }
+
+// pipe(
+//   users,
+//   sort((a, b) => a.name.localeCompare(b.name)),
+//   maximumBy(u => u.id),
+//   head
+// )();
 
 // const commonItem = pipe(
 //   array,
@@ -62,18 +69,21 @@ const get = async (options: GetTitleOptions, extraOptions: ExtraOptions = { fetc
 
 const search = <T extends SearchTitlesOptions>(options: T, extraOptions: ExtraOptions = { fetch }) => {
   const targets = getTargets()
-
-  return merge(
-    ...targets
+  return combineLatest(
+    targets
+      .filter(target =>
+        !target.categories ||
+        !options.categories ||
+        target.categories.some(category => options.categories?.includes(category))
+      )
       .filter(target => target.searchTitles)
       .map(target => target.searchTitles!(options, extraOptions))
   ).pipe(
     startWith([]),
-    scan((acc, result) => [...acc, ...result], [] as TitleHandle[]),
     map(titleHandles => (
       'search' in options && typeof options.search !== 'string'
-        ? titleHandlesToTitle(titleHandles)
-        : titleHandles.map(handle => titleHandlesToTitle([handle]))
+        ? titleHandlesToTitle(titleHandles.flat())
+        : titleHandles.flat().map(handle => titleHandlesToTitle([handle]))
     ) as T extends { search: Title } ? Title : Title[])
   )
 }
