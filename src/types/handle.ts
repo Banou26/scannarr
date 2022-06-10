@@ -1,3 +1,4 @@
+import type { Uri } from '../utils'
 
 export type ShallowHandle = {
   /** Scheme of the material's origin, usually a short string */
@@ -5,7 +6,7 @@ export type ShallowHandle = {
   /** ID of the material */
   id: string
   /** URI of the material, used to reference this handle, its format is `scheme:uri` */
-  uri: string
+  uri: Uri
   /** URL of the material, if there is any */
   url?: string
   /**

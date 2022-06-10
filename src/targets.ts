@@ -1,4 +1,5 @@
 import type { Observable } from 'rxjs'
+import type { Uri } from './utils'
 import type { Category, FetchType, Genre, Series, SeriesHandle, Title, TitleHandle } from './types'
 
 export type ExtraOptions = {
@@ -6,7 +7,7 @@ export type ExtraOptions = {
 }
 
 export type GetOptions = {
-  uri: string
+  uri: Uri
 } | {
   scheme: string
   id: string
@@ -18,9 +19,9 @@ export type GetSeriesOptions = {
 
 export type GetTitleOptions = (
   {
-    seriesUri: string
+    seriesUri?: Uri
   } | {
-    seriesId: string
+    seriesId?: string
   }
 ) & GetOptions
 
