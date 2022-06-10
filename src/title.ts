@@ -60,9 +60,9 @@ const titleHandlesToTitle = (handles: TitleHandle[]): Title => {
 
 const get = async (options: GetTitleOptions, extraOptions: ExtraOptions = { fetch }): Promise<Title | undefined> => {
   const { scheme } = 'uri' in options ? fromUri(options.uri) : options
-  const target = await getTarget(scheme)
-  if (!target || !target.getTitles) return
-  const title = await target.getTitles(options, extraOptions)
+  const target = getTarget(scheme)
+  if (!target || !target.getTitle) return
+  const title = await target.getTitle(options, extraOptions)
   if (!title) return undefined
   return titleHandlesToTitle([title])
 }

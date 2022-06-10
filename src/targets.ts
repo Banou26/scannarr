@@ -68,7 +68,7 @@ export type Target = {
   test?: () => Promise<void>
 
   getSeries?: GetSeries
-  getTitles?: GetTitle
+  getTitle?: GetTitle
 
   searchSeries?: SearchSeries
   searchTitles?: SearchTitles
