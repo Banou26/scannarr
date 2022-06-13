@@ -1,4 +1,4 @@
-import { Observable, merge, scan, startWith, map, tap, combineLatest } from 'rxjs'
+import { Observable, merge, scan, startWith, map, tap, combineLatest, from, mergeMap } from 'rxjs'
 import * as A from 'fp-ts/Array'
 import { contramap, reverse } from 'fp-ts/Ord'
 import { pipe } from 'fp-ts/function'
@@ -58,16 +58,22 @@ const titleHandlesToTitle = (handles: TitleHandle[]): Title => {
   }
 }
 
-const get = async (options: GetTitleOptions, extraOptions: ExtraOptions = { fetch }): Promise<Title | undefined> => {
+const get = (options: GetTitleOptions, extraOptions: ExtraOptions = { fetch }): Observable<Title> => from((async () => {
   const { scheme } = 'uri' in options ? fromUri(options.uri) : options
   const target = getTarget(scheme)
-  if (!target || !target.getTitle) return
-  const title = await target.getTitle(options, extraOptions)
-  if (!title) return undefined
-  return titleHandlesToTitle([title])
-}
+  if (!target || !target.getTitle) return from([])
+  const titleHandle = await target.getTitle(options, extraOptions)
+  if (!titleHandle) return from([])
+  return (
+    titleHandle
+      .pipe(
+        map(titleHandle => titleHandlesToTitle([titleHandle]))
+      )
+  )
+})()).pipe(mergeMap(observable => observable))
 
 const search = <T extends SearchTitlesOptions>(options: T, extraOptions: ExtraOptions = { fetch }) => {
+  console.log('searchTitles', options, extraOptions)
   const targets = getTargets()
   return combineLatest(
     targets
@@ -79,6 +85,7 @@ const search = <T extends SearchTitlesOptions>(options: T, extraOptions: ExtraOp
       .filter(target => target.searchTitles)
       .map(target => target.searchTitles!(options, extraOptions))
   ).pipe(
+    tap(v => console.log('SEARCHTITLES TAP', v)),
     startWith([]),
     map(titleHandles => (
       'search' in options && typeof options.search !== 'string'

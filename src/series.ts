@@ -1,4 +1,4 @@
-import { Observable, merge, scan, startWith, combineLatest } from 'rxjs'
+import { Observable, merge, scan, startWith, combineLatest, from, mergeMap } from 'rxjs'
 import { map } from 'rxjs/operators'
 import * as A from 'fp-ts/Array'
 import * as S from 'fp-ts/string'
@@ -28,20 +28,28 @@ const seriesHandlesToSeries = (handles: SeriesHandle[]): Series => {
   }
 }
 
-const get = async (options: GetSeriesOptions, extraOptions: ExtraOptions = { fetch }): Promise<Series | undefined> => {
+const get = (options: GetSeriesOptions, extraOptions: ExtraOptions = { fetch }): Observable<Series> => from((async () => {
+  console.log('getSeries', options, extraOptions)
   const { scheme, id } = 'uri' in options ? fromUri(options.uri) : options
   const target = await getTarget(scheme)
-  if (!target || !target.getSeries) return
-  const results = await target.getSeries({ id, ...options }, extraOptions)
-  if (!results) return
-  const series = seriesHandlesToSeries([results])
-  // console.log('FOO', results)
-  // console.log('BAR', series)
-  return series
+  if (!target || !target.getSeries) return from([])
+  const results = target.getSeries({ id, ...options }, extraOptions)
+  if (!results) return from([])
+  return (
+    results
+      .pipe(
+        map(series => seriesHandlesToSeries([series]))
+      )
+  )
+  // const series = seriesHandlesToSeries([results])
+  // // console.log('FOO', results)
+  // // console.log('BAR', series)
   // return series
-}
+  // return series
+})()).pipe(mergeMap(observable => observable))
 
 const search = (options: SearchSeriesOptions, extraOptions: ExtraOptions = { fetch }): Observable<Series[]> => {
+  console.log('searchSeries', options, extraOptions)
   const targets = getTargets()
   return combineLatest(
     targets

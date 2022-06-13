@@ -25,8 +25,8 @@ export type GetTitleOptions = (
   }
 ) & GetOptions
 
-export type GetSeries = (options: GetSeriesOptions, extraOptions: ExtraOptions) => Promise<SeriesHandle | undefined>
-export type GetTitle = (options: GetTitleOptions, extraOptions: ExtraOptions) => Promise<TitleHandle | undefined>
+export type GetSeries = (options: GetSeriesOptions, extraOptions: ExtraOptions) => Observable<SeriesHandle>
+export type GetTitle = (options: GetTitleOptions, extraOptions: ExtraOptions) => Observable<TitleHandle>
 
 export type SearchLatestOptions = {
   latest?: boolean
