@@ -1,4 +1,5 @@
-export type ReleaseDate = {
+
+export type ReleaseData = {
   language: string
   date: Date
 }
@@ -9,6 +10,6 @@ export type AiringData = {
   end?: Date
 }
 
-export type DateData = ReleaseDate | AiringData
+export type DateData = ReleaseData | AiringData
 
 export default DateData

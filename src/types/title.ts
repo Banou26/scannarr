@@ -13,17 +13,6 @@ import type Tag from './tag'
 export type TitleType = 'iframe' | 'torrent' | 'custom'
 export type TitleRelation = 'previous' | 'next'
 
-// export type Title =
-//   HandleTypeToType<
-//     TitleHandle,
-//     'unit' | 'number' | 'names' | 'images' |
-//     'dates' | 'synopses' | 'tags' | 'number',
-//     {
-//       categories: (Handle & { category: Category })[]
-//       related: Relation<Title>[]
-//     }
-//   >
-
 export type Title =
   {
     uri: string
@@ -60,15 +49,17 @@ export type TitleHandle =
      * Title number (inside of the unit, if there's any)
      * Generally a tv show episode number or a manga's chapter number
     */
-    number: number
-    names: Name[]
-    images: ImageData[]
-    dates: DateData[]
-    synopses: Synopsis[]
-    tags: Tag[]
-    handles: TitleHandle[]
-    categories: Category[]
-    recommended: TitleHandle[]
-    related: Relation<TitleHandle>[]
+    number?: number
+    numbers?: number[]
+    batch?: boolean
+    names?: Name[]
+    images?: ImageData[]
+    dates?: DateData[]
+    synopses?: Synopsis[]
+    tags?: Tag[]
+    handles?: TitleHandle[]
+    categories?: Category[]
+    recommended?: TitleHandle[]
+    related?: Relation<TitleHandle>[]
     size?: number
   }

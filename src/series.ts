@@ -18,10 +18,10 @@ const seriesHandlesToSeries = (handles: SeriesHandle[]): Series => {
     dates: pipe(handles, A.map(handle => handle.dates), A.flatten),
     images: pipe(handles, A.map(handle => handle.images), A.flatten),
     synopses: pipe(handles, A.map(handle => handle.synopses), A.flatten),
-    related: pipe(handles, A.map(handle => handle.related), A.flatten),
+    relations: pipe(handles, A.map(handle => handle.relations), A.flatten),
     handles,
     titles: pipe(handles, A.map(handle => handle.titles), A.flatten),
-    recommended: pipe(handles, A.map(handle => handle.recommended), A.flatten),
+    recommendations: pipe(handles, A.map(handle => handle.recommendations), A.flatten),
     genres: [],
     uri: pipe(handles, A.map(handle => handle.uri)).join(','),
     uris: pipe(handles, A.map(handle => handle.uri))

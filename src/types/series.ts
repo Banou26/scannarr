@@ -9,22 +9,14 @@ import type ImageData from './image-data'
 import type Name from './name'
 import type Synopsis from './synopsis'
 import type Tag from './tag'
+import { LanguageTag } from '../../../laserr/src/utils'
 
 // todo: check if i can add any of https://newznab.readthedocs.io/en/latest/misc/api/#list-of-attributes
 
-export type SeriesRelation = 'spinoff' | 'adaptation' | 'prequel' | 'sequel'
-
-// export type Series =
-//   HandleTypeToType<
-//     SeriesHandle,
-//     'names' | 'dates' | 'images' | 'synopses' |
-//     'related' | 'recommended' | 'tags' | 'genres',
-//     {
-//       categories: (Handle & { category: Category })[]
-//       related: Relation<Series>[]
-//       titles: Title[]
-//     }
-//   >
+export type SeriesRelation = 'SPIN_OFF' | 'ADAPTATION' | 'PREQUEL' | 'SEQUEL' | 'PARENT' | 'SIDE_STORY' | 'CHARACTER' | 'SUMMARY' | 'ALTERNATIVE' | 'OTHER' | 'SOURCE' | 'COMPILATION' | 'CONTAINS'
+export type SeriesStatus = 'FINISHED' | 'RELEASING' | 'NOT_YET_RELEASED' | 'CANCELLED' | 'HIATUS'
+export type SeriesFormat = 'TV' | 'TV_SHORT' | 'MOVIE' | 'SPECIAL' | 'OVA' | 'ONA' | 'MUSIC' | 'MANGA' | 'NOVEL' | 'ONE_SHOT'
+export type MediaSource = 'MANGA' | 'LIGHT_NOVEL' | 'VISUAL_NOVEL' | 'VIDEO_GAME' | 'OTHER' | 'NOVEL' | 'DOUJINSHI' | 'ANIME' | 'WEB_NOVEL' | 'LIVE_ACTION' | 'GAME' | 'COMIC' | 'MULTIMEDIA_PROJECT' | 'PICTURE_BOOK'
 
 export type Series =
   {
@@ -32,14 +24,27 @@ export type Series =
     uris: string[]
     categories: Category[]
     names: Name[]
+    /**
+     * Usually refers to a tv show's season number or a book's number in a book series, if there's any
+     * If anyone has a better general name, we could change it to something that makes more sense
+    */
+    unit?: number
+    format?: SeriesFormat
+    status?: SeriesStatus
     dates: DateData[]
+    duration?: number
+    source?: MediaSource
     images: ImageData[]
+    countryOfOrigin?: LanguageTag | string
+    averageScore?: number
+    isAdult?: boolean
     synopses: Synopsis[]
     // todo: replace these SeriesHandle by Series
-    related: Relation<SeriesHandle>[]
+    relations: Relation<SeriesHandle>[]
     handles: SeriesHandle[]
     titles: TitleHandle[]
-    recommended: SeriesHandle[]
+    titleNumbers?: number
+    recommendations: SeriesHandle[]
     genres: GenreHandle[]
   }
 
@@ -47,13 +52,26 @@ export type SeriesHandle =
   Handle & {
     categories: Category[]
     names: Name[]
-    dates: DateData[]
-    images: ImageData[]
-    synopses: Synopsis[]
-    related: Relation<SeriesHandle>[]
-    handles: SeriesHandle[]
-    titles: TitleHandle[]
-    recommended: SeriesHandle[]
-    tags: Tag[]
-    genres: GenreHandle[]
+    /**
+     * Usually refers to a tv show's season number or a book's number in a book series, if there's any
+     * If anyone has a better general name, we could change it to something that makes more sense
+    */
+    unit?: number
+    format?: SeriesFormat
+    status?: SeriesStatus
+    dates?: DateData[]
+    duration?: number
+    source?: MediaSource
+    images?: ImageData[]
+    countryOfOrigin?: LanguageTag | string
+    averageScore?: number
+    isAdult?: boolean
+    synopses?: Synopsis[]
+    relations?: Relation<SeriesHandle>[]
+    handles?: SeriesHandle[]
+    titles?: TitleHandle[]
+    titleNumbers?: number
+    recommendations?: SeriesHandle[]
+    tags?: Tag[]
+    genres?: GenreHandle[]
   }
