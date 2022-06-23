@@ -12,3 +12,5 @@ export type Relation<T> =  {
     never
   reference: T
 }
+
+export default Relation

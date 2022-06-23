@@ -9,10 +9,17 @@
     "copy-seal": "npx --yes copyfiles -u 3 ./node_modules/seal-wasm/build/*.wasm build",
     "test": "epk",
     "test-watch": "epk -w",
-    "dev": "node ./build.js -w"
+    "dev": "node ./build.js -w",
+    "lint": "eslint --fix"
   },
   "devDependencies": {
-    "epk": "^0.16.0"
+    "@typescript-eslint/eslint-plugin": "^5.29.0",
+    "@typescript-eslint/parser": "^5.29.0",
+    "epk": "^0.16.0",
+    "eslint": "^8.18.0",
+    "eslint-plugin-react": "^7.30.0",
+    "eslint-plugin-typescript-sort-keys": "^2.1.0",
+    "typescript": "^4.7.4"
   },
   "dependencies": {
     "fp-ts": "^2.12.1",

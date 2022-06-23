@@ -10,3 +10,5 @@ export type Team = {
   url?: string
   icon?: string
 }
+
+export default Team
