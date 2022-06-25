@@ -1,5 +1,5 @@
 import type { Observable } from 'rxjs'
-import type { Uri } from './utils'
+import type { Uri } from './utils/uri'
 import type { Category, FetchType, Genre, Series, SeriesHandle, Title, TitleHandle } from './types'
 
 export type ExtraOptions = {
@@ -9,13 +9,11 @@ export type ExtraOptions = {
 export type GetOptions = {
   uri: Uri
 } | {
-  scheme: string
   id: string
+  scheme: string
 }
 
-export type GetSeriesOptions = {
-
-} & GetOptions
+export type GetSeriesOptions = GetOptions
 
 export type GetTitleOptions = (
   {
@@ -33,13 +31,13 @@ export type SearchLatestOptions = {
 }
 
 export type BaseSearchOptions = {
-  scheme?: string
   categories?: Category[]
   genres?: Genre[]
-  /** Certainty score of the result */
-  score?: number
   // todo: check for a generalized way to handle pagination
   pagination?: number
+  scheme?: string
+  /** Certainty score of the result */
+  score?: number
 }
 
 export type SearchSeriesOptions = ({
@@ -49,30 +47,36 @@ export type SearchSeriesOptions = ({
 export type SearchTitlesOptions = (({
   series: Series
 } | {
-  series?: Series
   search: string | Title
+  series?: Series
 }) | SearchLatestOptions) & BaseSearchOptions
 
 export type SearchSeries = (options: SearchSeriesOptions, extraOptions: ExtraOptions) => Observable<SeriesHandle[]>
 export type SearchTitles = (options: SearchTitlesOptions, extraOptions: ExtraOptions) => Observable<TitleHandle[]>
 
 export type Target = {
-  /** Origin URL, e.g: https://example.com/ */
-  origin: string
-
   categories: Category[]
-  /** Name of the target, e.g: Example */
-  name: string
-  /** Preferably short, unique scheme used to identify resources, e.g: exmpl */
-  scheme: string
-  /** Test function that should verify that the external resource hasn't made breaking changes */
-  test?: () => Promise<void>
 
   getSeries?: GetSeries
   getTitle?: GetTitle
 
+  /** Icon URL of the target, e.g: https://example.com/favicon.svg */
+  icon?: string
+
+  /** Name of the target, e.g: Example */
+  name: string
+
+  /** Origin URL, e.g: https://example.com/ */
+  origin: string
+
+  /** Preferably short, unique scheme used to identify resources, e.g: exmpl */
+  scheme: string
+
   searchSeries?: SearchSeries
   searchTitles?: SearchTitles
+
+  /** Test function that should verify that the external resource hasn't made breaking changes */
+  test?: () => Promise<void>
 }
 
 export const targets = new Map<string, Target>()

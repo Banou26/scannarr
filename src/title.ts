@@ -7,20 +7,8 @@ import type { ExtraOptions, GetTitle, GetTitleOptions, SearchTitles, SearchTitle
 import { getTarget, getTargets } from './targets'
 import { Title, TitleHandle } from './types'
 import { fromUri } from './utils/uri'
-import { byScore } from './utils'
-
-export const findMostCommon = <T>(arr: T[]): T => {
-  const instances = [
-    ...arr
-      .reduce(
-        (map, val) => map.set(val, (map.get(val) ?? 0) + 1),
-        new Map()
-      )
-      .entries()
-  ]
-  const max = Math.max(...instances.map(([, instances]) => instances))
-  return instances.filter(([, instances]) => instances === max).map(([num]) => num).at(0)
-}
+import { byScore } from './utils/sort'
+import { findMostCommon } from './utils/find'
 
 // pipe(
 //   users,
@@ -41,7 +29,7 @@ export const findMostCommon = <T>(arr: T[]): T => {
 // );
 
 
-const titleHandlesToTitle = (handles: TitleHandle[]): Title => {
+export const titleHandlesToTitle = (handles: TitleHandle[]): Title => {
   return {
     uri: pipe(handles, A.map(handle => handle.uri)).join(','),
     uris: pipe(handles, A.map(handle => handle.uri)),

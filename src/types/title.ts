@@ -47,7 +47,7 @@ export type TitleHandle =
     categories?: Category[]
     comments?: Comment[]
     dates?: DateData[]
-    uploadDate?: DateData
+    description?: string
     handles?: TitleHandle[]
     images?: ImageData[]
     names?: Name[]
@@ -66,13 +66,13 @@ export type TitleHandle =
     resolution?: Resolution
     size?: number
     synopses?: Synopsis[]
-    description?: string
+    tags?: Tag[]
+    team?: Team
     /**
      * Usually refers to a tv show's season number or a book's number in a book series, if there's any
      * If anyone has a better general name, we could change it to something that makes more sense
     */
     unit?: number
+    uploadDate?: DateData
     uploader?: User
-    tags?: Tag[]
-    team?: Team
   }

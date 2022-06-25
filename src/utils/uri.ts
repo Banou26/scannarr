@@ -1,11 +1,13 @@
-import { Handle } from '../types/handle'
+import Handle from '../types/handle'
 
-export const fromUri = (uri: string) => {
+export type Uri = `${string}:${string}`
+
+export const fromUri = (uri: Uri) => {
   const [scheme, id] = uri.split(':')
-  return { scheme, id } as { scheme: string, id: string }
+  return { scheme: scheme!, id: id! }
 }
 
-export const toUri = ({ scheme, id }: { scheme: string, id: string }) => `${scheme}:${id}`
+export const toUri = ({ scheme, id }: { scheme: string, id: string }): Uri => `${scheme}:${id}`
 
 export const populateUri = <T extends Partial<Pick<Handle, 'uri'>> & Omit<Handle, 'uri'>>(handle: T): T & Handle => ({
   ...handle,

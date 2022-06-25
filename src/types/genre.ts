@@ -1,11 +1,11 @@
 import type { Handle } from './handle'
 
 export type Genre = {
-  id: string
+  id?: string
   name: string
   adult?: boolean
+  /** number of items with that genre */
   amount?: number
-  // categories: Category[]
   handles?: GenreHandle[]
 }
 

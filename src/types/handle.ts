@@ -1,4 +1,4 @@
-import type { Uri } from '../utils'
+import type { Uri } from '../utils/uri'
 
 export type ShallowHandle = {
   /** ID of the material */
@@ -23,3 +23,7 @@ export type Handle =
   }
 
 export default Handle
+
+export const EqByUri = {
+  equals: (handle: Handle, handle2: Handle) => handle.uri === handle2.uri
+}
