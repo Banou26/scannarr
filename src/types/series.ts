@@ -28,25 +28,24 @@ export type Series =
     averageScore?: number
     categories: Category[]
     countryOfOrigin?: LanguageTag | string
-    dates: DateData[]
+    dates?: DateData[]
     duration?: number
     externalLinks?: Link[]
     format?: MediaFormat
-    genres: Genre[]
+    genres?: GenreHandle[]
     handles: SeriesHandle[]
-    images: ImageData[]
+    images?: ImageData[]
     isAdult?: boolean
     names: Name[]
     popularity?: number
-    recommendations: SeriesHandle[]
-    // todo: replace these SeriesHandle by Series
-    relations: Relation<SeriesHandle>[]
+    recommendations?: Series[]
+    relations?: Relation<Series>[]
     source?: MediaSource
     status?: SeriesStatus
-    synopses: Synopsis[]
+    synopses?: Synopsis[]
     tags?: Tag[]
     titleNumbers?: number
-    titles: Title[]
+    titles?: Title[]
     /**
      * Usually refers to a tv show's season number or a book's number in a book series, if there's any
      * If anyone has a better general name, we could change it to something that makes more sense

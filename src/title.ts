@@ -1,48 +1,54 @@
 import { Observable, merge, scan, startWith, map, tap, combineLatest, from, mergeMap } from 'rxjs'
 import * as A from 'fp-ts/Array'
+import * as S from 'fp-ts/String'
 import { contramap, reverse } from 'fp-ts/Ord'
 import { pipe } from 'fp-ts/function'
 
 import type { ExtraOptions, GetTitle, GetTitleOptions, SearchTitles, SearchTitlesOptions } from './targets'
 import { getTarget, getTargets } from './targets'
-import { Title, TitleHandle } from './types'
+import { Category, Title, TitleHandle } from './types'
 import { fromUri } from './utils/uri'
 import { byScore } from './utils/sort'
 import { findMostCommon } from './utils/find'
-
-// pipe(
-//   users,
-//   sort((a, b) => a.name.localeCompare(b.name)),
-//   maximumBy(u => u.id),
-//   head
-// )();
-
-// const commonItem = pipe(
-//   array,
-//   A.groupBy(x => x),
-//   A.map(arr => ({ item: arr[0], count: arr.length })),
-//   A.sort((x, y) => y.count - x.count),
-//   A.head
-// ).fold(
-//   () => none,
-//   x => some(x.item)
-// );
-
+import { HandleEq } from './utils/handle'
 
 export const titleHandlesToTitle = (handles: TitleHandle[]): Title => {
+
+  const flatHandles =
+    A.uniq<TitleHandle>(HandleEq)([
+      ...handles,
+      ...handles.flatMap(handle => handle.handles ?? [])
+    ])
+
+  // todo: add series property
   return {
-    uri: pipe(handles, A.map(handle => handle.uri)).join(','),
-    uris: pipe(handles, A.map(handle => handle.uri)),
-    unit: findMostCommon(pipe(handles, A.map(handle => handle.unit))),
-    number: findMostCommon(pipe(handles, A.map(handle => handle.number))),
-    names: pipe(handles, A.map(handle => handle.names), A.flatten, A.sortBy([byScore])),
-    images: pipe(handles, A.map(handle => handle.images), A.flatten),
+    categories: pipe(handles, A.map(handle => handle.categories), A.flatten, A.uniq(S.Eq)) as Category[],
     dates: pipe(handles, A.map(handle => handle.dates), A.flatten),
+    handles: flatHandles,
+    images: pipe(handles, A.map(handle => handle.images), A.flatten),
+    names: pipe(handles, A.map(handle => handle.names), A.flatten, A.sortBy([byScore])),
+    number: findMostCommon(pipe(handles, A.map(handle => handle.number))),
+    recommendations:
+      pipe(
+        handles,
+        A.map(handle => handle.recommendations),
+        A.flatten,
+        A.map(handle => titleHandlesToTitle([handle]))
+      ),
+    relations:
+      pipe(
+        handles,
+        A.map(handle => handle.relations),
+        A.flatten,
+        A.map(relation => ({
+          ...relation,
+          reference: titleHandlesToTitle([relation.reference])
+        }))
+      ),
     synopses: pipe(handles, A.map(handle => handle.synopses), A.flatten),
-    handles,
-    categories: pipe(handles, A.map(handle => handle.categories), A.flatten),
-    related: pipe(handles, A.map(handle => handle.related), A.flatten),
-    recommended: pipe(handles, A.map(handle => handle.recommended), A.flatten)
+    unit: findMostCommon(pipe(handles, A.map(handle => handle.unit))),
+    uri: pipe(handles, A.map(handle => handle.uri)).join(','),
+    uris: pipe(handles, A.map(handle => handle.uri))
   }
 }
 
@@ -61,7 +67,6 @@ const get = (options: GetTitleOptions, extraOptions: ExtraOptions = { fetch }): 
 })()).pipe(mergeMap(observable => observable))
 
 const search = <T extends SearchTitlesOptions>(options: T, extraOptions: ExtraOptions = { fetch }) => {
-  console.log('searchTitles', options, extraOptions)
   const targets = getTargets()
   return combineLatest(
     targets
@@ -73,7 +78,6 @@ const search = <T extends SearchTitlesOptions>(options: T, extraOptions: ExtraOp
       .filter(target => target.searchTitles)
       .map(target => target.searchTitles!(options, extraOptions))
   ).pipe(
-    tap(v => console.log('SEARCHTITLES TAP', v)),
     startWith([]),
     map(titleHandles => (
       'search' in options && typeof options.search !== 'string'

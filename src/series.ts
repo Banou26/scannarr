@@ -1,9 +1,8 @@
 import { Observable, startWith, combineLatest, from, mergeMap } from 'rxjs'
-import { map, tap } from 'rxjs/operators'
+import { map } from 'rxjs/operators'
 import * as A from 'fp-ts/Array'
 import * as S from 'fp-ts/String'
 import * as N from 'fp-ts/Number'
-import * as R from 'fp-ts/Record'
 import { pipe } from 'fp-ts/function'
 import { toUndefined } from 'fp-ts/lib/Option'
 
@@ -11,11 +10,11 @@ import { fromUri } from './utils/uri'
 import { byScore } from './utils/sort'
 import type { ExtraOptions, GetSeriesOptions, SearchSeriesOptions } from './targets'
 import { getTarget, getTargets } from './targets'
-import { Category, Series, SeriesHandle } from './types'
+import { Category, GenreHandle, Series, SeriesHandle } from './types'
 import { titleHandlesToTitle } from './title'
 import { findMostCommon } from './utils/find'
 import { GenreEq } from './utils/equal'
-import { concat, groupBy } from 'fp-ts/lib/NonEmptyArray'
+import { groupHandles, HandleEq } from './utils/handle'
 
 const seriesHandlesToSeries = (handles: SeriesHandle[]): Series => {
   const scores =
@@ -26,6 +25,13 @@ const seriesHandlesToSeries = (handles: SeriesHandle[]): Series => {
     )
 
   const airingSchedule = findMostCommon(pipe(handles, A.map(handle => handle.airingSchedule)))
+
+  const flatHandles =
+    A.uniq<SeriesHandle>(HandleEq)([
+      ...handles,
+      ...handles.flatMap(handle => handle.handles ?? [])
+    ])
+
   return {
     airingSchedule: airingSchedule?.length ? airingSchedule : undefined,
     averageScore:
@@ -43,14 +49,29 @@ const seriesHandlesToSeries = (handles: SeriesHandle[]): Series => {
     duration: findMostCommon(pipe(handles, A.map(handle => handle.duration))),
     externalLinks: pipe(handles, A.map(handle => handle.externalLinks), A.flatten),
     format: findMostCommon(pipe(handles, A.map(handle => handle.format))),
-    genres: pipe(handles, A.map(handle => handle.genres), A.flatten, A.uniq(GenreEq)),
-    handles,
+    genres: pipe(handles, A.map(handle => handle.genres), A.flatten, A.uniq(GenreEq)) as GenreHandle[],
+    handles: flatHandles,
     images: pipe(handles, A.map(handle => handle.images), A.flatten),
     isAdult: findMostCommon(pipe(handles, A.map(handle => handle.isAdult))),
     names: pipe(handles, A.map(handle => handle.names), A.flatten, A.sortBy([byScore])),
     popularity: pipe(handles, A.map(handle => handle.popularity), A.filter(Boolean), A.sort(N.Ord), A.head, toUndefined),
-    recommendations: pipe(handles, A.map(handle => handle.recommendations), A.flatten),
-    relations: pipe(handles, A.map(handle => handle.relations), A.flatten),
+    recommendations:
+      pipe(
+        handles,
+        A.map(handle => handle.recommendations),
+        A.flatten,
+        A.map(handle => seriesHandlesToSeries([handle]))
+      ),
+    relations:
+      pipe(
+        handles,
+        A.map(handle => handle.relations),
+        A.flatten,
+        A.map(relation => ({
+          ...relation,
+          reference: seriesHandlesToSeries([relation.reference])
+        }))
+      ),
     source: findMostCommon(pipe(handles, A.map(handle => handle.source))),
     status: findMostCommon(pipe(handles, A.map(handle => handle.status))),
     synopses: pipe(handles, A.map(handle => handle.synopses), A.flatten),
@@ -76,15 +97,9 @@ const get = (options: GetSeriesOptions, extraOptions: ExtraOptions = { fetch }):
         map(series => seriesHandlesToSeries([series]))
       )
   )
-  // const series = seriesHandlesToSeries([results])
-  // // console.log('FOO', results)
-  // // console.log('BAR', series)
-  // return series
-  // return series
 })()).pipe(mergeMap(observable => observable))
 
 const search = (options: SearchSeriesOptions, extraOptions: ExtraOptions = { fetch }): Observable<Series[]> => {
-  console.log('searchSeries', options, extraOptions)
   const targets = getTargets()
 
   return combineLatest(
@@ -95,65 +110,20 @@ const search = (options: SearchSeriesOptions, extraOptions: ExtraOptions = { fet
         !options.categories ||
         target.categories.some(category => options.categories?.includes(category))
       )
-      .map(target => target.searchSeries!(options, extraOptions))
+      .map(target =>
+        target
+          .searchSeries!(options, extraOptions)
+          .pipe(startWith([]))
+      )
   ).pipe(
     startWith([]),
     map(values => {
-      const handlesMap =
-        pipe(
-          values,
-          A.flatten,
-          groupBy(handle => handle.uri)
-        )
-
-      const groupedHandles =
-        pipe(
-          handlesMap,
-          R.toEntries,
-          A.map(([uri, [handle]]) => [
-            uri,
-            [
-              handle,
-              ...values
-                .flat()
-                .filter(handle =>
-                  handle.handles?.some(({ uri: innerUri }) => uri === innerUri)
-                )
-            ]
-          ] as [string, SeriesHandle[]]),
-          A.filter(([, arr]) => arr.length > 1),
-          R.fromEntries
-        )
-
-      const groupedHandleSet =
-        pipe(
-          groupedHandles,
-          R.toEntries,
-          A.map(([, handles]) => handles),
-          A.flatten,
-          A.map(handle => handle.uri)
-        )
-
-      const resultHandles = [
-        ...pipe(
-          values,
-          A.flatten,
-          A.filter(handle => !groupedHandleSet.includes(handle.uri)),
-          A.map(handle => seriesHandlesToSeries([handle]))
-        ),
-        ...pipe(
-          groupedHandles,
-          R.toEntries,
-          A.map(([, handles]) => seriesHandlesToSeries(handles))
-        )
+      const { groups, singles } = groupHandles(values.flat())
+      return [
+        ...singles.map(handle => seriesHandlesToSeries([handle])),
+        ...groups.map(([, handles]) => seriesHandlesToSeries(handles))
       ]
-      return resultHandles
-    }),
-    // map(seriesHandles =>
-    //   seriesHandles
-    //     .flat()
-    //     .map(handle => seriesHandlesToSeries([handle]))
-    // )
+    })
   )
 }
 

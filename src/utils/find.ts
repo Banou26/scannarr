@@ -1,6 +1,7 @@
-export const findMostCommon = <T>(arr: T[]): T => {
+export const findMostCommon = <T>(arr: T[]): T | undefined => {
   const instances = [
     ...arr
+      .filter(val => val !== undefined || val !== null)
       .reduce(
         (map, val) => map.set(val, (map.get(val) ?? 0) + 1),
         new Map()
