@@ -19,6 +19,7 @@ export type TitleRelation = 'previous' | 'next'
 
 export type Title =
   {
+    averageScore?: number
     categories: Category[]
     dates?: DateData[]
     handles: TitleHandle[]
@@ -45,6 +46,7 @@ export type Title =
 
 export type TitleHandle =
   Handle & {
+    averageScore?: number
     /**
      * Only used for Titles that are parts of series
      */

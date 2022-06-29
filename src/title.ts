@@ -13,7 +13,12 @@ import { findMostCommon } from './utils/find'
 import { HandleEq } from './utils/handle'
 
 export const titleHandlesToTitle = (handles: TitleHandle[]): Title => {
-
+  const scores =
+    pipe(
+      handles,
+      A.map(handle => handle.averageScore),
+      A.filter(Boolean)
+    )
   const flatHandles =
     A.uniq<TitleHandle>(HandleEq)([
       ...handles,
@@ -22,6 +27,15 @@ export const titleHandlesToTitle = (handles: TitleHandle[]): Title => {
 
   // todo: add series property
   return {
+    averageScore:
+      scores.length
+        ? (
+          pipe(
+            scores,
+            A.reduce(0, (acc, score: number) => acc + score)
+          ) / handles.length
+        )
+        : undefined,
     categories: pipe(handles, A.map(handle => handle.categories), A.flatten, A.uniq(S.Eq)) as Category[],
     dates: pipe(handles, A.map(handle => handle.dates), A.flatten),
     handles: flatHandles,
