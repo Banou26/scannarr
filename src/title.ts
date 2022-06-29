@@ -1,4 +1,4 @@
-import { Observable, merge, scan, startWith, map, tap, combineLatest, from, mergeMap } from 'rxjs'
+import { Observable, merge, scan, startWith, map, tap, combineLatest, from, mergeMap, catchError } from 'rxjs'
 import * as A from 'fp-ts/Array'
 import * as S from 'fp-ts/String'
 import { contramap, reverse } from 'fp-ts/Ord'
@@ -76,7 +76,17 @@ const search = <T extends SearchTitlesOptions>(options: T, extraOptions: ExtraOp
         target.categories.some(category => options.categories?.includes(category))
       )
       .filter(target => target.searchTitles)
-      .map(target => target.searchTitles!(options, extraOptions))
+      .map(target =>
+        target
+          .searchTitles!(options, extraOptions)
+          .pipe(
+            catchError(err => {
+              console.error(err)
+              throw err
+            }),
+            startWith([])
+          )
+      )
   ).pipe(
     startWith([]),
     map(titleHandles => (

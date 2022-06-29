@@ -1,5 +1,5 @@
 import { Observable, startWith, combineLatest, from, mergeMap } from 'rxjs'
-import { map } from 'rxjs/operators'
+import { catchError, map } from 'rxjs/operators'
 import * as A from 'fp-ts/Array'
 import * as S from 'fp-ts/String'
 import * as N from 'fp-ts/Number'
@@ -113,7 +113,13 @@ const search = (options: SearchSeriesOptions, extraOptions: ExtraOptions = { fet
       .map(target =>
         target
           .searchSeries!(options, extraOptions)
-          .pipe(startWith([]))
+          .pipe(
+            catchError(err => {
+              console.error(err)
+              throw err
+            }),
+            startWith([])
+          )
       )
   ).pipe(
     startWith([]),
