@@ -7,3 +7,9 @@ export const byScore = pipe(
   contramap((p: { score: number }) => p.score),
   reverse
 )
+
+export const byDate = pipe(
+  N.Ord,
+  contramap((p: { date: Date }) => p.date.getTime()),
+  reverse
+)
