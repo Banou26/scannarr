@@ -24,7 +24,13 @@ const seriesHandlesToSeries = (handles: SeriesHandle[]): Series => {
       A.filter(Boolean)
     )
 
-  const airingSchedule = findMostCommon(pipe(handles, A.map(handle => handle.airingSchedule)))
+  const airingSchedule = pipe(
+    handles,
+    A.map(handle => handle.airingSchedule),
+    A.flatten,
+    A.filter(airingSchedule => !isNaN(Number(airingSchedule.date)))
+  )
+  // const airingSchedule = findMostCommon(pipe(handles, A.map(handle => handle.airingSchedule)))
 
   const flatHandles =
     A.uniq<SeriesHandle>(HandleEq)([
@@ -45,7 +51,18 @@ const seriesHandlesToSeries = (handles: SeriesHandle[]): Series => {
         : undefined,
     categories: pipe(handles, A.map(handle => handle.categories), A.flatten, A.uniq(S.Eq)) as Category[],
     countryOfOrigin: findMostCommon(pipe(handles, A.map(handle => handle.countryOfOrigin))),
-    dates: pipe(handles, A.map(handle => handle.dates), A.flatten),
+    dates: pipe(
+      handles,
+      A.map(handle => handle.dates),
+      A.flatten,
+      A.filter(dateData =>
+        !isNaN(Number(
+          'date' in dateData
+            ? dateData.date
+            : dateData.start
+        ))
+      )
+    ),
     duration: findMostCommon(pipe(handles, A.map(handle => handle.duration))),
     externalLinks: pipe(handles, A.map(handle => handle.externalLinks), A.flatten),
     format: findMostCommon(pipe(handles, A.map(handle => handle.format))),
