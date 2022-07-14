@@ -1,3 +1,4 @@
+export * from './airing-schedule'
 export * from './category'
 export * from './date'
 export * from './fetch'
