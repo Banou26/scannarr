@@ -13,3 +13,9 @@ export const byDate = pipe(
   contramap((p: { date: Date }) => p.date.getTime()),
   reverse
 )
+
+export const byPopularity = pipe(
+  N.Ord,
+  contramap((p: { popularity?: number }) => p.popularity),
+  reverse
+)
