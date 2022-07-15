@@ -21,6 +21,7 @@ export type Title =
   {
     averageScore?: number
     categories: Category[]
+    comments?: Comment[]
     dates?: DateData[]
     handles: TitleHandle[]
     images?: ImageData[]

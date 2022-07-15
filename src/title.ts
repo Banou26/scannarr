@@ -37,6 +37,7 @@ export const titleHandlesToTitle = (handles: TitleHandle[]): Title => {
         )
         : undefined,
     categories: pipe(handles, A.map(handle => handle.categories), A.flatten, A.uniq(S.Eq)) as Category[],
+    comments: pipe(handles, A.map(handle => handle.comments), A.flatten),
     dates: pipe(handles, A.map(handle => handle.dates), A.flatten),
     handles: flatHandles,
     images: pipe(handles, A.map(handle => handle.images), A.flatten),
