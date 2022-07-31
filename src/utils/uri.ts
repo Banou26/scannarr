@@ -18,12 +18,7 @@ export const isUri = (uri: string) =>
 export const isUris = (uri: string) =>
   uri
     .split(',')
-    .every(uri =>
-      uri
-      .split(':')
-      .filter(part => part.length)
-      .length === 2
-    )
+    .every(isUri)
 
 export const populateUri = <T extends Partial<Pick<Handle, 'uri'>> & Omit<Handle, 'uri'>>(handle: T): T & Handle => ({
   ...handle,
