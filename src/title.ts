@@ -1,4 +1,4 @@
-import { Observable, merge, scan, startWith, map, tap, combineLatest, from, mergeMap, catchError } from 'rxjs'
+import { Observable, merge, scan, startWith, map, tap, combineLatest, from, mergeMap, catchError, of } from 'rxjs'
 import * as A from 'fp-ts/Array'
 import * as S from 'fp-ts/String'
 import { contramap, reverse } from 'fp-ts/Ord'
@@ -7,7 +7,7 @@ import { pipe } from 'fp-ts/function'
 import type { ExtraOptions, GetTitle, GetTitleOptions, SearchTitles, SearchTitlesOptions } from './targets'
 import { getTarget, getTargets } from './targets'
 import { Category, Title, TitleHandle } from './types'
-import { fromUri } from './utils/uri'
+import { fromUri, fromUris } from './utils/uri'
 import { byScore } from './utils/sort'
 import { findMostCommon } from './utils/find'
 import { HandleEq } from './utils/handle'
@@ -70,16 +70,24 @@ export const titleHandlesToTitle = (handles: TitleHandle[]): Title => {
 }
 
 const get = (options: GetTitleOptions, extraOptions: ExtraOptions = { fetch }): Observable<Title> => from((async () => {
-  const { scheme } = 'uri' in options ? fromUri(options.uri) : options
-  const target = getTarget(scheme)
-  if (!target || !target.getTitle) return from([])
-  const titleHandle = await target.getTitle(options, extraOptions)
-  if (!titleHandle) return from([])
   return (
-    titleHandle
-      .pipe(
-        map(titleHandle => titleHandlesToTitle([titleHandle]))
-      )
+    combineLatest(
+      fromUris(options.uri)
+        .map(({ scheme }) => {
+          const target = getTarget(scheme)
+          if (!target || !target.getTitle) return from([])
+          const result = target.getTitle(options, extraOptions)
+          if (!result) return of()
+          return (
+            result
+              .pipe(
+                startWith(undefined)
+              )
+          )
+        })
+    ).pipe(
+      map(series => titleHandlesToTitle(series.filter(Boolean) as TitleHandle []))
+    )
   )
 })()).pipe(mergeMap(observable => observable))
 

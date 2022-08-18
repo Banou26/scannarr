@@ -6,12 +6,7 @@ export type ExtraOptions = {
   fetch: FetchType
 }
 
-export type GetOptions = {
-  uri: Uri
-} | {
-  id: string
-  scheme: string
-}
+export type GetOptions = { uri: Uri }
 
 export type GetSeriesOptions = GetOptions
 
