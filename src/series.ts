@@ -13,7 +13,7 @@ import { getTarget, getTargets } from './targets'
 import { Category, GenreHandle, Series, SeriesHandle } from './types'
 import { titleHandlesToTitle } from './title'
 import { findMostCommon } from './utils/find'
-import { GenreEq } from './utils/equal'
+import { GenreEq, NameEq } from './utils/equal'
 import { groupHandles, HandleEq } from './utils/handle'
 
 const seriesHandlesToSeries = (handles: SeriesHandle[]): Series => {
@@ -70,7 +70,8 @@ const seriesHandlesToSeries = (handles: SeriesHandle[]): Series => {
     handles: flatHandles,
     images: pipe(handles, A.map(handle => handle.images), A.flatten),
     isAdult: findMostCommon(pipe(handles, A.map(handle => handle.isAdult))),
-    names: pipe(handles, A.map(handle => handle.names), A.flatten, A.sortBy([byScore])),
+    // todo: think about keeping the score of removed duplicate names
+    names: pipe(handles, A.map(handle => handle.names), A.flatten, A.uniq(NameEq), A.sortBy([byScore])),
     popularity: pipe(handles, A.map(handle => handle.popularity), A.filter(Boolean), A.sort(N.Ord), A.head, toUndefined),
     recommendations:
       pipe(

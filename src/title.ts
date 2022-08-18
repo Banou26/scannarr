@@ -11,6 +11,7 @@ import { fromUri } from './utils/uri'
 import { byScore } from './utils/sort'
 import { findMostCommon } from './utils/find'
 import { HandleEq } from './utils/handle'
+import { NameEq } from './utils/equal'
 
 export const titleHandlesToTitle = (handles: TitleHandle[]): Title => {
   const scores =
@@ -41,7 +42,8 @@ export const titleHandlesToTitle = (handles: TitleHandle[]): Title => {
     dates: pipe(handles, A.map(handle => handle.dates), A.flatten),
     handles: flatHandles,
     images: pipe(handles, A.map(handle => handle.images), A.flatten),
-    names: pipe(handles, A.map(handle => handle.names), A.flatten, A.sortBy([byScore])),
+    // todo: think about keeping the score of removed duplicate names
+    names: pipe(handles, A.map(handle => handle.names), A.flatten, A.uniq(NameEq), A.sortBy([byScore])),
     number: findMostCommon(pipe(handles, A.map(handle => handle.number))),
     recommendations:
       pipe(
