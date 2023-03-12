@@ -55,8 +55,8 @@ interface Media {
   synopses: [Synopsis!]!
 }
 
-# A title is a single media item, contained in a series, a collection or a sequence of titles.
-# A few examples of titles are:
+# An episode is a single media item, contained in a series, a collection or a sequence of episodes.
+# A few examples of episodes are:
 #  - Tv show episode
 #  - Manga chapter
 #  - Book chapter
@@ -68,14 +68,14 @@ interface Media {
 # https://en.wikipedia.org/wiki/Chapter_(books)
 # https://en.wikipedia.org/wiki/Title_(publishing)
 # https://en.wikipedia.org/wiki/Sequence
-interface Title implements Handle & Media {
+interface Episode implements Handle & Media {
   # Handle
   handler: String!
   origin: String!
   id: String!
   uri: Uri!
   url: String
-  handles: [Title!]!
+  handles: [Episode!]!
 
   # Media
   averageScore: Float
@@ -88,7 +88,7 @@ interface Title implements Handle & Media {
   relations: [Relation!]!
   synopses: [Synopsis!]!
   description: String
-  # Title number (inside of the unit, if there's any)
+  # Episode number (inside of the unit, if there's any)
   # Generally a tv show episode number or a manga's chapter number
   # Might be undefined for movies, ect...
   number: Int
@@ -131,7 +131,7 @@ interface Title implements Handle & Media {
 # }
 
 
-# A series is a collection or sequence of titles that are related to each other
+# A series is a collection or sequence of episodes that are related to each other
 # It is a creative work, or a sequence of creative works
 # A few examples of series are:
 #  - Tv show
@@ -151,7 +151,7 @@ interface Series {
 }
 
 enum ResourceType {
-  TITLE
+  EPISODE
   SERIES
 }
 
