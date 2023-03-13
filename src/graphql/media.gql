@@ -1,0 +1,200 @@
+"""
+Media is a type of handle that represents a media file.
+It generally represents a Movie, TV Show, Game, Package, ect...
+"""
+type Media implements Handle {
+  # Handle properties
+  handler: String!
+  origin: String!
+  id: String!
+  uri: Uri!
+  url: String
+  handles: [Handle!]!
+
+  # Media properties
+  title: MediaTitle
+  type: MediaType
+  status: MediaStatus
+}
+
+type MediaEdge implements HandleEdge {
+  node: Media!
+}
+
+type MediaConnection implements HandleConnection {
+  edges: [MediaEdge]
+  nodes: [Media]
+
+  """The pagination information"""
+  pageInfo: PageInfo
+}
+
+"""An external link to another site related to the media or its properties"""
+type MediaExternalLink implements Handle {
+  # Handle properties
+  handler: String!
+  origin: String!
+  id: String!
+  uri: Uri!
+  url: String
+  handles: [Handle!]!
+
+  # MediaExternalLink properties
+  color: String
+
+  """The icon image url of the site. Not available for all links"""
+  icon: String
+
+  isDisabled: Boolean
+
+  """Language the site content is in"""
+  language: String
+  notes: String
+
+  type: ExternalLinkType
+}
+
+"""Media trailer or advertisement"""
+type MediaTrailer implements Handle {
+  # Handle properties
+  handler: String!
+  origin: String!
+  id: String!
+  uri: Uri!
+  url: String
+  handles: [Handle!]!
+
+  # MediaTrailer properties
+  """The url for the thumbnail image of the video"""
+  thumbnail: String
+}
+
+"""Source type the media was adapted from"""
+enum MediaType {
+  """Asian comic book"""
+  MANGA
+
+  """Written work published in volumes"""
+  LIGHT_NOVEL
+
+  """Video game driven primary by text and narrative"""
+  VISUAL_NOVEL
+
+  """Video game"""
+  VIDEO_GAME
+
+  """Other"""
+  OTHER
+
+  """Written works not published in volumes"""
+  NOVEL
+
+  """Self-published works"""
+  DOUJINSHI
+
+  """Japanese Anime"""
+  ANIME
+
+  """Written works published online"""
+  WEB_NOVEL
+
+  """Live action media such as movies or TV show"""
+  LIVE_ACTION
+
+  """Games excluding video games"""
+  GAME
+
+  """Comics excluding manga"""
+  COMIC
+
+  """Multimedia project"""
+  MULTIMEDIA_PROJECT
+
+  """Picture book"""
+  PICTURE_BOOK
+
+  """Software"""
+  SOFTWARE
+}
+
+
+"""Source type the media was adapted from"""
+enum MediaSource {
+  """An original production not based of another work"""
+  ORIGINAL
+
+  """Asian comic book"""
+  MANGA
+
+  """Written work published in volumes"""
+  LIGHT_NOVEL
+
+  """Video game driven primary by text and narrative"""
+  VISUAL_NOVEL
+
+  """Video game"""
+  VIDEO_GAME
+
+  """Other"""
+  OTHER
+
+  """Written works not published in volumes"""
+  NOVEL
+
+  """Self-published works"""
+  DOUJINSHI
+
+  """Japanese Anime"""
+  ANIME
+
+  """Written works published online"""
+  WEB_NOVEL
+
+  """Live action media such as movies or TV show"""
+  LIVE_ACTION
+
+  """Games excluding video games"""
+  GAME
+
+  """Comics excluding manga"""
+  COMIC
+
+  """Multimedia project"""
+  MULTIMEDIA_PROJECT
+
+  """Picture book"""
+  PICTURE_BOOK
+}
+
+"""The current releasing status of the media"""
+enum MediaStatus {
+  """Has completed and is no longer being released"""
+  FINISHED
+
+  """Currently releasing"""
+  RELEASING
+
+  """To be released at a later date"""
+  NOT_YET_RELEASED
+
+  """Ended before the work could be finished"""
+  CANCELLED
+
+  """Is currently paused from releasing and will resume at a later date"""
+  HIATUS
+}
+
+"""The official titles of the media in various languages"""
+type MediaTitle {
+  """The official english title"""
+  english: String
+
+  """Official title in it's native language"""
+  native: String
+
+  """The official language title"""
+  language(countryCode: CountryCode): String
+
+  """The currently authenticated users preferred title language. Default english"""
+  userPreferred: String
+}

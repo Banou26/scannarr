@@ -1,0 +1,12 @@
+
+enum ExternalLinkMediaType {
+  ANIME
+  MANGA
+  STAFF
+}
+
+enum ExternalLinkType {
+  INFO
+  STREAMING
+  SOCIAL
+}

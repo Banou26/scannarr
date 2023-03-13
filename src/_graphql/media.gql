@@ -1,4 +1,235 @@
 
+"""Anime or Manga"""
+type Media {
+  """The media's entire airing schedule"""
+  airingSchedule(
+    """Filter to episodes that have not yet aired"""
+    notYetAired: Boolean
+
+    """The page"""
+    page: Int
+
+    """The amount of entries per page, max 25"""
+    perPage: Int
+  ): AiringScheduleConnection
+
+  """
+  If the media should have forum thread automatically created for it on airing episode release
+  """
+  autoCreateForumThread: Boolean
+
+  """A weighted average score of all the user's scores of the media"""
+  averageScore: Int
+
+  """The banner image of the media"""
+  bannerImage: String
+
+  """The amount of chapters the manga has when complete"""
+  chapters: Int
+
+  """The characters in the media"""
+  characters(
+    """The page"""
+    page: Int
+
+    """The amount of entries per page, max 25"""
+    perPage: Int
+    role: CharacterRole
+    sort: [CharacterSort]
+  ): CharacterConnection
+
+  """Where the media was created. (ISO 3166-1 alpha-2)"""
+  countryOfOrigin: CountryCode
+
+  """The cover images of the media"""
+  coverImage: MediaCoverImage
+
+  """Short description of the media's story and characters"""
+  description(
+    """Return the string in pre-parsed html instead of markdown"""
+    asHtml: Boolean
+  ): String
+
+  """The general length of each anime episode in minutes"""
+  duration: Int
+
+  """The last official release date of the media"""
+  endDate: FuzzyDate
+
+  """The amount of episodes the anime has when complete"""
+  episodes: Int
+
+  """External links to another site related to the media"""
+  externalLinks: [MediaExternalLink]
+
+  """The amount of user's who have favourited the media"""
+  favourites: Int
+
+  """The format the media was released in"""
+  format: MediaFormat
+
+  """The genres of the media"""
+  genres: [String]
+
+  """Official Twitter hashtags for the media"""
+  hashtag: String
+
+  """The id of the media"""
+  id: Int!
+
+  """The mal id of the media"""
+  idMal: Int
+
+  """If the media is intended only for 18+ adult audiences"""
+  isAdult: Boolean
+
+  """If the media is marked as favourite by the current authenticated user"""
+  isFavourite: Boolean!
+
+  """If the media is blocked from being added to favourites"""
+  isFavouriteBlocked: Boolean!
+
+  """If the media is officially licensed or a self-published doujin release"""
+  isLicensed: Boolean
+
+  """
+  Locked media may not be added to lists our favorited. This may be due to the entry pending for deletion or other reasons.
+  """
+  isLocked: Boolean
+
+  """If the media is blocked from being recommended to/from"""
+  isRecommendationBlocked: Boolean
+
+  """If the media is blocked from being reviewed"""
+  isReviewBlocked: Boolean
+
+  """Mean score of all the user's scores of the media"""
+  meanScore: Int
+
+  """The authenticated user's media list entry for the media"""
+  mediaListEntry: MediaList
+
+  """Notes for site moderators"""
+  modNotes: String
+
+  """The media's next episode airing schedule"""
+  nextAiringEpisode: AiringSchedule
+
+  """The number of users with the media on their list"""
+  popularity: Int
+
+  """
+  The ranking of the media in a particular time span and format compared to other media
+  """
+  rankings: [MediaRank]
+
+  """User recommendations for similar media"""
+  recommendations(
+    """The page"""
+    page: Int
+
+    """The amount of entries per page, max 25"""
+    perPage: Int
+    sort: [RecommendationSort]
+  ): RecommendationConnection
+
+  """Other media in the same or connecting franchise"""
+  relations: MediaConnection
+
+  """User reviews of the media"""
+  reviews(
+    limit: Int
+
+    """The page"""
+    page: Int
+
+    """The amount of entries per page, max 25"""
+    perPage: Int
+    sort: [ReviewSort]
+  ): ReviewConnection
+
+  """The season the media was initially released in"""
+  season: MediaSeason
+
+  """The year & season the media was initially released in"""
+  seasonInt: Int
+
+  """The season year the media was initially released in"""
+  seasonYear: Int
+
+  """The url for the media page on the AniList website"""
+  siteUrl: String
+
+  """Source type the media was adapted from."""
+  source(
+    """Provide 2 or 3 to use new version 2 or 3 of sources enum"""
+    version: Int
+  ): MediaSource
+
+  """The staff who produced the media"""
+  staff(
+    """The page"""
+    page: Int
+
+    """The amount of entries per page, max 25"""
+    perPage: Int
+    sort: [StaffSort]
+  ): StaffConnection
+
+  """The first official release date of the media"""
+  startDate: FuzzyDate
+  stats: MediaStats
+
+  """The current releasing status of the media"""
+  status(
+    """Provide 2 to use new version 2 of sources enum"""
+    version: Int
+  ): MediaStatus
+
+  """Data and links to legal streaming episodes on external sites"""
+  streamingEpisodes: [MediaStreamingEpisode]
+
+  """The companies who produced the media"""
+  studios(isMain: Boolean, sort: [StudioSort]): StudioConnection
+
+  """Alternative titles of the media"""
+  synonyms: [String]
+
+  """List of tags that describes elements and themes of the media"""
+  tags: [MediaTag]
+
+  """The official titles of the media in various languages"""
+  title: MediaTitle
+
+  """Media trailer or advertisement"""
+  trailer: MediaTrailer
+
+  """The amount of related activity in the past hour"""
+  trending: Int
+
+  """The media's daily trend stats"""
+  trends(
+    """The page"""
+    page: Int
+
+    """The amount of entries per page, max 25"""
+    perPage: Int
+
+    """Filter to stats recorded while the media was releasing"""
+    releasing: Boolean
+    sort: [MediaTrendSort]
+  ): MediaTrendConnection
+
+  """The type of the media; anime or manga"""
+  type: MediaType
+
+  """When the media's data was last updated"""
+  updatedAt: Int
+
+  """The amount of volumes the manga has when complete"""
+  volumes: Int
+}
+
 """Internal - Media characters separated"""
 type MediaCharacter {
   """The characters in the media voiced by the parent actor"""
