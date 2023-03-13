@@ -1,0 +1,48 @@
+
+"""User's favourite anime, manga, characters, staff & studios"""
+type Favourites {
+  """Favourite anime"""
+  anime(
+    """The page number"""
+    page: Int
+
+    """The amount of entries per page, max 25"""
+    perPage: Int
+  ): MediaConnection
+
+  """Favourite characters"""
+  characters(
+    """The page number"""
+    page: Int
+
+    """The amount of entries per page, max 25"""
+    perPage: Int
+  ): CharacterConnection
+
+  """Favourite manga"""
+  manga(
+    """The page number"""
+    page: Int
+
+    """The amount of entries per page, max 25"""
+    perPage: Int
+  ): MediaConnection
+
+  """Favourite staff"""
+  staff(
+    """The page number"""
+    page: Int
+
+    """The amount of entries per page, max 25"""
+    perPage: Int
+  ): StaffConnection
+
+  """Favourite studios"""
+  studios(
+    """The page number"""
+    page: Int
+
+    """The amount of entries per page, max 25"""
+    perPage: Int
+  ): StudioConnection
+}

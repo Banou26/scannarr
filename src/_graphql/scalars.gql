@@ -1,0 +1,9 @@
+
+scalar Uri
+scalar Date
+scalar Json
+
+
+"""ISO 3166-1 alpha-2 country code"""
+scalar CountryCode
+

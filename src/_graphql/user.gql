@@ -1,0 +1,390 @@
+
+"""A user"""
+type User {
+  """The bio written by user (Markdown)"""
+  about(
+    """Return the string in pre-parsed html instead of markdown"""
+    asHtml: Boolean
+  ): String
+
+  """The user's avatar images"""
+  avatar: UserAvatar
+
+  """The user's banner images"""
+  bannerImage: String
+  bans: Json
+
+  """
+  When the user's account was created. (Does not exist for accounts created before 2020)
+  """
+  createdAt: Int
+
+  """Custom donation badge text"""
+  donatorBadge: String
+
+  """The donation tier of the user"""
+  donatorTier: Int
+
+  """The users favourites"""
+  favourites(
+    """Deprecated. Use page arguments on each favourite field instead."""
+    page: Int
+  ): Favourites
+
+  """The id of the user"""
+  id: Int!
+
+  """If the user is blocked by the authenticated user"""
+  isBlocked: Boolean
+
+  """If this user if following the authenticated user"""
+  isFollower: Boolean
+
+  """If the authenticated user if following this user"""
+  isFollowing: Boolean
+
+  """The user's media list options"""
+  mediaListOptions: MediaListOptions
+
+  """The user's moderator roles if they are a site moderator"""
+  moderatorRoles: [ModRole]
+
+  """If the user is a moderator or data moderator"""
+  moderatorStatus: String @deprecated(reason: "Deprecated. Replaced with moderatorRoles field.")
+
+  """The name of the user"""
+  name: String!
+
+  """The user's general options"""
+  options: UserOptions
+
+  """The user's previously used names."""
+  previousNames: [UserPreviousName]
+
+  """The url for the user page on the AniList website"""
+  siteUrl: String
+
+  """The users anime & manga list statistics"""
+  statistics: UserStatisticTypes
+
+  """The user's statistics"""
+  stats: UserStats @deprecated(reason: "Deprecated. Replaced with statistics field.")
+
+  """The number of unread notifications the user has"""
+  unreadNotificationCount: Int
+
+  """When the user's data was last updated"""
+  updatedAt: Int
+}
+
+"""A user's activity history stats."""
+type UserActivityHistory {
+  """The amount of activity on the day"""
+  amount: Int
+
+  """The day the activity took place (Unix timestamp)"""
+  date: Int
+
+  """The level of activity represented on a 1-10 scale"""
+  level: Int
+}
+
+"""A user's avatars"""
+type UserAvatar {
+  """The avatar of user at its largest size"""
+  large: String
+
+  """The avatar of user at medium size"""
+  medium: String
+}
+
+type UserCountryStatistic {
+  chaptersRead: Int!
+  count: Int!
+  country: CountryCode
+  meanScore: Float!
+  mediaIds: [Int]!
+  minutesWatched: Int!
+}
+
+type UserFormatStatistic {
+  chaptersRead: Int!
+  count: Int!
+  format: MediaFormat
+  meanScore: Float!
+  mediaIds: [Int]!
+  minutesWatched: Int!
+}
+
+type UserGenreStatistic {
+  chaptersRead: Int!
+  count: Int!
+  genre: String
+  meanScore: Float!
+  mediaIds: [Int]!
+  minutesWatched: Int!
+}
+
+type UserLengthStatistic {
+  chaptersRead: Int!
+  count: Int!
+  length: String
+  meanScore: Float!
+  mediaIds: [Int]!
+  minutesWatched: Int!
+}
+
+"""User data for moderators"""
+type UserModData {
+  alts: [User]
+  bans: Json
+  counts: Json
+  email: String
+  ip: Json
+  privacy: Int
+}
+
+"""A user's general options"""
+type UserOptions {
+  """
+  Minutes between activity for them to be merged together. 0 is Never, Above 2 weeks (20160 mins) is Always.
+  """
+  activityMergeTime: Int
+
+  """
+  Whether the user receives notifications when a show they are watching aires
+  """
+  airingNotifications: Boolean
+
+  """
+  The list activity types the user has disabled from being created from list updates
+  """
+  disabledListActivity: [ListActivityOption]
+
+  """Whether the user has enabled viewing of 18+ content"""
+  displayAdultContent: Boolean
+
+  """Notification options"""
+  notificationOptions: [NotificationOption]
+
+  """Profile highlight color (blue, purple, pink, orange, red, green, gray)"""
+  profileColor: String
+
+  """Whether the user only allow messages from users they follow"""
+  restrictMessagesToFollowing: Boolean
+
+  """The language the user wants to see staff and character names in"""
+  staffNameLanguage: UserStaffNameLanguage
+
+  """The user's timezone offset (Auth user only)"""
+  timezone: String
+
+  """The language the user wants to see media titles in"""
+  titleLanguage: UserTitleLanguage
+}
+
+"""A user's previous name"""
+type UserPreviousName {
+  """When the user first changed from this name."""
+  createdAt: Int
+
+  """A previous name of the user."""
+  name: String
+
+  """When the user most recently changed from this name."""
+  updatedAt: Int
+}
+
+type UserReleaseYearStatistic {
+  chaptersRead: Int!
+  count: Int!
+  meanScore: Float!
+  mediaIds: [Int]!
+  minutesWatched: Int!
+  releaseYear: Int
+}
+
+type UserScoreStatistic {
+  chaptersRead: Int!
+  count: Int!
+  meanScore: Float!
+  mediaIds: [Int]!
+  minutesWatched: Int!
+  score: Int
+}
+
+"""User sort enums"""
+enum UserSort {
+  ID
+  ID_DESC
+  USERNAME
+  USERNAME_DESC
+  WATCHED_TIME
+  WATCHED_TIME_DESC
+  CHAPTERS_READ
+  CHAPTERS_READ_DESC
+  SEARCH_MATCH
+}
+
+"""The language the user wants to see staff and character names in"""
+enum UserStaffNameLanguage {
+  """
+  The romanization of the staff or character's native name, with western name ordering
+  """
+  ROMAJI_WESTERN
+
+  """The romanization of the staff or character's native name"""
+  ROMAJI
+
+  """The staff or character's name in their native language"""
+  NATIVE
+}
+
+type UserStaffStatistic {
+  chaptersRead: Int!
+  count: Int!
+  meanScore: Float!
+  mediaIds: [Int]!
+  minutesWatched: Int!
+  staff: Staff
+}
+
+type UserStartYearStatistic {
+  chaptersRead: Int!
+  count: Int!
+  meanScore: Float!
+  mediaIds: [Int]!
+  minutesWatched: Int!
+  startYear: Int
+}
+
+type UserStatistics {
+  chaptersRead: Int!
+  count: Int!
+  countries(limit: Int, sort: [UserStatisticsSort]): [UserCountryStatistic]
+  episodesWatched: Int!
+  formats(limit: Int, sort: [UserStatisticsSort]): [UserFormatStatistic]
+  genres(limit: Int, sort: [UserStatisticsSort]): [UserGenreStatistic]
+  lengths(limit: Int, sort: [UserStatisticsSort]): [UserLengthStatistic]
+  meanScore: Float!
+  minutesWatched: Int!
+  releaseYears(limit: Int, sort: [UserStatisticsSort]): [UserReleaseYearStatistic]
+  scores(limit: Int, sort: [UserStatisticsSort]): [UserScoreStatistic]
+  staff(limit: Int, sort: [UserStatisticsSort]): [UserStaffStatistic]
+  standardDeviation: Float!
+  startYears(limit: Int, sort: [UserStatisticsSort]): [UserStartYearStatistic]
+  statuses(limit: Int, sort: [UserStatisticsSort]): [UserStatusStatistic]
+  studios(limit: Int, sort: [UserStatisticsSort]): [UserStudioStatistic]
+  tags(limit: Int, sort: [UserStatisticsSort]): [UserTagStatistic]
+  voiceActors(limit: Int, sort: [UserStatisticsSort]): [UserVoiceActorStatistic]
+  volumesRead: Int!
+}
+
+"""User statistics sort enum"""
+enum UserStatisticsSort {
+  ID
+  ID_DESC
+  COUNT
+  COUNT_DESC
+  PROGRESS
+  PROGRESS_DESC
+  MEAN_SCORE
+  MEAN_SCORE_DESC
+}
+
+type UserStatisticTypes {
+  anime: UserStatistics
+  manga: UserStatistics
+}
+
+"""A user's statistics"""
+type UserStats {
+  activityHistory: [UserActivityHistory]
+  animeListScores: ListScoreStats
+  animeScoreDistribution: [ScoreDistribution]
+  animeStatusDistribution: [StatusDistribution]
+
+  """The amount of manga chapters the user has read"""
+  chaptersRead: Int
+  favouredActors: [StaffStats]
+  favouredFormats: [FormatStats]
+  favouredGenres: [GenreStats]
+  favouredGenresOverview: [GenreStats]
+  favouredStaff: [StaffStats]
+  favouredStudios: [StudioStats]
+  favouredTags: [TagStats]
+  favouredYears: [YearStats]
+  mangaListScores: ListScoreStats
+  mangaScoreDistribution: [ScoreDistribution]
+  mangaStatusDistribution: [StatusDistribution]
+
+  """The amount of anime the user has watched in minutes"""
+  watchedTime: Int
+}
+
+type UserStatusStatistic {
+  chaptersRead: Int!
+  count: Int!
+  meanScore: Float!
+  mediaIds: [Int]!
+  minutesWatched: Int!
+  status: MediaListStatus
+}
+
+type UserStudioStatistic {
+  chaptersRead: Int!
+  count: Int!
+  meanScore: Float!
+  mediaIds: [Int]!
+  minutesWatched: Int!
+  studio: Studio
+}
+
+type UserTagStatistic {
+  chaptersRead: Int!
+  count: Int!
+  meanScore: Float!
+  mediaIds: [Int]!
+  minutesWatched: Int!
+  tag: MediaTag
+}
+
+"""The language the user wants to see media titles in"""
+enum UserTitleLanguage {
+  """The romanization of the native language title"""
+  ROMAJI
+
+  """The official english title"""
+  ENGLISH
+
+  """Official title in it's native language"""
+  NATIVE
+
+  """
+  The romanization of the native language title, stylised by media creator
+  """
+  ROMAJI_STYLISED
+
+  """The official english title, stylised by media creator"""
+  ENGLISH_STYLISED
+
+  """Official title in it's native language, stylised by media creator"""
+  NATIVE_STYLISED
+}
+
+type UserVoiceActorStatistic {
+  chaptersRead: Int!
+  characterIds: [Int]!
+  count: Int!
+  meanScore: Float!
+  mediaIds: [Int]!
+  minutesWatched: Int!
+  voiceActor: Staff
+}
+
+"""User's year statistics"""
+type YearStats {
+  amount: Int
+  meanScore: Int
+  year: Int
+}

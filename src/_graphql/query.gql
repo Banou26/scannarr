@@ -1,0 +1,858 @@
+
+type Query {
+  """Activity query"""
+  Activity(
+    """Filter by the time the activity was created"""
+    createdAt: Int
+
+    """Filter by the time the activity was created"""
+    createdAt_greater: Int
+
+    """Filter by the time the activity was created"""
+    createdAt_lesser: Int
+
+    """Filter activity to only activity with replies"""
+    hasReplies: Boolean
+
+    """Filter activity to only activity with replies or is of type text"""
+    hasRepliesOrTypeText: Boolean
+
+    """Filter by the activity id"""
+    id: Int
+
+    """Filter by the activity id"""
+    id_in: [Int]
+
+    """Filter by the activity id"""
+    id_not: Int
+
+    """Filter by the activity id"""
+    id_not_in: [Int]
+
+    """
+    Filter activity to users who are being followed by the authenticated user
+    """
+    isFollowing: Boolean
+
+    """Filter by the associated media id of the activity"""
+    mediaId: Int
+
+    """Filter by the associated media id of the activity"""
+    mediaId_in: [Int]
+
+    """Filter by the associated media id of the activity"""
+    mediaId_not: Int
+
+    """Filter by the associated media id of the activity"""
+    mediaId_not_in: [Int]
+
+    """Filter by the id of the user who sent a message"""
+    messengerId: Int
+
+    """Filter by the id of the user who sent a message"""
+    messengerId_in: [Int]
+
+    """Filter by the id of the user who sent a message"""
+    messengerId_not: Int
+
+    """Filter by the id of the user who sent a message"""
+    messengerId_not_in: [Int]
+
+    """The order the results will be returned in"""
+    sort: [ActivitySort]
+
+    """Filter by the type of activity"""
+    type: ActivityType
+
+    """Filter by the type of activity"""
+    type_in: [ActivityType]
+
+    """Filter by the type of activity"""
+    type_not: ActivityType
+
+    """Filter by the type of activity"""
+    type_not_in: [ActivityType]
+
+    """Filter by the owner user id"""
+    userId: Int
+
+    """Filter by the owner user id"""
+    userId_in: [Int]
+
+    """Filter by the owner user id"""
+    userId_not: Int
+
+    """Filter by the owner user id"""
+    userId_not_in: [Int]
+  ): ActivityUnion
+
+  """Activity reply query"""
+  ActivityReply(
+    """Filter by the parent id"""
+    activityId: Int
+
+    """Filter by the reply id"""
+    id: Int
+  ): ActivityReply
+
+  """Airing schedule query"""
+  AiringSchedule(
+    """Filter by the time of airing"""
+    airingAt: Int
+
+    """Filter by the time of airing"""
+    airingAt_greater: Int
+
+    """Filter by the time of airing"""
+    airingAt_lesser: Int
+
+    """Filter by the airing episode number"""
+    episode: Int
+
+    """Filter by the airing episode number"""
+    episode_greater: Int
+
+    """Filter by the airing episode number"""
+    episode_in: [Int]
+
+    """Filter by the airing episode number"""
+    episode_lesser: Int
+
+    """Filter by the airing episode number"""
+    episode_not: Int
+
+    """Filter by the airing episode number"""
+    episode_not_in: [Int]
+
+    """Filter by the id of the airing schedule item"""
+    id: Int
+
+    """Filter by the id of the airing schedule item"""
+    id_in: [Int]
+
+    """Filter by the id of the airing schedule item"""
+    id_not: Int
+
+    """Filter by the id of the airing schedule item"""
+    id_not_in: [Int]
+
+    """Filter by the id of associated media"""
+    mediaId: Int
+
+    """Filter by the id of associated media"""
+    mediaId_in: [Int]
+
+    """Filter by the id of associated media"""
+    mediaId_not: Int
+
+    """Filter by the id of associated media"""
+    mediaId_not_in: [Int]
+
+    """Filter to episodes that haven't yet aired"""
+    notYetAired: Boolean
+
+    """The order the results will be returned in"""
+    sort: [AiringSort]
+  ): AiringSchedule
+  AniChartUser: AniChartUser
+
+  """Character query"""
+  Character(
+    """Filter by character id"""
+    id: Int
+
+    """Filter by character id"""
+    id_in: [Int]
+
+    """Filter by character id"""
+    id_not: Int
+
+    """Filter by character id"""
+    id_not_in: [Int]
+
+    """Filter by character by if its their birthday today"""
+    isBirthday: Boolean
+
+    """Filter by search query"""
+    search: String
+
+    """The order the results will be returned in"""
+    sort: [CharacterSort]
+  ): Character
+
+  """ExternalLinkSource collection query"""
+  ExternalLinkSourceCollection(
+    """Filter by the link id"""
+    id: Int
+    mediaType: ExternalLinkMediaType
+    type: ExternalLinkType
+  ): [MediaExternalLink]
+
+  """Follow query"""
+  Follower(
+    """The order the results will be returned in"""
+    sort: [UserSort]
+
+    """User id of the follower/followed"""
+    userId: Int!
+  ): User
+
+  """Follow query"""
+  Following(
+    """The order the results will be returned in"""
+    sort: [UserSort]
+
+    """User id of the follower/followed"""
+    userId: Int!
+  ): User
+
+  """Collection of all the possible media genres"""
+  GenreCollection: [String]
+
+  """Like query"""
+  Like(
+    """The id of the likeable type"""
+    likeableId: Int
+
+    """The type of model the id applies to"""
+    type: LikeableType
+  ): User
+
+  """Provide AniList markdown to be converted to html (Requires auth)"""
+  Markdown(
+    """The markdown to be parsed to html"""
+    markdown: String!
+  ): ParsedMarkdown
+
+  """Media query"""
+  Media(
+    """Filter by the media's average score"""
+    averageScore: Int
+
+    """Filter by the media's average score"""
+    averageScore_greater: Int
+
+    """Filter by the media's average score"""
+    averageScore_lesser: Int
+
+    """Filter by the media's average score"""
+    averageScore_not: Int
+
+    """Filter by the media's chapter count"""
+    chapters: Int
+
+    """Filter by the media's chapter count"""
+    chapters_greater: Int
+
+    """Filter by the media's chapter count"""
+    chapters_lesser: Int
+
+    """Filter by the media's country of origin"""
+    countryOfOrigin: CountryCode
+
+    """Filter by the media's episode length"""
+    duration: Int
+
+    """Filter by the media's episode length"""
+    duration_greater: Int
+
+    """Filter by the media's episode length"""
+    duration_lesser: Int
+
+    """Filter by the end date of the media"""
+    endDate: FuzzyDateInt
+
+    """Filter by the end date of the media"""
+    endDate_greater: FuzzyDateInt
+
+    """Filter by the end date of the media"""
+    endDate_lesser: FuzzyDateInt
+
+    """Filter by the end date of the media"""
+    endDate_like: String
+
+    """Filter by amount of episodes the media has"""
+    episodes: Int
+
+    """Filter by amount of episodes the media has"""
+    episodes_greater: Int
+
+    """Filter by amount of episodes the media has"""
+    episodes_lesser: Int
+
+    """Filter by the media's format"""
+    format: MediaFormat
+
+    """Filter by the media's format"""
+    format_in: [MediaFormat]
+
+    """Filter by the media's format"""
+    format_not: MediaFormat
+
+    """Filter by the media's format"""
+    format_not_in: [MediaFormat]
+
+    """Filter by the media's genres"""
+    genre: String
+
+    """Filter by the media's genres"""
+    genre_in: [String]
+
+    """Filter by the media's genres"""
+    genre_not_in: [String]
+
+    """Filter by the media id"""
+    id: Int
+
+    """Filter by the media id"""
+    id_in: [Int]
+
+    """Filter by the media id"""
+    id_not: Int
+
+    """Filter by the media id"""
+    id_not_in: [Int]
+
+    """Filter by the media's MyAnimeList id"""
+    idMal: Int
+
+    """Filter by the media's MyAnimeList id"""
+    idMal_in: [Int]
+
+    """Filter by the media's MyAnimeList id"""
+    idMal_not: Int
+
+    """Filter by the media's MyAnimeList id"""
+    idMal_not_in: [Int]
+
+    """Filter by if the media's intended for 18+ adult audiences"""
+    isAdult: Boolean
+
+    """If the media is officially licensed or a self-published doujin release"""
+    isLicensed: Boolean
+
+    """Filter media by sites name with a online streaming or reading license"""
+    licensedBy: String
+
+    """Filter media by sites name with a online streaming or reading license"""
+    licensedBy_in: [String]
+
+    """Filter media by sites id with a online streaming or reading license"""
+    licensedById: Int
+
+    """Filter media by sites id with a online streaming or reading license"""
+    licensedById_in: [Int]
+
+    """
+    Only apply the tags filter argument to tags above this rank. Default: 18
+    """
+    minimumTagRank: Int
+
+    """Filter by the media on the authenticated user's lists"""
+    onList: Boolean
+
+    """Filter by the number of users with this media on their list"""
+    popularity: Int
+
+    """Filter by the number of users with this media on their list"""
+    popularity_greater: Int
+
+    """Filter by the number of users with this media on their list"""
+    popularity_lesser: Int
+
+    """Filter by the number of users with this media on their list"""
+    popularity_not: Int
+
+    """Filter by search query"""
+    search: String
+
+    """Filter by the season the media was released in"""
+    season: MediaSeason
+
+    """
+    The year of the season (Winter 2017 would also include December 2016 releases). Requires season argument
+    """
+    seasonYear: Int
+
+    """The order the results will be returned in"""
+    sort: [MediaSort]
+
+    """Filter by the source type of the media"""
+    source: MediaSource
+
+    """Filter by the source type of the media"""
+    source_in: [MediaSource]
+
+    """Filter by the start date of the media"""
+    startDate: FuzzyDateInt
+
+    """Filter by the start date of the media"""
+    startDate_greater: FuzzyDateInt
+
+    """Filter by the start date of the media"""
+    startDate_lesser: FuzzyDateInt
+
+    """Filter by the start date of the media"""
+    startDate_like: String
+
+    """Filter by the media's current release status"""
+    status: MediaStatus
+
+    """Filter by the media's current release status"""
+    status_in: [MediaStatus]
+
+    """Filter by the media's current release status"""
+    status_not: MediaStatus
+
+    """Filter by the media's current release status"""
+    status_not_in: [MediaStatus]
+
+    """Filter by the media's tags"""
+    tag: String
+
+    """Filter by the media's tags"""
+    tag_in: [String]
+
+    """Filter by the media's tags"""
+    tag_not_in: [String]
+
+    """Filter by the media's tags with in a tag category"""
+    tagCategory: String
+
+    """Filter by the media's tags with in a tag category"""
+    tagCategory_in: [String]
+
+    """Filter by the media's tags with in a tag category"""
+    tagCategory_not_in: [String]
+
+    """Filter by the media's type"""
+    type: MediaType
+
+    """Filter by the media's volume count"""
+    volumes: Int
+
+    """Filter by the media's volume count"""
+    volumes_greater: Int
+
+    """Filter by the media's volume count"""
+    volumes_lesser: Int
+  ): Media
+
+  """Media list query"""
+  MediaList(
+    """
+    Limit to only entries also on the auth user's list. Requires user id or name arguments.
+    """
+    compareWithAuthList: Boolean
+
+    """Filter by the date the user completed the media"""
+    completedAt: FuzzyDateInt
+
+    """Filter by the date the user completed the media"""
+    completedAt_greater: FuzzyDateInt
+
+    """Filter by the date the user completed the media"""
+    completedAt_lesser: FuzzyDateInt
+
+    """Filter by the date the user completed the media"""
+    completedAt_like: String
+
+    """Filter by a list entry's id"""
+    id: Int
+
+    """
+    Filter list entries to users who are being followed by the authenticated user
+    """
+    isFollowing: Boolean
+
+    """Filter by the media id of the list entry"""
+    mediaId: Int
+
+    """Filter by the media id of the list entry"""
+    mediaId_in: [Int]
+
+    """Filter by the media id of the list entry"""
+    mediaId_not_in: [Int]
+
+    """Filter by note words and #tags"""
+    notes: String
+
+    """Filter by note words and #tags"""
+    notes_like: String
+
+    """The order the results will be returned in"""
+    sort: [MediaListSort]
+
+    """Filter by the date the user started the media"""
+    startedAt: FuzzyDateInt
+
+    """Filter by the date the user started the media"""
+    startedAt_greater: FuzzyDateInt
+
+    """Filter by the date the user started the media"""
+    startedAt_lesser: FuzzyDateInt
+
+    """Filter by the date the user started the media"""
+    startedAt_like: String
+
+    """Filter by the watching/reading status"""
+    status: MediaListStatus
+
+    """Filter by the watching/reading status"""
+    status_in: [MediaListStatus]
+
+    """Filter by the watching/reading status"""
+    status_not: MediaListStatus
+
+    """Filter by the watching/reading status"""
+    status_not_in: [MediaListStatus]
+
+    """Filter by the list entries media type"""
+    type: MediaType
+
+    """Filter by a user's id"""
+    userId: Int
+
+    """Filter by a user's id"""
+    userId_in: [Int]
+
+    """Filter by a user's name"""
+    userName: String
+  ): MediaList
+
+  """
+  Media list collection query, provides list pre-grouped by status & custom
+  lists. User ID and Media Type arguments required.
+  """
+  MediaListCollection(
+    """Which chunk of list entries to load"""
+    chunk: Int
+
+    """Filter by the date the user completed the media"""
+    completedAt: FuzzyDateInt
+
+    """Filter by the date the user completed the media"""
+    completedAt_greater: FuzzyDateInt
+
+    """Filter by the date the user completed the media"""
+    completedAt_lesser: FuzzyDateInt
+
+    """Filter by the date the user completed the media"""
+    completedAt_like: String
+
+    """
+    Always return completed list entries in one group, overriding the user's split completed option.
+    """
+    forceSingleCompletedList: Boolean
+
+    """Filter by note words and #tags"""
+    notes: String
+
+    """Filter by note words and #tags"""
+    notes_like: String
+
+    """The amount of entries per chunk, max 500"""
+    perChunk: Int
+
+    """The order the results will be returned in"""
+    sort: [MediaListSort]
+
+    """Filter by the date the user started the media"""
+    startedAt: FuzzyDateInt
+
+    """Filter by the date the user started the media"""
+    startedAt_greater: FuzzyDateInt
+
+    """Filter by the date the user started the media"""
+    startedAt_lesser: FuzzyDateInt
+
+    """Filter by the date the user started the media"""
+    startedAt_like: String
+
+    """Filter by the watching/reading status"""
+    status: MediaListStatus
+
+    """Filter by the watching/reading status"""
+    status_in: [MediaListStatus]
+
+    """Filter by the watching/reading status"""
+    status_not: MediaListStatus
+
+    """Filter by the watching/reading status"""
+    status_not_in: [MediaListStatus]
+
+    """Filter by the list entries media type"""
+    type: MediaType
+
+    """Filter by a user's id"""
+    userId: Int
+
+    """Filter by a user's name"""
+    userName: String
+  ): MediaListCollection
+
+  """Collection of all the possible media tags"""
+  MediaTagCollection(
+    """Mod Only"""
+    status: Int
+  ): [MediaTag]
+
+  """Media Trend query"""
+  MediaTrend(
+    """Filter by score"""
+    averageScore: Int
+
+    """Filter by score"""
+    averageScore_greater: Int
+
+    """Filter by score"""
+    averageScore_lesser: Int
+
+    """Filter by score"""
+    averageScore_not: Int
+
+    """Filter by date"""
+    date: Int
+
+    """Filter by date"""
+    date_greater: Int
+
+    """Filter by date"""
+    date_lesser: Int
+
+    """Filter by episode number"""
+    episode: Int
+
+    """Filter by episode number"""
+    episode_greater: Int
+
+    """Filter by episode number"""
+    episode_lesser: Int
+
+    """Filter by episode number"""
+    episode_not: Int
+
+    """Filter by the media id"""
+    mediaId: Int
+
+    """Filter by the media id"""
+    mediaId_in: [Int]
+
+    """Filter by the media id"""
+    mediaId_not: Int
+
+    """Filter by the media id"""
+    mediaId_not_in: [Int]
+
+    """Filter by popularity"""
+    popularity: Int
+
+    """Filter by popularity"""
+    popularity_greater: Int
+
+    """Filter by popularity"""
+    popularity_lesser: Int
+
+    """Filter by popularity"""
+    popularity_not: Int
+
+    """Filter to stats recorded while the media was releasing"""
+    releasing: Boolean
+
+    """The order the results will be returned in"""
+    sort: [MediaTrendSort]
+
+    """Filter by trending amount"""
+    trending: Int
+
+    """Filter by trending amount"""
+    trending_greater: Int
+
+    """Filter by trending amount"""
+    trending_lesser: Int
+
+    """Filter by trending amount"""
+    trending_not: Int
+  ): MediaTrend
+
+  """Notification query"""
+  Notification(
+    """Reset the unread notification count to 0 on load"""
+    resetNotificationCount: Boolean
+
+    """Filter by the type of notifications"""
+    type: NotificationType
+
+    """Filter by the type of notifications"""
+    type_in: [NotificationType]
+  ): NotificationUnion
+  Page(
+    """The page number"""
+    page: Int
+
+    """The amount of entries per page, max 50"""
+    perPage: Int
+  ): Page
+
+  """Recommendation query"""
+  Recommendation(
+    """Filter by recommendation id"""
+    id: Int
+
+    """Filter by media id"""
+    mediaId: Int
+
+    """Filter by media recommendation id"""
+    mediaRecommendationId: Int
+
+    """Filter by the media on the authenticated user's lists"""
+    onList: Boolean
+
+    """Filter by total rating of the recommendation"""
+    rating: Int
+
+    """Filter by total rating of the recommendation"""
+    rating_greater: Int
+
+    """Filter by total rating of the recommendation"""
+    rating_lesser: Int
+
+    """The order the results will be returned in"""
+    sort: [RecommendationSort]
+
+    """Filter by user who created the recommendation"""
+    userId: Int
+  ): Recommendation
+
+  """Review query"""
+  Review(
+    """Filter by Review id"""
+    id: Int
+
+    """Filter by media id"""
+    mediaId: Int
+
+    """Filter by media type"""
+    mediaType: MediaType
+
+    """The order the results will be returned in"""
+    sort: [ReviewSort]
+
+    """Filter by user id"""
+    userId: Int
+  ): Review
+
+  """Site statistics query"""
+  SiteStatistics: SiteStatistics
+
+  """Staff query"""
+  Staff(
+    """Filter by the staff id"""
+    id: Int
+
+    """Filter by the staff id"""
+    id_in: [Int]
+
+    """Filter by the staff id"""
+    id_not: Int
+
+    """Filter by the staff id"""
+    id_not_in: [Int]
+
+    """Filter by staff by if its their birthday today"""
+    isBirthday: Boolean
+
+    """Filter by search query"""
+    search: String
+
+    """The order the results will be returned in"""
+    sort: [StaffSort]
+  ): Staff
+
+  """Studio query"""
+  Studio(
+    """Filter by the studio id"""
+    id: Int
+
+    """Filter by the studio id"""
+    id_in: [Int]
+
+    """Filter by the studio id"""
+    id_not: Int
+
+    """Filter by the studio id"""
+    id_not_in: [Int]
+
+    """Filter by search query"""
+    search: String
+
+    """The order the results will be returned in"""
+    sort: [StudioSort]
+  ): Studio
+
+  """Thread query"""
+  Thread(
+    """Filter by thread category id"""
+    categoryId: Int
+
+    """Filter by the thread id"""
+    id: Int
+
+    """Filter by the thread id"""
+    id_in: [Int]
+
+    """Filter by thread media id category"""
+    mediaCategoryId: Int
+
+    """Filter by the user id of the last user to comment on the thread"""
+    replyUserId: Int
+
+    """Filter by search query"""
+    search: String
+
+    """The order the results will be returned in"""
+    sort: [ThreadSort]
+
+    """Filter by if the currently authenticated user's subscribed threads"""
+    subscribed: Boolean
+
+    """Filter by the user id of the thread's creator"""
+    userId: Int
+  ): Thread
+
+  """Comment query"""
+  ThreadComment(
+    """Filter by the comment id"""
+    id: Int
+
+    """The order the results will be returned in"""
+    sort: [ThreadCommentSort]
+
+    """Filter by the thread id"""
+    threadId: Int
+
+    """Filter by the user id of the comment's creator"""
+    userId: Int
+  ): [ThreadComment]
+
+  """User query"""
+  User(
+    """Filter by the user id"""
+    id: Int
+
+    """Filter to moderators only if true"""
+    isModerator: Boolean
+
+    """Filter by the name of the user"""
+    name: String
+
+    """Filter by search query"""
+    search: String
+
+    """The order the results will be returned in"""
+    sort: [UserSort]
+  ): User
+
+  """Get the currently authenticated user"""
+  Viewer: User
+}

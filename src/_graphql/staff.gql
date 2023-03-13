@@ -1,0 +1,297 @@
+
+"""Voice actors or production staff"""
+type Staff {
+  """The person's age in years"""
+  age: Int
+
+  """The persons blood type"""
+  bloodType: String
+
+  """
+  Media the actor voiced characters in. (Same data as characters with media as node instead of characters)
+  """
+  characterMedia(
+    onList: Boolean
+
+    """The page"""
+    page: Int
+
+    """The amount of entries per page, max 25"""
+    perPage: Int
+    sort: [MediaSort]
+  ): MediaConnection
+
+  """Characters voiced by the actor"""
+  characters(
+    """The page"""
+    page: Int
+
+    """The amount of entries per page, max 25"""
+    perPage: Int
+    sort: [CharacterSort]
+  ): CharacterConnection
+  dateOfBirth: FuzzyDate
+  dateOfDeath: FuzzyDate
+
+  """A general description of the staff member"""
+  description(
+    """Return the string in pre-parsed html instead of markdown"""
+    asHtml: Boolean
+  ): String
+
+  """The amount of user's who have favourited the staff member"""
+  favourites: Int
+
+  """
+  The staff's gender. Usually Male, Female, or Non-binary but can be any string.
+  """
+  gender: String
+
+  """The persons birthplace or hometown"""
+  homeTown: String
+
+  """The id of the staff member"""
+  id: Int!
+
+  """The staff images"""
+  image: StaffImage
+
+  """
+  If the staff member is marked as favourite by the currently authenticated user
+  """
+  isFavourite: Boolean!
+
+  """If the staff member is blocked from being added to favourites"""
+  isFavouriteBlocked: Boolean!
+
+  """The primary language the staff member dub's in"""
+  language: StaffLanguage @deprecated(reason: "Replaced with languageV2")
+
+  """
+  The primary language of the staff member. Current values: Japanese, English,
+  Korean, Italian, Spanish, Portuguese, French, German, Hebrew, Hungarian,
+  Chinese, Arabic, Filipino, Catalan, Finnish, Turkish, Dutch, Swedish, Thai,
+  Tagalog, Malaysian, Indonesian, Vietnamese, Nepali, Hindi, Urdu
+  """
+  languageV2: String
+
+  """Notes for site moderators"""
+  modNotes: String
+
+  """The names of the staff member"""
+  name: StaffName
+
+  """The person's primary occupations"""
+  primaryOccupations: [String]
+
+  """The url for the staff page on the AniList website"""
+  siteUrl: String
+
+  """Staff member that the submission is referencing"""
+  staff: Staff
+
+  """Media where the staff member has a production role"""
+  staffMedia(
+    onList: Boolean
+
+    """The page"""
+    page: Int
+
+    """The amount of entries per page, max 25"""
+    perPage: Int
+    sort: [MediaSort]
+    type: MediaType
+  ): MediaConnection
+
+  """Inner details of submission status"""
+  submissionNotes: String
+
+  """Status of the submission"""
+  submissionStatus: Int
+
+  """Submitter for the submission"""
+  submitter: User
+  updatedAt: Int @deprecated(reason: "No data available")
+
+  """
+  [startYear, endYear] (If the 2nd value is not present staff is still active)
+  """
+  yearsActive: [Int]
+}
+
+type StaffConnection {
+  edges: [StaffEdge]
+  nodes: [Staff]
+
+  """The pagination information"""
+  pageInfo: PageInfo
+}
+
+"""Staff connection edge"""
+type StaffEdge {
+  """The order the staff should be displayed from the users favourites"""
+  favouriteOrder: Int
+
+  """The id of the connection"""
+  id: Int
+  node: Staff
+
+  """The role of the staff member in the production of the media"""
+  role: String
+}
+
+type StaffImage {
+  """The person's image of media at its largest size"""
+  large: String
+
+  """The person's image of media at medium size"""
+  medium: String
+}
+
+"""The primary language of the voice actor"""
+enum StaffLanguage {
+  """Japanese"""
+  JAPANESE
+
+  """English"""
+  ENGLISH
+
+  """Korean"""
+  KOREAN
+
+  """Italian"""
+  ITALIAN
+
+  """Spanish"""
+  SPANISH
+
+  """Portuguese"""
+  PORTUGUESE
+
+  """French"""
+  FRENCH
+
+  """German"""
+  GERMAN
+
+  """Hebrew"""
+  HEBREW
+
+  """Hungarian"""
+  HUNGARIAN
+}
+
+"""The names of the staff member"""
+type StaffName {
+  """Other names the staff member might be referred to as (pen names)"""
+  alternative: [String]
+
+  """The person's given name"""
+  first: String
+
+  """The person's first and last name"""
+  full: String
+
+  """The person's surname"""
+  last: String
+
+  """The person's middle name"""
+  middle: String
+
+  """The person's full name in their native language"""
+  native: String
+
+  """
+  The currently authenticated users preferred name language. Default romaji for non-authenticated
+  """
+  userPreferred: String
+}
+
+"""The names of the staff member"""
+input StaffNameInput {
+  """Other names the character might be referred by"""
+  alternative: [String]
+
+  """The person's given name"""
+  first: String
+
+  """The person's surname"""
+  last: String
+
+  """The person's middle name"""
+  middle: String
+
+  """The person's full name in their native language"""
+  native: String
+}
+
+"""Voice actor role for a character"""
+type StaffRoleType {
+  """
+  Used for grouping roles where multiple dubs exist for the same language. Either dubbing company name or language variant.
+  """
+  dubGroup: String
+
+  """Notes regarding the VA's role for the character"""
+  roleNotes: String
+
+  """The voice actors of the character"""
+  voiceActor: Staff
+}
+
+"""Staff sort enums"""
+enum StaffSort {
+  ID
+  ID_DESC
+  ROLE
+  ROLE_DESC
+  LANGUAGE
+  LANGUAGE_DESC
+  SEARCH_MATCH
+  FAVOURITES
+  FAVOURITES_DESC
+
+  """Order manually decided by moderators"""
+  RELEVANCE
+}
+
+"""User's staff statistics"""
+type StaffStats {
+  amount: Int
+  meanScore: Int
+  staff: Staff
+
+  """
+  The amount of time in minutes the staff member has been watched by the user
+  """
+  timeWatched: Int
+}
+
+"""A submission for a staff that features in an anime or manga"""
+type StaffSubmission {
+  """Data Mod assigned to handle the submission"""
+  assignee: User
+  createdAt: Int
+
+  """The id of the submission"""
+  id: Int!
+
+  """Whether the submission is locked"""
+  locked: Boolean
+
+  """Inner details of submission status"""
+  notes: String
+  source: String
+
+  """Staff that the submission is referencing"""
+  staff: Staff
+
+  """Status of the submission"""
+  status: SubmissionStatus
+
+  """The staff submission changes"""
+  submission: Staff
+
+  """Submitter for the submission"""
+  submitter: User
+}
