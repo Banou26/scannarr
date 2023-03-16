@@ -9,12 +9,23 @@ type Media implements Handle {
   id: String!
   uri: Uri!
   url: String
-  handles: [Handle!]!
+  handles: [MediaConnection!]!
 
   # Media properties
+  """The official titles of the media in various languages"""
   title: MediaTitle
+  
+  """The type of the media"""
   type: MediaType
+
+  """The current releasing status of the media"""
   status: MediaStatus
+
+  """External links to another site related to the media"""
+  externalLinks: [MediaExternalLink]
+
+  """Media trailer or advertisement"""
+  trailers: [MediaTrailer]
 }
 
 type MediaEdge implements HandleEdge {
@@ -94,6 +105,41 @@ enum MediaType {
 
   """Japanese Anime"""
   ANIME
+
+  """Media broadcast on television"""
+  TV
+
+  """Media which are under 15 minutes in length and broadcast on television"""
+  TV_SHORT
+
+  """Movies with a theatrical release"""
+  MOVIE
+
+  """
+  Special episodes that have been included in DVD/Blu-ray releases, pilots, etc
+  """
+  SPECIAL
+  
+  """
+  (Original Video Animation) Anime that have been released directly on
+  DVD/Blu-ray without originally going through a theatrical release or
+  television broadcast
+  """
+  OVA
+
+  """
+  (Original Net Animation) Anime that have been originally released online or are only available through streaming services.
+  """
+  ONA
+
+  """Manga with just one chapter"""
+  ONE_SHOT
+
+  """Short anime released as a music video"""
+  MUSIC
+
+  """Video"""
+  VIDEO
 
   """Written works published online"""
   WEB_NOVEL

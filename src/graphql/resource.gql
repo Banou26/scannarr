@@ -1,0 +1,24 @@
+
+type Resource implements Handle {
+  # Handle properties
+  handler: String!
+  origin: String!
+  id: String!
+  uri: Uri!
+  url: String
+  handles: [ResourceConnection!]!
+
+  # Resource properties
+  isBatch: Boolean
+  batchResources: [ResourceConnection!]!
+}
+
+type ResourceConnection {
+  pageInfo: PageInfo!
+  edges: [ResourceEdge!]!
+  totalCount: Int!
+}
+
+type ResourceEdge {
+  node: Resource!
+}
