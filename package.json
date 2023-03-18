@@ -6,6 +6,8 @@
   "author": "Banou26",
   "type": "module",
   "scripts": {
+    "codegen": "node _codegen.mjs && graphql-codegen --config codegen.ts & node _codegen.js",
+    "codegen-watch": "node _codegen.mjs && graphql-codegen -w --config codegen.ts & node _codegen.js",
     "copy-seal": "npx --yes copyfiles -u 3 ./node_modules/seal-wasm/build/*.wasm build",
     "test": "epk",
     "test-watch": "epk -w",
@@ -13,6 +15,8 @@
     "lint": "eslint --fix"
   },
   "devDependencies": {
+    "@graphql-codegen/cli": "^3.2.2",
+    "@graphql-codegen/client-preset": "^2.1.1",
     "@typescript-eslint/eslint-plugin": "^5.29.0",
     "@typescript-eslint/parser": "^5.29.0",
     "epk": "^0.16.0",

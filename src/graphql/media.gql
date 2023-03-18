@@ -14,6 +14,9 @@ type Media implements Handle {
   # Media properties
   """The official titles of the media in various languages"""
   title: MediaTitle
+
+  """Alternative titles of the media"""
+  synonyms: [MediaSynonym]
   
   """The type of the media"""
   type: MediaType
@@ -26,6 +29,21 @@ type Media implements Handle {
 
   """Media trailer or advertisement"""
   trailers: [MediaTrailer]
+
+  """The cover images of the media"""
+  coverImage: [MediaCoverImage]
+
+  """The banner image of the media"""
+  bannerImage: [String]
+
+  """The average score of the media"""
+  averageScore: Int
+
+  """Short description of the media's story and characters"""
+  description(
+    """Return the string in pre-parsed html instead of markdown"""
+    asHtml: Boolean
+  ): String
 }
 
 type MediaEdge implements HandleEdge {
@@ -38,6 +56,24 @@ type MediaConnection implements HandleConnection {
 
   """The pagination information"""
   pageInfo: PageInfo
+}
+
+"""The cover images of the media"""
+type MediaCoverImage {
+  """Average #hex color of cover image"""
+  color: String
+
+  """The cover image of the media at its largest size. 500x735"""
+  extraLarge: String
+
+  """The cover image of the media at large size. 250x367"""
+  large: String
+
+  """The cover image of the media at medium size. 120x171"""
+  medium: String
+
+  """The cover image of the media at small size. 64x92"""
+  small: String
 }
 
 """An external link to another site related to the media or its properties"""
@@ -163,7 +199,6 @@ enum MediaType {
   SOFTWARE
 }
 
-
 """Source type the media was adapted from"""
 enum MediaSource {
   """An original production not based of another work"""
@@ -243,4 +278,16 @@ type MediaTitle {
 
   """The currently authenticated users preferred title language. Default english"""
   userPreferred: String
+}
+
+"""Alternative titles of the media"""
+type MediaSynonym {
+  """The language the title is in"""
+  language: String
+
+  """The alternative title"""
+  synonyms: String
+
+  """The score of the title based on searchability"""
+  score: Float
 }
