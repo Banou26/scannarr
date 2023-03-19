@@ -1,3 +1,8 @@
+
+extend type Query {
+  media: Media
+}
+
 """
 Media is a type of handle that represents a media file.
 It generally represents a Movie, TV Show, Game, Package, ect...
@@ -84,7 +89,7 @@ type MediaExternalLink implements Handle {
   id: String!
   uri: Uri!
   url: String
-  handles: [Handle!]!
+  handles: [HandleConnection!]!
 
   # MediaExternalLink properties
   color: String
@@ -109,14 +114,14 @@ type MediaTrailer implements Handle {
   id: String!
   uri: Uri!
   url: String
-  handles: [Handle!]!
+  handles: [HandleConnection!]!
 
   # MediaTrailer properties
   """The url for the thumbnail image of the video"""
   thumbnail: String
 }
 
-"""Source type the media was adapted from"""
+"""The type of the media"""
 enum MediaType {
   """Asian comic book"""
   MANGA

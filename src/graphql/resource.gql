@@ -13,12 +13,14 @@ type Resource implements Handle {
   batchResources: [ResourceConnection!]!
 }
 
-type ResourceConnection {
-  pageInfo: PageInfo!
-  edges: [ResourceEdge!]!
-  totalCount: Int!
+type ResourceEdge implements HandleEdge {
+  node: Resource!
 }
 
-type ResourceEdge {
-  node: Resource!
+type ResourceConnection implements HandleConnection {
+  edges: [ResourceEdge]
+  nodes: [Resource]
+
+  """The pagination information"""
+  pageInfo: PageInfo
 }
