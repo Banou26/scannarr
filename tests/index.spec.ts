@@ -1,37 +1,36 @@
 import { test } from '@japa/runner'
-import * as _ApolloClient from '@apollo/client'
+import { gql, ApolloClient, InMemoryCache } from "@apollo/client/core/core.cjs"
 
-import * as Scannarr from '../build'
-
-const { ApolloClient, gql, InMemoryCache } = _ApolloClient
-const { makeServer } = Scannarr
+import { makeServer } from '../build'
 
 test.group('Apollo client link to server instance', (group) => {
-  let server: ReturnType<typeof makeServer>
-  let client: _ApolloClient.ApolloClient<any>
+  let server: Awaited<ReturnType<typeof makeServer>>
+  let client: ApolloClient<any>
 
   group.setup(async () => {
-    server = makeServer({ operationPrefix: 'Test' })
+    server = await makeServer({
+      operationPrefix: 'Test'
+    })
     client = new ApolloClient({
       cache: new InMemoryCache(),
       link: server.link
     })
 
-    return () => {
-      server.server.stop()
+    return async () => {
+      await server.server.stop()
     }
   })
 
   test('link', async ({ expect }) => {
-    const res = await client.query({
+    const { data } = await client.query({
       query: gql`
-        query {
-          TestMedia {
+        query Test {
+          media {
             id
           }
         }
       `
-    })
-    console.log('res', res)
+      })
+    expect(data).toEqual({ media: { id: '1' } })
   })
 })

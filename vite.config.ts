@@ -13,6 +13,8 @@ export default defineConfig({
       name: 'index',
       fileName: 'index'
     },
+    minify: false,
+    sourcemap: true,
     outDir: 'build',
     rollupOptions: {
       plugins: [
@@ -28,6 +30,7 @@ export default defineConfig({
       }),
       apply: 'build'
     },
+    // @ts-expect-error
     polyfills()
   ]
 })

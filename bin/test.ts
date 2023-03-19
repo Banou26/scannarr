@@ -22,7 +22,10 @@ configure({
     files: ['tests/**/*.spec.ts'],
     plugins: [expect()],
     reporters: [specReporter()],
-    importer: (filePath) => import(pathToFileURL(filePath).href),
+    importer: (filePath) => {
+      const path = pathToFileURL(filePath).href
+      return import(path)
+    },
   },
 })
 

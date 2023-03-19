@@ -1,4 +1,4 @@
-import { Resolvers } from 'src/generated/graphql'
+import { Resolvers } from '../generated/graphql'
 
 import MediaResolvers from './media'
 

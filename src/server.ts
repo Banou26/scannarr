@@ -19,7 +19,7 @@ type Context = ApolloBaseContext
 //   removeResolvers: (resolvers: Resolvers<Context>) => void;
 // }
 
-export default <T extends MakeServerOptions>({ operationPrefix, typeDefs, resolvers: resolverOptions = [] }: T) => {
+export default async <T extends MakeServerOptions>({ operationPrefix, typeDefs, resolvers: resolverOptions = [] }: T) => {
   let registeredResolvers: Resolvers<Context>[] = [...resolverOptions]
 
   const context = {
@@ -39,7 +39,7 @@ export default <T extends MakeServerOptions>({ operationPrefix, typeDefs, resolv
         : schema,
     resolvers
   })
-  server.start()
+  await server.start()
 
   const link = makeLink({ prefix: operationPrefix, server })
 

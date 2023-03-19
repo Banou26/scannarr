@@ -1,4 +1,4 @@
-import type { Media, Resolvers } from 'src/generated/graphql'
+import type { Media, Resolvers } from '../generated/graphql'
 
 export default {
   Media: {

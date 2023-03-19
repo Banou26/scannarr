@@ -1,7 +1,7 @@
-// export * from './types'
-// export * from './series'
-// export * from './title'
-// export * from './targets'
-export { default as schema } from './graphql'
+
+import _schema from './graphql'
+
+export const schema: string = _schema
+
 export { default as makeServer } from './server'
 
