@@ -301,6 +301,17 @@ export enum MediaType {
   WebNovel = 'WEB_NOVEL'
 }
 
+export type Mutation = {
+  __typename?: 'Mutation';
+  dummy?: Maybe<Scalars['String']>;
+};
+
+export type Page = {
+  __typename?: 'Page';
+  media?: Maybe<Array<Maybe<Media>>>;
+  pageInfo?: Maybe<PageInfo>;
+};
+
 export type PageInfo = {
   __typename?: 'PageInfo';
   /** The current page */
@@ -317,7 +328,9 @@ export type PageInfo = {
 
 export type Query = {
   __typename?: 'Query';
-  media?: Maybe<Media>;
+  Media?: Maybe<Media>;
+  Page?: Maybe<Page>;
+  dummy?: Maybe<Scalars['String']>;
 };
 
 export type Resource = Handle & {
@@ -437,6 +450,8 @@ export type ResolversTypes = {
   MediaTitle: ResolverTypeWrapper<MediaTitle>;
   MediaTrailer: ResolverTypeWrapper<MediaTrailer>;
   MediaType: MediaType;
+  Mutation: ResolverTypeWrapper<{}>;
+  Page: ResolverTypeWrapper<Page>;
   PageInfo: ResolverTypeWrapper<PageInfo>;
   Query: ResolverTypeWrapper<{}>;
   Resource: ResolverTypeWrapper<Resource>;
@@ -465,6 +480,8 @@ export type ResolversParentTypes = {
   MediaSynonym: MediaSynonym;
   MediaTitle: MediaTitle;
   MediaTrailer: MediaTrailer;
+  Mutation: {};
+  Page: Page;
   PageInfo: PageInfo;
   Query: {};
   Resource: Resource;
@@ -591,6 +608,16 @@ export type MediaTrailerResolvers<ContextType = any, ParentType extends Resolver
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
+  dummy?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+};
+
+export type PageResolvers<ContextType = any, ParentType extends ResolversParentTypes['Page'] = ResolversParentTypes['Page']> = {
+  media?: Resolver<Maybe<Array<Maybe<ResolversTypes['Media']>>>, ParentType, ContextType>;
+  pageInfo?: Resolver<Maybe<ResolversTypes['PageInfo']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type PageInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['PageInfo'] = ResolversParentTypes['PageInfo']> = {
   currentPage?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   hasNextPage?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
@@ -601,7 +628,9 @@ export type PageInfoResolvers<ContextType = any, ParentType extends ResolversPar
 };
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
-  media?: Resolver<Maybe<ResolversTypes['Media']>, ParentType, ContextType>;
+  Media?: Resolver<Maybe<ResolversTypes['Media']>, ParentType, ContextType>;
+  Page?: Resolver<Maybe<ResolversTypes['Page']>, ParentType, ContextType>;
+  dummy?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
 export type ResourceResolvers<ContextType = any, ParentType extends ResolversParentTypes['Resource'] = ResolversParentTypes['Resource']> = {
@@ -647,6 +676,8 @@ export type Resolvers<ContextType = any> = {
   MediaSynonym?: MediaSynonymResolvers<ContextType>;
   MediaTitle?: MediaTitleResolvers<ContextType>;
   MediaTrailer?: MediaTrailerResolvers<ContextType>;
+  Mutation?: MutationResolvers<ContextType>;
+  Page?: PageResolvers<ContextType>;
   PageInfo?: PageInfoResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   Resource?: ResourceResolvers<ContextType>;

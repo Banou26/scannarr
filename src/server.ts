@@ -72,42 +72,47 @@ export default async <T extends MakeServerOptions>({ operationPrefix, typeDefs, 
     })
   )
 
-  const Page = Object.fromEntries(
-    pageQueries
-      .map(([key, value]) => {
-        const pageResolvers =
-          pageQueries
-            .filter(([_key]) => _key === key)
-            .filter(([_key, value]) => typeof value === 'function')
-            .map(([, value]) => value)
+  const Page = (parent, args, context, info) => {
+    console.log(`PAGE RESOLVER CALLED`)
+    
+    return Object.fromEntries(
+      pageQueries
+        .map(([key, value]) => {
+          const pageResolvers =
+            pageQueries
+              .filter(([_key]) => _key === key)
+              .filter(([_key, value]) => typeof value === 'function')
+              .map(([, value]) => value)
 
-        const normalizedKey = `${key[0]?.toLowerCase()}${key.slice(1)}`
-        console.log(`Page resolvers`, normalizedKey, pageResolvers)
+          const normalizedKey = `${key[0]?.toLowerCase()}${key.slice(1)}`
+          console.log(`Page resolvers`, normalizedKey, pageResolvers)
 
-        return [
-          normalizedKey,
-          async (parent, args, context, info) => {
-            console.log(`PAGE RESOLVER CALLED`, key)
-            const results =
-              await Promise.allSettled(
-                pageResolvers?.map((resolverFunction) =>
-                  resolverFunction(parent, args, context, info)
-                )
-              )
+          return [
+            normalizedKey,
+            // async (parent, args, context, info) => {
+            //   console.log(`PAGE FIELD RESOLVER CALLED ON KEY`, key)
+            //   const results =
+            //     await Promise.allSettled(
+            //       pageResolvers?.map((resolverFunction) =>
+            //         resolverFunction(parent, args, context, info)
+            //       )
+            //     )
 
-            return {
-              pageInfo: {
-                hasNextPage: false,
-                hasPreviousPage: false,
-                startCursor: '',
-                endCursor: ''
-              },
-              [normalizedKey]: results.filter((result) => result.status === 'fulfilled')
-            }
-          }
-        ]
-      })
-  )
+            //   return {
+            //     pageInfo: {
+            //       hasNextPage: false,
+            //       hasPreviousPage: false,
+            //       startCursor: '',
+            //       endCursor: ''
+            //     },
+            //     [normalizedKey]: results.filter((result) => result.status === 'fulfilled')
+            //   }
+            // }
+          ]
+        })
+    )
+  }
+    
 
   console.log('resolvers', {
     ...resolversObj,
@@ -127,7 +132,13 @@ export default async <T extends MakeServerOptions>({ operationPrefix, typeDefs, 
       Query: {
         ...resolversObj.Query,
         Page
-      }
+        // Page: () => ({
+        //   media: () => [({ id: '1' })]
+        // })
+      },
+      // Page: {
+      //   media: () => [({ id: '1' })]
+      // }
     }
   })
 

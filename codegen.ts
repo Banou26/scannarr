@@ -1,16 +1,9 @@
 import type { CodegenConfig } from '@graphql-codegen/cli'
 
-import { readdirSync, readFileSync } from 'fs'
-
-const schemasFolder = readdirSync('./src/graphql')
-
-const schemasfileNames =
-  schemasFolder
-    .filter(fileName => fileName.endsWith('.gql'))
-    .map(fileName => readFileSync(fileName, 'utf8'))
+import schema from './src/graphql'
 
 const config: CodegenConfig = {
-  schema: schemasfileNames,
+  schema,
   generates: {
     './src/generated/graphql.ts': {
       plugins: ['typescript', 'typescript-resolvers', 'typescript-document-nodes'],

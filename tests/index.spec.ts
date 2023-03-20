@@ -14,7 +14,6 @@ test.group('Apollo client link to server instance', (group) => {
         Page: {
           media: () => [({ id: '1' })]
         },
-        Media: () => ({ id: '1' }),
         Query: {
           Media: () => ({ id: '1' })
         }
