@@ -25,7 +25,6 @@ export default defineConfig({
   plugins: [
     {
       ...typescript2({
-        exclude: ['src/graphql/**/*'],
         abortOnError: false
       }),
       apply: 'build'

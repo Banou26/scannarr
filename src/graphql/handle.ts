@@ -1,3 +1,5 @@
+export default `#graphql
+
 """ A Handle represents a unique identifier for a resource. """
 interface Handle {
   """ The name of the handler, e.g: 'fkn' for packages handled by FKN """
@@ -29,3 +31,5 @@ interface HandleConnection {
   """The pagination information"""
   pageInfo: PageInfo
 }
+
+`

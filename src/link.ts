@@ -1,7 +1,7 @@
 import type { ApolloServer } from '@apollo/server'
 
-import { split } from '@apollo/client'
-import { HttpLink } from '@apollo/client'
+import { split } from '@apollo/client/link/core'
+import { HttpLink } from '@apollo/client/link/http'
 import { getMainDefinition } from '@apollo/client/utilities'
 
 export const makeLink = ({ prefix, server }: { prefix: string, server: ApolloServer }) => {

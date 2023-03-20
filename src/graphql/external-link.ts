@@ -1,3 +1,4 @@
+export default `#graphql
 
 enum ExternalLinkMediaType {
   ANIME
@@ -10,3 +11,5 @@ enum ExternalLinkType {
   STREAMING
   SOCIAL
 }
+
+`

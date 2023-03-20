@@ -1,3 +1,4 @@
+export default `#graphql
 
 """RFC 3986 uniform resource identifier (URI) as stricter form "scheme:path"""
 scalar Uri
@@ -10,3 +11,5 @@ scalar Json
 
 """ISO 3166-1 alpha-2 country code"""
 scalar CountryCode
+
+`

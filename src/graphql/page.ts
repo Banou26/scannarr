@@ -1,3 +1,15 @@
+export default `#graphql
+
+extend type Query {
+  Page: Page
+}
+
+type Page {
+  pageInfo: PageInfo
+
+  media: [Media]
+}
+
 type PageInfo {
   """The current page"""
   currentPage: Int
@@ -16,3 +28,5 @@ type PageInfo {
   """
   total: Int
 }
+
+`

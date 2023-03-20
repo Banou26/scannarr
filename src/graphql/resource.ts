@@ -1,3 +1,4 @@
+export default `#graphql
 
 type Resource implements Handle {
   # Handle properties
@@ -24,3 +25,5 @@ type ResourceConnection implements HandleConnection {
   """The pagination information"""
   pageInfo: PageInfo
 }
+
+`

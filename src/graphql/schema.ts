@@ -1,3 +1,5 @@
+export default `#graphql
+
 type Query {
   dummy: String
 }
@@ -8,3 +10,5 @@ schema {
   query: Query
   mutation: Mutation
 }
+
+`

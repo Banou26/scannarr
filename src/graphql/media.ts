@@ -1,6 +1,7 @@
+export default `#graphql
 
 extend type Query {
-  media: Media
+  Media: Media
 }
 
 """
@@ -296,3 +297,5 @@ type MediaSynonym {
   """The score of the title based on searchability"""
   score: Float
 }
+
+`

@@ -1,7 +1,7 @@
 import { test } from '@japa/runner'
-import { gql, ApolloClient, InMemoryCache } from "@apollo/client/core/core.cjs"
+import { gql, ApolloClient, InMemoryCache } from "@apollo/client/core"
 
-import { makeServer } from '../build'
+import { makeServer } from '../src'
 
 test.group('Apollo client link to server instance', (group) => {
   let server: Awaited<ReturnType<typeof makeServer>>
@@ -9,7 +9,16 @@ test.group('Apollo client link to server instance', (group) => {
 
   group.setup(async () => {
     server = await makeServer({
-      operationPrefix: 'Test'
+      operationPrefix: 'Test',
+      resolvers: [{
+        Page: {
+          media: () => [({ id: '1' })]
+        },
+        Media: () => ({ id: '1' }),
+        Query: {
+          Media: () => ({ id: '1' })
+        }
+      }]
     })
     client = new ApolloClient({
       cache: new InMemoryCache(),
@@ -25,12 +34,26 @@ test.group('Apollo client link to server instance', (group) => {
     const { data } = await client.query({
       query: gql`
         query Test {
-          media {
+          Media {
             id
+          }
+          Page {
+            media {
+              id
+            }
           }
         }
       `
       })
-    expect(data).toEqual({ media: { id: '1' } })
+    expect(data).toEqual({
+      Media: {
+        __typename: 'Media',
+        id: '1'
+      },
+      Page: {
+        __typename: 'Page',
+        media: [{ __typename: 'Media', id: '1' }]
+      }
+    })
   })
 })

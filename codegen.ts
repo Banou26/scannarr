@@ -1,27 +1,17 @@
 import type { CodegenConfig } from '@graphql-codegen/cli'
 
-import { readdirSync } from 'fs'
+import { readdirSync, readFileSync } from 'fs'
 
 const schemasFolder = readdirSync('./src/graphql')
 
 const schemasfileNames =
   schemasFolder
     .filter(fileName => fileName.endsWith('.gql'))
-    .map(fileName => `./src/graphql/${fileName}`)
+    .map(fileName => readFileSync(fileName, 'utf8'))
 
 const config: CodegenConfig = {
   schema: schemasfileNames,
   generates: {
-    // './src/generated/': {
-    //   preset: 'client',
-    //   config: {
-    //     dedupeFragments: true
-    //   },
-    //   presetConfig: {
-    //     gqlTagName: 'gql',
-    //     fragmentMasking: false
-    //   }
-    // }
     './src/generated/graphql.ts': {
       plugins: ['typescript', 'typescript-resolvers', 'typescript-document-nodes'],
       config: {
