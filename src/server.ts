@@ -27,21 +27,33 @@ export default async <T extends MakeServerOptions>({ operationPrefix, typeDefs, 
       )
   ]
 
+  const allPageQueries =
+    resolvers
+      ?.flatMap((resolver) => Object.entries(resolver))
+      .filter(([key]) => key === 'Page')
+      .flatMap(([key, value]) => Object.entries(value))
+      ?? []
+
+  console.log('allPageQueries', allPageQueries.map(([key, value]) => value.toString()))
+
   const pageQueries = [
     ...new Map(
-        resolvers
-          ?.flatMap((resolver) => Object.entries(resolver))
-          .filter(([key]) => key === 'Page')
-          .flatMap(([key, value]) =>
-            Object.entries(
-              rootQueries
-                .find(([_key]) => _key === key)
-                ?.[1]
-              ?? {}
-            )
+      resolvers
+      ?.flatMap((resolver) => Object.entries(resolver))
+      .filter(([key]) => key === 'Page')
+        .flatMap(([key, value]) =>
+          Object.entries(
+            rootQueries
+              .find(([_key]) => _key === key)
+              ?.[1]
+            ?? {}
           )
-      )
+        )
+    )
   ]
+
+  console.log('pageQueries', pageQueries)
+
 
   const resolversObj = Object.fromEntries(
     rootQueries.map(([key, value]) => {
@@ -72,14 +84,13 @@ export default async <T extends MakeServerOptions>({ operationPrefix, typeDefs, 
     })
   )
 
-  const Page = (parent, args, context, info) => {
-    console.log(`PAGE RESOLVER CALLED`)
-    
-    return Object.fromEntries(
+
+  const Page =
+    Object.fromEntries(
       pageQueries
         .map(([key, value]) => {
           const pageResolvers =
-            pageQueries
+            allPageQueries
               .filter(([_key]) => _key === key)
               .filter(([_key, value]) => typeof value === 'function')
               .map(([, value]) => value)
@@ -89,37 +100,32 @@ export default async <T extends MakeServerOptions>({ operationPrefix, typeDefs, 
 
           return [
             normalizedKey,
-            // async (parent, args, context, info) => {
-            //   console.log(`PAGE FIELD RESOLVER CALLED ON KEY`, key)
-            //   const results =
-            //     await Promise.allSettled(
-            //       pageResolvers?.map((resolverFunction) =>
-            //         resolverFunction(parent, args, context, info)
-            //       )
-            //     )
+            async (parent, args, context, info) => {
+              console.log(`PAGE FIELD RESOLVER CALLED ON KEY`, key)
+              const results =
+                (await Promise.allSettled(
+                  pageResolvers?.map((resolverFunction) =>
+                    resolverFunction(parent, args, context, info)
+                  )
+                ))
+                  .filter((result) => result.status === 'fulfilled')
+                  .flatMap((result) => (result as PromiseFulfilledResult<any>).value)
 
-            //   return {
-            //     pageInfo: {
-            //       hasNextPage: false,
-            //       hasPreviousPage: false,
-            //       startCursor: '',
-            //       endCursor: ''
-            //     },
-            //     [normalizedKey]: results.filter((result) => result.status === 'fulfilled')
-            //   }
-            // }
+              console.log('results', normalizedKey, results)
+
+              return results
+            }
           ]
         })
     )
-  }
-    
 
   console.log('resolvers', {
     ...resolversObj,
     Query: {
       ...resolversObj.Query,
-      Page
-    }
+      Page: () => Page
+    },
+    Page
   })
 
   const server = new ApolloServer<Context>({
@@ -131,14 +137,9 @@ export default async <T extends MakeServerOptions>({ operationPrefix, typeDefs, 
       ...resolversObj,
       Query: {
         ...resolversObj.Query,
-        Page
-        // Page: () => ({
-        //   media: () => [({ id: '1' })]
-        // })
+        Page: () => Page
       },
-      // Page: {
-      //   media: () => [({ id: '1' })]
-      // }
+      Page
     }
   })
 

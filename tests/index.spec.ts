@@ -17,6 +17,10 @@ test.group('Apollo client link to server instance', (group) => {
         Query: {
           Media: () => ({ id: '1' })
         }
+      }, {
+        Page: {
+          media: () => [({ id: '2' })]
+        }
       }]
     })
     client = new ApolloClient({
@@ -51,7 +55,10 @@ test.group('Apollo client link to server instance', (group) => {
       },
       Page: {
         __typename: 'Page',
-        media: [{ __typename: 'Media', id: '1' }]
+        media: [
+          { __typename: 'Media', id: '1' },
+          { __typename: 'Media', id: '2' }
+        ]
       }
     })
   })
