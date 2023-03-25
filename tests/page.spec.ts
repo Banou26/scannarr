@@ -4,16 +4,34 @@ import { gql } from "@apollo/client/core"
 import { setupApollo } from './utils'
 
 test.group('Page resolvers', (group) => {
-  test('returns ', async ({ expect, cleanup }) => {
+  test('returns response of all corresponding resolvers', async ({ expect, cleanup }) => {
     const { client } = await setupApollo({
       cleanup,
       resolvers: [{
         Page: {
-          media: () => [{ id: '1' }]
+          media: () => [({
+            handler: 'handler',
+            origin: 'origin',
+            id: '1',
+            uri: 'handler:origin:1',
+            handles: []
+          })]
         },
       }, {
         Page: {
-          media: () => [{ id: '2' }, { id: '3' }]
+          media: () => [({
+            handler: 'handler',
+            origin: 'origin',
+            id: '2',
+            uri: 'handler:origin:2',
+            handles: []
+          }), ({
+            handler: 'handler',
+            origin: 'origin',
+            id: '3',
+            uri: 'handler:origin:3',
+            handles: []
+          })]
         }
       }]
     })
@@ -23,6 +41,12 @@ test.group('Page resolvers', (group) => {
           Page {
             media {
               id
+              uri
+              handler
+              origin
+              handles {
+                __typename
+              }
             }
           }
         }
@@ -32,9 +56,30 @@ test.group('Page resolvers', (group) => {
       Page: {
         __typename: 'Page',
         media: [
-          { __typename: 'Media', id: '1' },
-          { __typename: 'Media', id: '2' },
-          { __typename: 'Media', id: '3' }
+          {
+            __typename: 'Media',
+            handler: 'handler',
+            origin: 'origin',
+            id: '1',
+            uri: 'handler:origin:1',
+            handles: []
+          },
+          {
+            __typename: 'Media',
+            handler: 'handler',
+            origin: 'origin',
+            id: '2',
+            uri: 'handler:origin:2',
+            handles: []
+          },
+          {
+            __typename: 'Media',
+            handler: 'handler',
+            origin: 'origin',
+            id: '3',
+            uri: 'handler:origin:3',
+            handles: []
+          }
         ]
       }
     })
