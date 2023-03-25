@@ -49,7 +49,8 @@ export default <T extends MakeServerOptions>({ operationPrefix, typeDefs, resolv
   const resolversObj = Object.fromEntries(
     rootQueries.map(([key, value]) => {
       const typeResolvers =
-        rootQueries
+        (resolvers ?? [])
+          ?.flatMap((resolver) => Object.entries(resolver))
           .filter(([_key]) => _key === key)
 
       return [
@@ -67,7 +68,7 @@ export default <T extends MakeServerOptions>({ operationPrefix, typeDefs, resolv
                 typeResolvers
                   .flatMap(([_, value]) => Object.entries(value))
                   .filter(([_key, value]) => typeof value === 'function')
-                  ?.map(([, resolverFunction]) => resolverFunction(parent, args, context, info))
+                  .map(([, resolverFunction]) => resolverFunction(parent, args, context, info))
               )
           ])
         )
