@@ -4,7 +4,7 @@ import { split } from '@apollo/client/link/core'
 import { HttpLink } from '@apollo/client/link/http'
 import { getMainDefinition } from '@apollo/client/utilities'
 
-export const makeLink = ({ prefix, server }: { prefix: string, server: ApolloServer }) => {
+export const makeLink = ({ prefix, server }: { prefix?: string, server: ApolloServer }) => {
   const fetch: (input: RequestInfo | URL, init: RequestInit) => Promise<Response> = async (input, init) => {
     const body = JSON.parse(init.body!.toString())
     const headers = new Map<string, string>()
@@ -30,7 +30,7 @@ export const makeLink = ({ prefix, server }: { prefix: string, server: ApolloSer
   return split(
     ({ query }) => {
       const definition = getMainDefinition(query)
-      return Boolean(definition.name?.value.startsWith(prefix))
+      return !prefix || Boolean(definition.name?.value.startsWith(prefix))
     },
     new HttpLink({ fetch })
   )

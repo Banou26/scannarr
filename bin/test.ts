@@ -1,7 +1,15 @@
+import type { Expect } from '@japa/expect'
+
 import { expect } from '@japa/expect'
 import { pathToFileURL } from 'node:url'
 import { specReporter } from '@japa/spec-reporter'
 import { processCliArgs, configure, run } from '@japa/runner'
+
+declare module '@japa/runner' {
+  interface TestContext {
+    expect: Expect
+  }
+}
 
 /*
 |--------------------------------------------------------------------------

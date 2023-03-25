@@ -1,25 +1,21 @@
-import { ApolloServer, BaseContext as ApolloBaseContext } from '@apollo/server'
-import { Resolvers } from './generated/graphql'
+import type { BaseContext as ApolloBaseContext } from '@apollo/server'
+import type { Resolvers } from './generated/graphql'
 
-import resolvers from './resolvers'
+import { ApolloServer } from '@apollo/server'
+
 import schema from './graphql'
 import { makeLink } from './link'
+
 
 export type MakeServerOptions = {
   typeDefs?: string
   resolvers?: Resolvers[]
-  operationPrefix: string
+  operationPrefix?: string
 }
 
 type Context = ApolloBaseContext
 
-// export type BaseContext = ApolloBaseContext & {
-//   addResolvers: (resolvers: Resolvers<Context>) => void;
-//   getResolvers: () => Resolvers<Context>[];
-//   removeResolvers: (resolvers: Resolvers<Context>) => void;
-// }
-
-export default async <T extends MakeServerOptions>({ operationPrefix, typeDefs, resolvers }: T) => {
+export default <T extends MakeServerOptions>({ operationPrefix, typeDefs, resolvers }: T) => {
   const rootQueries = [
     ...new Map(
         resolvers
@@ -33,8 +29,6 @@ export default async <T extends MakeServerOptions>({ operationPrefix, typeDefs, 
       .filter(([key]) => key === 'Page')
       .flatMap(([key, value]) => Object.entries(value))
       ?? []
-
-  console.log('allPageQueries', allPageQueries.map(([key, value]) => value.toString()))
 
   const pageQueries = [
     ...new Map(
@@ -51,9 +45,6 @@ export default async <T extends MakeServerOptions>({ operationPrefix, typeDefs, 
         )
     )
   ]
-
-  console.log('pageQueries', pageQueries)
-
 
   const resolversObj = Object.fromEntries(
     rootQueries.map(([key, value]) => {
@@ -84,7 +75,6 @@ export default async <T extends MakeServerOptions>({ operationPrefix, typeDefs, 
     })
   )
 
-
   const Page =
     Object.fromEntries(
       pageQueries
@@ -96,12 +86,10 @@ export default async <T extends MakeServerOptions>({ operationPrefix, typeDefs, 
               .map(([, value]) => value)
 
           const normalizedKey = `${key[0]?.toLowerCase()}${key.slice(1)}`
-          console.log(`Page resolvers`, normalizedKey, pageResolvers)
 
           return [
             normalizedKey,
             async (parent, args, context, info) => {
-              console.log(`PAGE FIELD RESOLVER CALLED ON KEY`, key)
               const results =
                 (await Promise.allSettled(
                   pageResolvers?.map((resolverFunction) =>
@@ -110,23 +98,11 @@ export default async <T extends MakeServerOptions>({ operationPrefix, typeDefs, 
                 ))
                   .filter((result) => result.status === 'fulfilled')
                   .flatMap((result) => (result as PromiseFulfilledResult<any>).value)
-
-              console.log('results', normalizedKey, results)
-
               return results
             }
           ]
         })
     )
-
-  console.log('resolvers', {
-    ...resolversObj,
-    Query: {
-      ...resolversObj.Query,
-      Page: () => Page
-    },
-    Page
-  })
 
   const server = new ApolloServer<Context>({
     typeDefs:
@@ -142,8 +118,6 @@ export default async <T extends MakeServerOptions>({ operationPrefix, typeDefs, 
       Page
     }
   })
-
-  await server.start()
 
   const link = makeLink({ prefix: operationPrefix, server })
 
