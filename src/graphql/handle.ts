@@ -1,4 +1,4 @@
-export default `#graphql
+export const schema = `#graphql
 
 """ A Handle represents a unique identifier for a resource. """
 interface Handle {

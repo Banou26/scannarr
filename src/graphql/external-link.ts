@@ -1,4 +1,4 @@
-export default `#graphql
+export const schema = `#graphql
 
 enum ExternalLinkMediaType {
   ANIME

@@ -47,7 +47,7 @@ export default <T extends MakeServerOptions>({ operationPrefix, typeDefs, resolv
   ]
 
   const resolversObj = Object.fromEntries(
-    rootQueries.map(([key, value]) => {
+    rootQueries.map(([key]) => {
       const typeResolvers =
         (resolvers ?? [])
           ?.flatMap((resolver) => Object.entries(resolver))
@@ -61,7 +61,7 @@ export default <T extends MakeServerOptions>({ operationPrefix, typeDefs, resolv
                 typeResolvers
                   ?.flatMap(([, resolver]) => Object.entries(resolver))
               )
-          ].map(([key, value]) => [
+          ].map(([key]) => [
             key,
             (parent, args, context, info) =>
               Promise.any(
@@ -84,7 +84,7 @@ export default <T extends MakeServerOptions>({ operationPrefix, typeDefs, resolv
   const Page =
     Object.fromEntries(
       pageQueries
-        .map(([key, value]) => {
+        .map(([key]) => {
           const pageResolvers =
             allPageQueries
               .filter(([_key]) => _key === key)
@@ -104,6 +104,7 @@ export default <T extends MakeServerOptions>({ operationPrefix, typeDefs, resolv
                 ))
                   .filter((result) => result.status === 'fulfilled')
                   .flatMap((result) => (result as PromiseFulfilledResult<any>).value)
+                  .filter((result) => result !== undefined && result !== null)
               return results
             }
           ]

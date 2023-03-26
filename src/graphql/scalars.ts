@@ -1,4 +1,4 @@
-export default `#graphql
+export const schema = `#graphql
 
 """RFC 3986 uniform resource identifier (URI) as stricter form "scheme:path"""
 scalar Uri

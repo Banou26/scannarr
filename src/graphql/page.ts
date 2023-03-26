@@ -1,4 +1,6 @@
-export default `#graphql
+import * as Media from './media'
+
+export const schema = `#graphql
 
 extend type Query {
   Page: Page
@@ -7,7 +9,7 @@ extend type Query {
 type Page {
   pageInfo: PageInfo
 
-  media: [Media]
+  media(${Media.MediaParameters}): [Media]
 }
 
 type PageInfo {

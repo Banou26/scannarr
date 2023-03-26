@@ -1,22 +1,21 @@
-
-import schema from './schema'
-import character from './character'
-import externalLink from './external-link'
-import handle from './handle'
-import media from './media'
-import page from './page'
-import resource from './resource'
-import scalars from './scalars'
+import { schema as schemaSchema } from './schema'
+import { schema as characterSchema } from './character'
+import { schema as externalLinkSchema } from './external-link'
+import { schema as handleSchema } from './handle'
+import { schema as mediaSchema } from './media'
+import { schema as pageSchema } from './page'
+import { schema as resourceSchema } from './resource'
+import { schema as scalarsSchema } from './scalars'
 
 export const schemas = [
-  ['schema', schema],
-  ['character', character],
-  ['externalLink', externalLink],
-  ['handle', handle],
-  ['media', media],
-  ['page', page],
-  ['resource', resource],
-  ['scalars', scalars]
+  ['schema', schemaSchema],
+  ['character', characterSchema],
+  ['externalLink', externalLinkSchema],
+  ['handle', handleSchema],
+  ['media', mediaSchema],
+  ['page', pageSchema],
+  ['resource', resourceSchema],
+  ['scalars', scalarsSchema]
 ]
 
 export default (

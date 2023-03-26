@@ -1,4 +1,4 @@
-export default `#graphql
+export const schema = `#graphql
 
 type Query {
   dummy: String

@@ -1,10 +1,12 @@
-export default `#graphql
-
-extend type Query {
-  Media(
+export const MediaParameters = `#graphql
     """Filter by the media id"""
     id: String
-  ): Media
+`
+
+export const schema = `#graphql
+
+extend type Query {
+  Media(${MediaParameters}): Media
 }
 
 """
