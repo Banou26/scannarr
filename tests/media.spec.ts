@@ -1,8 +1,34 @@
 import { test } from '@japa/runner'
-import { gql, ApolloClient, InMemoryCache } from "@apollo/client/core"
+import { gql } from "@apollo/client/core"
 
-import { makeServer } from '../src'
 import { setupApollo } from './utils'
+
+const QUERY_MEDIA = gql`
+query ($id: String) {
+  Media(id: $id) {
+    id
+    uri
+    handler
+    origin
+    handles {
+      __typename
+    }
+  }
+}
+`
+
+const makeMedia = (id: string) => ({
+  handler: 'handler',
+  origin: 'origin',
+  id,
+  uri: `handler:origin:${id}`,
+  handles: []
+})
+
+const makeMediaResponse = (id: string) => ({
+  __typename: 'Media',
+  ...makeMedia(id)
+})
 
 test.group('Media resolvers', (group) => {
   test('returns single query resolver\'s response', async ({ expect, cleanup }) => {
@@ -11,41 +37,16 @@ test.group('Media resolvers', (group) => {
       resolvers: [
         {
           Query: {
-            Media: () => ({
-              handler: 'handler',
-              origin: 'origin',
-              id: '1',
-              uri: 'handler:origin:1',
-              handles: []
-            })
+            Media: () => makeMedia('1')
           }
         }
       ]
     })
     const { data } = await client.query({
-      query: gql`
-        query {
-          Media {
-            id
-            uri
-            handler
-            origin
-            handles {
-              __typename
-            }
-          }
-        }
-      `
+      query: QUERY_MEDIA
     })
     expect(data).toEqual({
-      Media: {
-        __typename: 'Media',
-        handler: 'handler',
-        origin: 'origin',
-        id: '1',
-        uri: 'handler:origin:1',
-        handles: []
-      }
+      Media: makeMediaResponse('1')
     })
   })
   test('returns first single response from multiple query resolvers', async ({ expect, cleanup }) => {
@@ -54,52 +55,64 @@ test.group('Media resolvers', (group) => {
       resolvers: [
         {
           Query: {
-            Media: () => ({
-              handler: 'handler',
-              origin: 'origin',
-              id: '1',
-              uri: 'handler:origin:1',
-              handles: []
-            })
+            Media: () => makeMedia('1')
           }
         },
         {
           Query: {
-            Media: () => ({
-              handler: 'handler',
-              origin: 'origin',
-              id: '2',
-              uri: 'handler:origin:2',
-              handles: []
-            })
+            Media: () => makeMedia('2')
           }
         }
       ]
     })
     const { data } = await client.query({
-      query: gql`
-        query {
-          Media {
-            id
-            uri
-            handler
-            origin
-            handles {
-              __typename
-            }
-          }
-        }
-      `
+      query: QUERY_MEDIA
     })
     expect(data).toEqual({
-      Media: {
-        __typename: 'Media',
-        handler: 'handler',
-        origin: 'origin',
-        id: '1',
-        uri: 'handler:origin:1',
-        handles: []
-      }
+      Media: makeMediaResponse('1')
+    })
+  })
+  test('returns single filtered response from multiple query resolvers', async ({ expect, cleanup }) => {
+    const { client } = await setupApollo({
+      cleanup,
+      resolvers: [
+        {
+          Query: {
+            Media: (_, args) =>
+              args.id === '1'
+                ? makeMedia('1')
+                : null
+          }
+        },
+        {
+          Query: {
+            Media: (_, args) =>
+              args.id === '2'
+                ? makeMedia('2')
+                : null
+          }
+        }
+      ]
+    })
+    expect(
+      (await client.query({
+        query: QUERY_MEDIA,
+        variables: {
+          id: '1'
+        }
+      })).data
+    ).toEqual({
+      Media: makeMediaResponse('1')
+    })
+    expect(
+      (await client.query({
+        query: QUERY_MEDIA,
+        variables: {
+          id: '2'
+        }
+      })).data
+    ).toEqual({
+      Media: makeMediaResponse('2')
     })
   })
 })

@@ -333,6 +333,11 @@ export type Query = {
   dummy?: Maybe<Scalars['String']>;
 };
 
+
+export type QueryMediaArgs = {
+  id?: InputMaybe<Scalars['String']>;
+};
+
 export type Resource = Handle & {
   __typename?: 'Resource';
   batchResources: Array<ResourceConnection>;
@@ -628,7 +633,7 @@ export type PageInfoResolvers<ContextType = any, ParentType extends ResolversPar
 };
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
-  Media?: Resolver<Maybe<ResolversTypes['Media']>, ParentType, ContextType>;
+  Media?: Resolver<Maybe<ResolversTypes['Media']>, ParentType, ContextType, Partial<QueryMediaArgs>>;
   Page?: Resolver<Maybe<ResolversTypes['Page']>, ParentType, ContextType>;
   dummy?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };

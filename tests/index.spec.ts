@@ -1,9 +1,8 @@
 import { test } from '@japa/runner'
-import { gql, ApolloClient, InMemoryCache, ApolloLink } from "@apollo/client/core"
+import { ApolloLink } from "@apollo/client/core"
 
 import { makeServer } from '../src'
 import { ApolloServer } from '@apollo/server'
-
 
 test.group('makeServer', () => {
   test('returns an object', ({ expect }) => {

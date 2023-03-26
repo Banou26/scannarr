@@ -63,12 +63,17 @@ export default <T extends MakeServerOptions>({ operationPrefix, typeDefs, resolv
               )
           ].map(([key, value]) => [
             key,
-            async (parent, args, context, info) =>
+            (parent, args, context, info) =>
               Promise.any(
                 typeResolvers
                   .flatMap(([_, value]) => Object.entries(value))
                   .filter(([_key, value]) => typeof value === 'function')
-                  .map(([, resolverFunction]) => resolverFunction(parent, args, context, info))
+                  .map(async ([, resolverFunction]) => resolverFunction(parent, args, context, info))
+                  .map(async result =>
+                    (await result) === undefined || (await result) === null
+                      ? Promise.reject()
+                      : result
+                  )
               )
           ])
         )

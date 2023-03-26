@@ -15,8 +15,9 @@
     "noUncheckedIndexedAccess": true
   },
   "types": [
-    "@japa/preset-adonis/build/adonis-typings"
+    "@japa/preset-adonis/build/adonis-typings",
+    "@japa/expect"
   ],
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "tests/**/*", "bin/**/*"],
   "exclude": ["node_modules"],
 }

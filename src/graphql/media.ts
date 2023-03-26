@@ -1,7 +1,10 @@
 export default `#graphql
 
 extend type Query {
-  Media: Media
+  Media(
+    """Filter by the media id"""
+    id: String
+  ): Media
 }
 
 """
