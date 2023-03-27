@@ -8,7 +8,8 @@ const config: CodegenConfig = {
     './src/generated/graphql.ts': {
       plugins: ['typescript', 'typescript-resolvers', 'typescript-document-nodes'],
       config: {
-        useTypeImports: true
+        useTypeImports: true,
+        contextType: '../server#Context'
       }
     },
     './src/generated/graphql.schema.json': {

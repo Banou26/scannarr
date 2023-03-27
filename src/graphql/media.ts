@@ -1,6 +1,8 @@
 export const MediaParameters = `#graphql
     """Filter by the media id"""
     id: String
+    """Filter by search terms"""
+    search: String
 `
 
 export const schema = `#graphql
