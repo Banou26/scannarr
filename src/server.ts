@@ -13,7 +13,9 @@ export type MakeServerOptions = {
   operationPrefix?: string
 }
 
-type Context = ApolloBaseContext
+export type Context = ApolloBaseContext & {
+  fetch: typeof fetch
+}
 
 export default <T extends MakeServerOptions>({ operationPrefix, typeDefs, resolvers }: T) => {
   const rootQueries = [
