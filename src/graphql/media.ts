@@ -3,6 +3,12 @@ export const MediaParameters = `#graphql
     id: String
     """Filter by search terms"""
     search: String
+    """Filter by search terms"""
+    season: MediaSeason
+    """
+    The year of the season (Winter 2017 would also include December 2016 releases). Requires season argument
+    """
+    seasonYear: Int
 `
 
 export const schema = `#graphql
@@ -53,10 +59,24 @@ type Media implements Handle {
   averageScore: Int
 
   """Short description of the media's story and characters"""
+  shortDescription(
+    """Return the string in pre-parsed html instead of markdown"""
+    asHtml: Boolean
+  ): String
+
+  """Long description of the media's story and characters"""
   description(
     """Return the string in pre-parsed html instead of markdown"""
     asHtml: Boolean
   ): String
+
+  format: MediaFormat
+
+  """The season the media was initially released in"""
+  season: MediaSeason
+
+  """The season year the media was initially released in"""
+  seasonYear: Int
 }
 
 type MediaEdge implements HandleEdge {
@@ -212,6 +232,47 @@ enum MediaType {
   SOFTWARE
 }
 
+"""The format the media was released in"""
+enum MediaFormat {
+  """Anime broadcast on television"""
+  TV
+
+  """Anime which are under 15 minutes in length and broadcast on television"""
+  TV_SHORT
+
+  """Anime movies with a theatrical release"""
+  MOVIE
+
+  """
+  Special episodes that have been included in DVD/Blu-ray releases, picture dramas, pilots, etc
+  """
+  SPECIAL
+
+  """
+  (Original Video Animation) Anime that have been released directly on
+  DVD/Blu-ray without originally going through a theatrical release or
+  television broadcast
+  """
+  OVA
+
+  """
+  (Original Net Animation) Anime that have been originally released online or are only available through streaming services.
+  """
+  ONA
+
+  """Short anime released as a music video"""
+  MUSIC
+
+  """Professionally published manga with more than one chapter"""
+  MANGA
+
+  """Written books released as a series of light novels"""
+  NOVEL
+
+  """Manga with just one chapter"""
+  ONE_SHOT
+}
+
 """Source type the media was adapted from"""
 enum MediaSource {
   """An original production not based of another work"""
@@ -260,6 +321,20 @@ enum MediaSource {
   PICTURE_BOOK
 }
 
+enum MediaSeason {
+  """Months December to February"""
+  WINTER
+
+  """Months March to May"""
+  SPRING
+
+  """Months June to August"""
+  SUMMER
+
+  """Months September to November"""
+  FALL
+}
+
 """The current releasing status of the media"""
 enum MediaStatus {
   """Has completed and is no longer being released"""
@@ -286,6 +361,9 @@ type MediaTitle {
   """Official title in it's native language"""
   native: String
 
+  """Official title in it's romanized form"""
+  romanized: String
+
   """The official language title"""
   language(countryCode: CountryCode): String
 
@@ -299,7 +377,10 @@ type MediaSynonym {
   language: String
 
   """The alternative title"""
-  synonyms: String
+  synonym: String
+
+  """Is alternative title a romanized version of the native title"""
+  isRomanized: Boolean
 
   """The score of the title based on searchability"""
   score: Float

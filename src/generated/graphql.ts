@@ -77,14 +77,21 @@ export type Media = Handle & {
   bannerImage?: Maybe<Array<Maybe<Scalars['String']>>>;
   /** The cover images of the media */
   coverImage?: Maybe<Array<Maybe<MediaCoverImage>>>;
-  /** Short description of the media's story and characters */
+  /** Long description of the media's story and characters */
   description?: Maybe<Scalars['String']>;
   /** External links to another site related to the media */
   externalLinks?: Maybe<Array<Maybe<MediaExternalLink>>>;
+  format?: Maybe<MediaFormat>;
   handler: Scalars['String'];
   handles: Array<MediaConnection>;
   id: Scalars['String'];
   origin: Scalars['String'];
+  /** The season the media was initially released in */
+  season?: Maybe<MediaSeason>;
+  /** The season year the media was initially released in */
+  seasonYear?: Maybe<Scalars['Int']>;
+  /** Short description of the media's story and characters */
+  shortDescription?: Maybe<Scalars['String']>;
   /** The current releasing status of the media */
   status?: Maybe<MediaStatus>;
   /** Alternative titles of the media */
@@ -105,6 +112,15 @@ export type Media = Handle & {
  * It generally represents a Movie, TV Show, Game, Package, ect...
  */
 export type MediaDescriptionArgs = {
+  asHtml?: InputMaybe<Scalars['Boolean']>;
+};
+
+
+/**
+ * Media is a type of handle that represents a media file.
+ * It generally represents a Movie, TV Show, Game, Package, ect...
+ */
+export type MediaShortDescriptionArgs = {
   asHtml?: InputMaybe<Scalars['Boolean']>;
 };
 
@@ -154,6 +170,45 @@ export type MediaExternalLink = Handle & {
   uri: Scalars['Uri'];
   url?: Maybe<Scalars['String']>;
 };
+
+/** The format the media was released in */
+export enum MediaFormat {
+  /** Professionally published manga with more than one chapter */
+  Manga = 'MANGA',
+  /** Anime movies with a theatrical release */
+  Movie = 'MOVIE',
+  /** Short anime released as a music video */
+  Music = 'MUSIC',
+  /** Written books released as a series of light novels */
+  Novel = 'NOVEL',
+  /** (Original Net Animation) Anime that have been originally released online or are only available through streaming services. */
+  Ona = 'ONA',
+  /** Manga with just one chapter */
+  OneShot = 'ONE_SHOT',
+  /**
+   * (Original Video Animation) Anime that have been released directly on
+   * DVD/Blu-ray without originally going through a theatrical release or
+   * television broadcast
+   */
+  Ova = 'OVA',
+  /** Special episodes that have been included in DVD/Blu-ray releases, picture dramas, pilots, etc */
+  Special = 'SPECIAL',
+  /** Anime broadcast on television */
+  Tv = 'TV',
+  /** Anime which are under 15 minutes in length and broadcast on television */
+  TvShort = 'TV_SHORT'
+}
+
+export enum MediaSeason {
+  /** Months September to November */
+  Fall = 'FALL',
+  /** Months March to May */
+  Spring = 'SPRING',
+  /** Months June to August */
+  Summer = 'SUMMER',
+  /** Months December to February */
+  Winter = 'WINTER'
+}
 
 /** Source type the media was adapted from */
 export enum MediaSource {
@@ -206,12 +261,14 @@ export enum MediaStatus {
 /** Alternative titles of the media */
 export type MediaSynonym = {
   __typename?: 'MediaSynonym';
+  /** Is alternative title a romanized version of the native title */
+  isRomanized?: Maybe<Scalars['Boolean']>;
   /** The language the title is in */
   language?: Maybe<Scalars['String']>;
   /** The score of the title based on searchability */
   score?: Maybe<Scalars['Float']>;
   /** The alternative title */
-  synonyms?: Maybe<Scalars['String']>;
+  synonym?: Maybe<Scalars['String']>;
 };
 
 /** The official titles of the media in various languages */
@@ -223,6 +280,8 @@ export type MediaTitle = {
   language?: Maybe<Scalars['String']>;
   /** Official title in it's native language */
   native?: Maybe<Scalars['String']>;
+  /** Official title in it's romanized form */
+  romanized?: Maybe<Scalars['String']>;
   /** The currently authenticated users preferred title language. Default english */
   userPreferred?: Maybe<Scalars['String']>;
 };
@@ -317,6 +376,8 @@ export type Page = {
 export type PageMediaArgs = {
   id?: InputMaybe<Scalars['String']>;
   search?: InputMaybe<Scalars['String']>;
+  season?: InputMaybe<MediaSeason>;
+  seasonYear?: InputMaybe<Scalars['Int']>;
 };
 
 export type PageInfo = {
@@ -344,6 +405,8 @@ export type Query = {
 export type QueryMediaArgs = {
   id?: InputMaybe<Scalars['String']>;
   search?: InputMaybe<Scalars['String']>;
+  season?: InputMaybe<MediaSeason>;
+  seasonYear?: InputMaybe<Scalars['Int']>;
 };
 
 export type Resource = Handle & {
@@ -457,6 +520,8 @@ export type ResolversTypes = {
   MediaCoverImage: ResolverTypeWrapper<MediaCoverImage>;
   MediaEdge: ResolverTypeWrapper<MediaEdge>;
   MediaExternalLink: ResolverTypeWrapper<MediaExternalLink>;
+  MediaFormat: MediaFormat;
+  MediaSeason: MediaSeason;
   MediaSource: MediaSource;
   MediaStatus: MediaStatus;
   MediaSynonym: ResolverTypeWrapper<MediaSynonym>;
@@ -544,10 +609,14 @@ export type MediaResolvers<ContextType = Context, ParentType extends ResolversPa
   coverImage?: Resolver<Maybe<Array<Maybe<ResolversTypes['MediaCoverImage']>>>, ParentType, ContextType>;
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, Partial<MediaDescriptionArgs>>;
   externalLinks?: Resolver<Maybe<Array<Maybe<ResolversTypes['MediaExternalLink']>>>, ParentType, ContextType>;
+  format?: Resolver<Maybe<ResolversTypes['MediaFormat']>, ParentType, ContextType>;
   handler?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   handles?: Resolver<Array<ResolversTypes['MediaConnection']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   origin?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  season?: Resolver<Maybe<ResolversTypes['MediaSeason']>, ParentType, ContextType>;
+  seasonYear?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  shortDescription?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, Partial<MediaShortDescriptionArgs>>;
   status?: Resolver<Maybe<ResolversTypes['MediaStatus']>, ParentType, ContextType>;
   synonyms?: Resolver<Maybe<Array<Maybe<ResolversTypes['MediaSynonym']>>>, ParentType, ContextType>;
   title?: Resolver<Maybe<ResolversTypes['MediaTitle']>, ParentType, ContextType>;
@@ -596,9 +665,10 @@ export type MediaExternalLinkResolvers<ContextType = Context, ParentType extends
 };
 
 export type MediaSynonymResolvers<ContextType = Context, ParentType extends ResolversParentTypes['MediaSynonym'] = ResolversParentTypes['MediaSynonym']> = {
+  isRomanized?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   language?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   score?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
-  synonyms?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  synonym?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -606,6 +676,7 @@ export type MediaTitleResolvers<ContextType = Context, ParentType extends Resolv
   english?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   language?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, Partial<MediaTitleLanguageArgs>>;
   native?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  romanized?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   userPreferred?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };

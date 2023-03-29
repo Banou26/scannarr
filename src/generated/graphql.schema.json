@@ -413,7 +413,7 @@
           },
           {
             "name": "description",
-            "description": "Short description of the media's story and characters",
+            "description": "Long description of the media's story and characters",
             "args": [
               {
                 "name": "asHtml",
@@ -448,6 +448,18 @@
                 "name": "MediaExternalLink",
                 "ofType": null
               }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "format",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "ENUM",
+              "name": "MediaFormat",
+              "ofType": null
             },
             "isDeprecated": false,
             "deprecationReason": null
@@ -520,6 +532,55 @@
                 "name": "String",
                 "ofType": null
               }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "season",
+            "description": "The season the media was initially released in",
+            "args": [],
+            "type": {
+              "kind": "ENUM",
+              "name": "MediaSeason",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "seasonYear",
+            "description": "The season year the media was initially released in",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "Int",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "shortDescription",
+            "description": "Short description of the media's story and characters",
+            "args": [
+              {
+                "name": "asHtml",
+                "description": "Return the string in pre-parsed html instead of markdown",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "Boolean",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              }
+            ],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
             },
             "isDeprecated": false,
             "deprecationReason": null
@@ -988,6 +1049,112 @@
       },
       {
         "kind": "ENUM",
+        "name": "MediaFormat",
+        "description": "The format the media was released in",
+        "fields": null,
+        "inputFields": null,
+        "interfaces": null,
+        "enumValues": [
+          {
+            "name": "MANGA",
+            "description": "Professionally published manga with more than one chapter",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "MOVIE",
+            "description": "Anime movies with a theatrical release",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "MUSIC",
+            "description": "Short anime released as a music video",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "NOVEL",
+            "description": "Written books released as a series of light novels",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "ONA",
+            "description": "(Original Net Animation) Anime that have been originally released online or are only available through streaming services.",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "ONE_SHOT",
+            "description": "Manga with just one chapter",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "OVA",
+            "description": "(Original Video Animation) Anime that have been released directly on\nDVD/Blu-ray without originally going through a theatrical release or\ntelevision broadcast",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "SPECIAL",
+            "description": "Special episodes that have been included in DVD/Blu-ray releases, picture dramas, pilots, etc",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "TV",
+            "description": "Anime broadcast on television",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "TV_SHORT",
+            "description": "Anime which are under 15 minutes in length and broadcast on television",
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
+        ],
+        "possibleTypes": null
+      },
+      {
+        "kind": "ENUM",
+        "name": "MediaSeason",
+        "description": null,
+        "fields": null,
+        "inputFields": null,
+        "interfaces": null,
+        "enumValues": [
+          {
+            "name": "FALL",
+            "description": "Months September to November",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "SPRING",
+            "description": "Months March to May",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "SUMMER",
+            "description": "Months June to August",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "WINTER",
+            "description": "Months December to February",
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
+        ],
+        "possibleTypes": null
+      },
+      {
+        "kind": "ENUM",
         "name": "MediaSource",
         "description": "Source type the media was adapted from",
         "fields": null,
@@ -1134,6 +1301,18 @@
         "description": "Alternative titles of the media",
         "fields": [
           {
+            "name": "isRomanized",
+            "description": "Is alternative title a romanized version of the native title",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "Boolean",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "language",
             "description": "The language the title is in",
             "args": [],
@@ -1158,7 +1337,7 @@
             "deprecationReason": null
           },
           {
-            "name": "synonyms",
+            "name": "synonym",
             "description": "The alternative title",
             "args": [],
             "type": {
@@ -1220,6 +1399,18 @@
           {
             "name": "native",
             "description": "Official title in it's native language",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "romanized",
+            "description": "Official title in it's romanized form",
             "args": [],
             "type": {
               "kind": "SCALAR",
@@ -1586,6 +1777,30 @@
                 "defaultValue": null,
                 "isDeprecated": false,
                 "deprecationReason": null
+              },
+              {
+                "name": "season",
+                "description": "Filter by search terms",
+                "type": {
+                  "kind": "ENUM",
+                  "name": "MediaSeason",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "seasonYear",
+                "description": "The year of the season (Winter 2017 would also include December 2016 releases). Requires season argument",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "Int",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
               }
             ],
             "type": {
@@ -1716,6 +1931,30 @@
                 "type": {
                   "kind": "SCALAR",
                   "name": "String",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "season",
+                "description": "Filter by search terms",
+                "type": {
+                  "kind": "ENUM",
+                  "name": "MediaSeason",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "seasonYear",
+                "description": "The year of the season (Winter 2017 would also include December 2016 releases). Requires season argument",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "Int",
                   "ofType": null
                 },
                 "defaultValue": null,
