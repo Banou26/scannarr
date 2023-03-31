@@ -541,6 +541,18 @@
             "deprecationReason": null
           },
           {
+            "name": "endDate",
+            "description": "The last official release date of the media",
+            "args": [],
+            "type": {
+              "kind": "OBJECT",
+              "name": "FuzzyDate",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "externalLinks",
             "description": "External links to another site related to the media",
             "args": [],
@@ -625,6 +637,18 @@
             "deprecationReason": null
           },
           {
+            "name": "isAdult",
+            "description": "If the media is intended only for 18+ adult audiences",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "Boolean",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "origin",
             "description": null,
             "args": [],
@@ -684,6 +708,18 @@
             "type": {
               "kind": "SCALAR",
               "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "startDate",
+            "description": "The first official release date of the media",
+            "args": [],
+            "type": {
+              "kind": "OBJECT",
+              "name": "FuzzyDate",
               "ofType": null
             },
             "isDeprecated": false,
@@ -1859,6 +1895,54 @@
             "description": null,
             "args": [
               {
+                "name": "endDate",
+                "description": "Filter by the end date of the media",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "FuzzyDateInt",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "endDate_greater",
+                "description": "Filter by the end date of the media",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "FuzzyDateInt",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "endDate_lesser",
+                "description": "Filter by the end date of the media",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "FuzzyDateInt",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "endDate_like",
+                "description": "Filter by the end date of the media",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
                 "name": "id",
                 "description": "Filter by the media id",
                 "type": {
@@ -1901,6 +1985,110 @@
                   "kind": "SCALAR",
                   "name": "Int",
                   "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "startDate",
+                "description": "Filter by the start date of the media",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "FuzzyDateInt",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "startDate_greater",
+                "description": "Filter by the start date of the media",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "FuzzyDateInt",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "startDate_lesser",
+                "description": "Filter by the start date of the media",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "FuzzyDateInt",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "startDate_like",
+                "description": "Filter by the start date of the media",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "status",
+                "description": "Filter by the media's current release status",
+                "type": {
+                  "kind": "ENUM",
+                  "name": "MediaStatus",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "status_in",
+                "description": "Filter by the media's current release status",
+                "type": {
+                  "kind": "LIST",
+                  "name": null,
+                  "ofType": {
+                    "kind": "ENUM",
+                    "name": "MediaStatus",
+                    "ofType": null
+                  }
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "status_not",
+                "description": "Filter by the media's current release status",
+                "type": {
+                  "kind": "ENUM",
+                  "name": "MediaStatus",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "status_not_in",
+                "description": "Filter by the media's current release status",
+                "type": {
+                  "kind": "LIST",
+                  "name": null,
+                  "ofType": {
+                    "kind": "ENUM",
+                    "name": "MediaStatus",
+                    "ofType": null
+                  }
                 },
                 "defaultValue": null,
                 "isDeprecated": false,
@@ -2018,6 +2206,54 @@
             "description": null,
             "args": [
               {
+                "name": "endDate",
+                "description": "Filter by the end date of the media",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "FuzzyDateInt",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "endDate_greater",
+                "description": "Filter by the end date of the media",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "FuzzyDateInt",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "endDate_lesser",
+                "description": "Filter by the end date of the media",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "FuzzyDateInt",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "endDate_like",
+                "description": "Filter by the end date of the media",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
                 "name": "id",
                 "description": "Filter by the media id",
                 "type": {
@@ -2060,6 +2296,110 @@
                   "kind": "SCALAR",
                   "name": "Int",
                   "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "startDate",
+                "description": "Filter by the start date of the media",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "FuzzyDateInt",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "startDate_greater",
+                "description": "Filter by the start date of the media",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "FuzzyDateInt",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "startDate_lesser",
+                "description": "Filter by the start date of the media",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "FuzzyDateInt",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "startDate_like",
+                "description": "Filter by the start date of the media",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "status",
+                "description": "Filter by the media's current release status",
+                "type": {
+                  "kind": "ENUM",
+                  "name": "MediaStatus",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "status_in",
+                "description": "Filter by the media's current release status",
+                "type": {
+                  "kind": "LIST",
+                  "name": null,
+                  "ofType": {
+                    "kind": "ENUM",
+                    "name": "MediaStatus",
+                    "ofType": null
+                  }
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "status_not",
+                "description": "Filter by the media's current release status",
+                "type": {
+                  "kind": "ENUM",
+                  "name": "MediaStatus",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "status_not_in",
+                "description": "Filter by the media's current release status",
+                "type": {
+                  "kind": "LIST",
+                  "name": null,
+                  "ofType": {
+                    "kind": "ENUM",
+                    "name": "MediaStatus",
+                    "ofType": null
+                  }
                 },
                 "defaultValue": null,
                 "isDeprecated": false,

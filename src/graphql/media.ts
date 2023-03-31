@@ -9,6 +9,42 @@ export const MediaParameters = `#graphql
     The year of the season (Winter 2017 would also include December 2016 releases). Requires season argument
     """
     seasonYear: Int
+
+    """Filter by the media's current release status"""
+    status: MediaStatus
+
+    """Filter by the media's current release status"""
+    status_in: [MediaStatus]
+
+    """Filter by the media's current release status"""
+    status_not: MediaStatus
+
+    """Filter by the media's current release status"""
+    status_not_in: [MediaStatus]
+
+    """Filter by the start date of the media"""
+    startDate: FuzzyDateInt
+
+    """Filter by the start date of the media"""
+    startDate_greater: FuzzyDateInt
+
+    """Filter by the start date of the media"""
+    startDate_lesser: FuzzyDateInt
+
+    """Filter by the start date of the media"""
+    startDate_like: String
+
+    """Filter by the end date of the media"""
+    endDate: FuzzyDateInt
+
+    """Filter by the end date of the media"""
+    endDate_greater: FuzzyDateInt
+
+    """Filter by the end date of the media"""
+    endDate_lesser: FuzzyDateInt
+
+    """Filter by the end date of the media"""
+    endDate_like: String
 `
 
 export const schema = `#graphql
@@ -77,6 +113,15 @@ type Media implements Handle {
 
   """The season year the media was initially released in"""
   seasonYear: Int
+
+  """If the media is intended only for 18+ adult audiences"""
+  isAdult: Boolean
+
+  """The first official release date of the media"""
+  startDate: FuzzyDate
+
+  """The last official release date of the media"""
+  endDate: FuzzyDate
 }
 
 type MediaEdge implements HandleEdge {

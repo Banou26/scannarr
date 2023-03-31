@@ -102,12 +102,16 @@ export type Media = Handle & {
   coverImage?: Maybe<Array<Maybe<MediaCoverImage>>>;
   /** Long description of the media's story and characters */
   description?: Maybe<Scalars['String']>;
+  /** The last official release date of the media */
+  endDate?: Maybe<FuzzyDate>;
   /** External links to another site related to the media */
   externalLinks?: Maybe<Array<Maybe<MediaExternalLink>>>;
   format?: Maybe<MediaFormat>;
   handler: Scalars['String'];
   handles: Array<MediaConnection>;
   id: Scalars['String'];
+  /** If the media is intended only for 18+ adult audiences */
+  isAdult?: Maybe<Scalars['Boolean']>;
   origin: Scalars['String'];
   /** The season the media was initially released in */
   season?: Maybe<MediaSeason>;
@@ -115,6 +119,8 @@ export type Media = Handle & {
   seasonYear?: Maybe<Scalars['Int']>;
   /** Short description of the media's story and characters */
   shortDescription?: Maybe<Scalars['String']>;
+  /** The first official release date of the media */
+  startDate?: Maybe<FuzzyDate>;
   /** The current releasing status of the media */
   status?: Maybe<MediaStatus>;
   /** Alternative titles of the media */
@@ -397,10 +403,22 @@ export type Page = {
 
 
 export type PageMediaArgs = {
+  endDate?: InputMaybe<Scalars['FuzzyDateInt']>;
+  endDate_greater?: InputMaybe<Scalars['FuzzyDateInt']>;
+  endDate_lesser?: InputMaybe<Scalars['FuzzyDateInt']>;
+  endDate_like?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['String']>;
   search?: InputMaybe<Scalars['String']>;
   season?: InputMaybe<MediaSeason>;
   seasonYear?: InputMaybe<Scalars['Int']>;
+  startDate?: InputMaybe<Scalars['FuzzyDateInt']>;
+  startDate_greater?: InputMaybe<Scalars['FuzzyDateInt']>;
+  startDate_lesser?: InputMaybe<Scalars['FuzzyDateInt']>;
+  startDate_like?: InputMaybe<Scalars['String']>;
+  status?: InputMaybe<MediaStatus>;
+  status_in?: InputMaybe<Array<InputMaybe<MediaStatus>>>;
+  status_not?: InputMaybe<MediaStatus>;
+  status_not_in?: InputMaybe<Array<InputMaybe<MediaStatus>>>;
 };
 
 export type PageInfo = {
@@ -426,10 +444,22 @@ export type Query = {
 
 
 export type QueryMediaArgs = {
+  endDate?: InputMaybe<Scalars['FuzzyDateInt']>;
+  endDate_greater?: InputMaybe<Scalars['FuzzyDateInt']>;
+  endDate_lesser?: InputMaybe<Scalars['FuzzyDateInt']>;
+  endDate_like?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['String']>;
   search?: InputMaybe<Scalars['String']>;
   season?: InputMaybe<MediaSeason>;
   seasonYear?: InputMaybe<Scalars['Int']>;
+  startDate?: InputMaybe<Scalars['FuzzyDateInt']>;
+  startDate_greater?: InputMaybe<Scalars['FuzzyDateInt']>;
+  startDate_lesser?: InputMaybe<Scalars['FuzzyDateInt']>;
+  startDate_like?: InputMaybe<Scalars['String']>;
+  status?: InputMaybe<MediaStatus>;
+  status_in?: InputMaybe<Array<InputMaybe<MediaStatus>>>;
+  status_not?: InputMaybe<MediaStatus>;
+  status_not_in?: InputMaybe<Array<InputMaybe<MediaStatus>>>;
 };
 
 export type Resource = Handle & {
@@ -533,6 +563,9 @@ export type ResolversTypes = {
   ExternalLinkMediaType: ExternalLinkMediaType;
   ExternalLinkType: ExternalLinkType;
   Float: ResolverTypeWrapper<Scalars['Float']>;
+  FuzzyDate: ResolverTypeWrapper<FuzzyDate>;
+  FuzzyDateInput: FuzzyDateInput;
+  FuzzyDateInt: ResolverTypeWrapper<Scalars['FuzzyDateInt']>;
   Handle: ResolversTypes['Media'] | ResolversTypes['MediaExternalLink'] | ResolversTypes['MediaTrailer'] | ResolversTypes['Resource'];
   HandleConnection: ResolversTypes['MediaConnection'] | ResolversTypes['ResourceConnection'];
   HandleEdge: ResolversTypes['MediaEdge'] | ResolversTypes['ResourceEdge'];
@@ -568,6 +601,9 @@ export type ResolversParentTypes = {
   CountryCode: Scalars['CountryCode'];
   Date: Scalars['Date'];
   Float: Scalars['Float'];
+  FuzzyDate: FuzzyDate;
+  FuzzyDateInput: FuzzyDateInput;
+  FuzzyDateInt: Scalars['FuzzyDateInt'];
   Handle: ResolversParentTypes['Media'] | ResolversParentTypes['MediaExternalLink'] | ResolversParentTypes['MediaTrailer'] | ResolversParentTypes['Resource'];
   HandleConnection: ResolversParentTypes['MediaConnection'] | ResolversParentTypes['ResourceConnection'];
   HandleEdge: ResolversParentTypes['MediaEdge'] | ResolversParentTypes['ResourceEdge'];
@@ -598,6 +634,17 @@ export interface CountryCodeScalarConfig extends GraphQLScalarTypeConfig<Resolve
 
 export interface DateScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['Date'], any> {
   name: 'Date';
+}
+
+export type FuzzyDateResolvers<ContextType = Context, ParentType extends ResolversParentTypes['FuzzyDate'] = ResolversParentTypes['FuzzyDate']> = {
+  day?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  month?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  year?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export interface FuzzyDateIntScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['FuzzyDateInt'], any> {
+  name: 'FuzzyDateInt';
 }
 
 export type HandleResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Handle'] = ResolversParentTypes['Handle']> = {
@@ -631,15 +678,18 @@ export type MediaResolvers<ContextType = Context, ParentType extends ResolversPa
   bannerImage?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   coverImage?: Resolver<Maybe<Array<Maybe<ResolversTypes['MediaCoverImage']>>>, ParentType, ContextType>;
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, Partial<MediaDescriptionArgs>>;
+  endDate?: Resolver<Maybe<ResolversTypes['FuzzyDate']>, ParentType, ContextType>;
   externalLinks?: Resolver<Maybe<Array<Maybe<ResolversTypes['MediaExternalLink']>>>, ParentType, ContextType>;
   format?: Resolver<Maybe<ResolversTypes['MediaFormat']>, ParentType, ContextType>;
   handler?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   handles?: Resolver<Array<ResolversTypes['MediaConnection']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  isAdult?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   origin?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   season?: Resolver<Maybe<ResolversTypes['MediaSeason']>, ParentType, ContextType>;
   seasonYear?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   shortDescription?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, Partial<MediaShortDescriptionArgs>>;
+  startDate?: Resolver<Maybe<ResolversTypes['FuzzyDate']>, ParentType, ContextType>;
   status?: Resolver<Maybe<ResolversTypes['MediaStatus']>, ParentType, ContextType>;
   synonyms?: Resolver<Maybe<Array<Maybe<ResolversTypes['MediaSynonym']>>>, ParentType, ContextType>;
   title?: Resolver<Maybe<ResolversTypes['MediaTitle']>, ParentType, ContextType>;
