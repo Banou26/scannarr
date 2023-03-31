@@ -5,6 +5,7 @@ import { schema as handleSchema } from './handle'
 import { schema as mediaSchema } from './media'
 import { schema as pageSchema } from './page'
 import { schema as resourceSchema } from './resource'
+import { schema as fuzzyDateSchema } from './fuzzy-date'
 import { schema as scalarsSchema } from './scalars'
 
 export const schemas = [
@@ -15,6 +16,7 @@ export const schemas = [
   ['media', mediaSchema],
   ['page', pageSchema],
   ['resource', resourceSchema],
+  ['fuzzyDate', fuzzyDateSchema],
   ['scalars', scalarsSchema]
 ]
 

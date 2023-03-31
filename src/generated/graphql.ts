@@ -17,6 +17,8 @@ export type Scalars = {
   CountryCode: any;
   /** ISO 8601:2004 date-time */
   Date: any;
+  /** 8 digit long date integer (YYYYMMDD). Unknown dates represented by 0. E.g. 2016: 20160000, May 1976: 19760500 */
+  FuzzyDateInt: any;
   /** ISO 21778:2017 JavaScript Object Notation (JSON) */
   Json: any;
   /** RFC 3986 uniform resource identifier (URI) as stricter form "scheme:path */
@@ -34,6 +36,27 @@ export enum ExternalLinkType {
   Social = 'SOCIAL',
   Streaming = 'STREAMING'
 }
+
+/** Date object that allows for incomplete date values (fuzzy) */
+export type FuzzyDate = {
+  __typename?: 'FuzzyDate';
+  /** Numeric Day (24) */
+  day?: Maybe<Scalars['Int']>;
+  /** Numeric Month (3) */
+  month?: Maybe<Scalars['Int']>;
+  /** Numeric Year (2017) */
+  year?: Maybe<Scalars['Int']>;
+};
+
+/** Date object that allows for incomplete date values (fuzzy) */
+export type FuzzyDateInput = {
+  /** Numeric Day (24) */
+  day?: InputMaybe<Scalars['Int']>;
+  /** Numeric Month (3) */
+  month?: InputMaybe<Scalars['Int']>;
+  /** Numeric Year (2017) */
+  year?: InputMaybe<Scalars['Int']>;
+};
 
 /**  A Handle represents a unique identifier for a resource.  */
 export type Handle = {
@@ -748,6 +771,8 @@ export interface UriScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes[
 export type Resolvers<ContextType = Context> = {
   CountryCode?: GraphQLScalarType;
   Date?: GraphQLScalarType;
+  FuzzyDate?: FuzzyDateResolvers<ContextType>;
+  FuzzyDateInt?: GraphQLScalarType;
   Handle?: HandleResolvers<ContextType>;
   HandleConnection?: HandleConnectionResolvers<ContextType>;
   HandleEdge?: HandleEdgeResolvers<ContextType>;
