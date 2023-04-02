@@ -113,6 +113,8 @@ export type Media = Handle & {
   /** If the media is intended only for 18+ adult audiences */
   isAdult?: Maybe<Scalars['Boolean']>;
   origin: Scalars['String'];
+  /** The number of users with the media on their list */
+  popularity?: Maybe<Scalars['Int']>;
   /** The season the media was initially released in */
   season?: Maybe<MediaSeason>;
   /** The season year the media was initially released in */
@@ -237,6 +239,32 @@ export enum MediaSeason {
   Summer = 'SUMMER',
   /** Months December to February */
   Winter = 'WINTER'
+}
+
+export enum MediaSort {
+  EndDate = 'END_DATE',
+  EndDateDesc = 'END_DATE_DESC',
+  Format = 'FORMAT',
+  FormatDesc = 'FORMAT_DESC',
+  Id = 'ID',
+  IdDesc = 'ID_DESC',
+  Popularity = 'POPULARITY',
+  PopularityDesc = 'POPULARITY_DESC',
+  Score = 'SCORE',
+  ScoreDesc = 'SCORE_DESC',
+  SearchMatch = 'SEARCH_MATCH',
+  StartDate = 'START_DATE',
+  StartDateDesc = 'START_DATE_DESC',
+  Status = 'STATUS',
+  StatusDesc = 'STATUS_DESC',
+  TitleEnglish = 'TITLE_ENGLISH',
+  TitleEnglishDesc = 'TITLE_ENGLISH_DESC',
+  TitleNative = 'TITLE_NATIVE',
+  TitleNativeDesc = 'TITLE_NATIVE_DESC',
+  TitleRomanized = 'TITLE_ROMANIZED',
+  TitleRomanizedDesc = 'TITLE_ROMANIZED_DESC',
+  Type = 'TYPE',
+  TypeDesc = 'TYPE_DESC'
 }
 
 /** Source type the media was adapted from */
@@ -411,6 +439,7 @@ export type PageMediaArgs = {
   search?: InputMaybe<Scalars['String']>;
   season?: InputMaybe<MediaSeason>;
   seasonYear?: InputMaybe<Scalars['Int']>;
+  sort?: InputMaybe<Array<InputMaybe<MediaSort>>>;
   startDate?: InputMaybe<Scalars['FuzzyDateInt']>;
   startDate_greater?: InputMaybe<Scalars['FuzzyDateInt']>;
   startDate_lesser?: InputMaybe<Scalars['FuzzyDateInt']>;
@@ -452,6 +481,7 @@ export type QueryMediaArgs = {
   search?: InputMaybe<Scalars['String']>;
   season?: InputMaybe<MediaSeason>;
   seasonYear?: InputMaybe<Scalars['Int']>;
+  sort?: InputMaybe<Array<InputMaybe<MediaSort>>>;
   startDate?: InputMaybe<Scalars['FuzzyDateInt']>;
   startDate_greater?: InputMaybe<Scalars['FuzzyDateInt']>;
   startDate_lesser?: InputMaybe<Scalars['FuzzyDateInt']>;
@@ -578,6 +608,7 @@ export type ResolversTypes = {
   MediaExternalLink: ResolverTypeWrapper<MediaExternalLink>;
   MediaFormat: MediaFormat;
   MediaSeason: MediaSeason;
+  MediaSort: MediaSort;
   MediaSource: MediaSource;
   MediaStatus: MediaStatus;
   MediaSynonym: ResolverTypeWrapper<MediaSynonym>;
@@ -686,6 +717,7 @@ export type MediaResolvers<ContextType = Context, ParentType extends ResolversPa
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   isAdult?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   origin?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  popularity?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   season?: Resolver<Maybe<ResolversTypes['MediaSeason']>, ParentType, ContextType>;
   seasonYear?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   shortDescription?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, Partial<MediaShortDescriptionArgs>>;

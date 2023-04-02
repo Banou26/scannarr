@@ -1,10 +1,17 @@
-import type { ApolloServer } from '@apollo/server'
+import type { ApolloServer, ContextThunk } from '@apollo/server'
 
 import { split } from '@apollo/client/link/core'
 import { HttpLink } from '@apollo/client/link/http'
 import { getMainDefinition } from '@apollo/client/utilities'
+import { BaseContext } from './server'
 
-export const makeLink = ({ prefix, server }: { prefix?: string, server: ApolloServer }) => {
+export const makeLink = <
+  Context extends BaseContext, 
+  T extends ApolloServer<Context>
+>(
+  { prefix, server, context }:
+  { prefix?: string, server: T, context: ContextThunk<Context> }
+) => {
   const fetch: (input: RequestInfo | URL, init: RequestInit) => Promise<Response> = async (input, init) => {
     const body = JSON.parse(init.body!.toString())
     const headers = new Map<string, string>()
@@ -21,7 +28,7 @@ export const makeLink = ({ prefix, server }: { prefix?: string, server: ApolloSe
         method: init.method!,
         search: ''
       },
-      context: async () => ({ input, init })
+      context: async () => ({ ...await context?.(), input, init })
     })
     // @ts-expect-error
     return new Response(res.body.string, { headers: res.headers })

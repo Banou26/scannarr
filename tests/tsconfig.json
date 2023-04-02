@@ -7,13 +7,17 @@
     "outDir": "./build",
     "sourceMap": true,
     "declaration": true,
-    "emitDeclarationOnly": true,
+    "noEmit": true,
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "strictNullChecks": true,
     "noUncheckedIndexedAccess": true
   },
-  "include": ["src"],
-  "exclude": ["node_modules", "bin", "tests"],
+  "types": [
+    "@japa/preset-adonis/build/adonis-typings",
+    "@japa/expect"
+  ],
+  "include": ["src/**/*", "tests/**/*", "bin/**/*"],
+  "exclude": ["node_modules"],
 }

@@ -1,8 +1,9 @@
 import { defineConfig } from 'vite'
-import typescript2 from "rollup-plugin-typescript2"
 import rollupNodePolyFill from 'rollup-plugin-polyfill-node'
 
 import polyfills from './vite-plugin-node-stdlib-browser.cjs'
+
+import pkg from './package.json'
 
 export default defineConfig({
   build: {
@@ -17,19 +18,17 @@ export default defineConfig({
     sourcemap: true,
     outDir: 'build',
     rollupOptions: {
-      plugins: [
-        rollupNodePolyFill()
+      // plugins: [
+      //   rollupNodePolyFill()
+      // ],
+      external: [
+        ...Object
+          .keys(pkg.dependencies)
       ]
     }
   },
-  plugins: [
-    {
-      ...typescript2({
-        abortOnError: false
-      }),
-      apply: 'build'
-    },
-    // @ts-expect-error
-    polyfills()
-  ]
+  // plugins: [
+  //   // @ts-expect-error
+  //   polyfills()
+  // ]
 })

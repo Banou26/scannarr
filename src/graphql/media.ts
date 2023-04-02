@@ -45,6 +45,9 @@ export const MediaParameters = `#graphql
 
     """Filter by the end date of the media"""
     endDate_like: String
+
+    """The order the results will be returned in"""
+    sort: [MediaSort]
 `
 
 export const schema = `#graphql
@@ -93,6 +96,9 @@ type Media implements Handle {
 
   """The average score of the media"""
   averageScore: Int
+
+  """The number of users with the media on their list"""
+  popularity: Int
 
   """Short description of the media's story and characters"""
   shortDescription(
@@ -429,6 +435,32 @@ type MediaSynonym {
 
   """The score of the title based on searchability"""
   score: Float
+}
+
+enum MediaSort {
+  ID
+  ID_DESC
+  TITLE_ROMANIZED
+  TITLE_ROMANIZED_DESC
+  TITLE_ENGLISH
+  TITLE_ENGLISH_DESC
+  TITLE_NATIVE
+  TITLE_NATIVE_DESC
+  TYPE
+  TYPE_DESC
+  FORMAT
+  FORMAT_DESC
+  START_DATE
+  START_DATE_DESC
+  END_DATE
+  END_DATE_DESC
+  SCORE
+  SCORE_DESC
+  POPULARITY
+  POPULARITY_DESC
+  STATUS
+  STATUS_DESC
+  SEARCH_MATCH
 }
 
 `
