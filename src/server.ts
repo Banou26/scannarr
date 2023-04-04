@@ -7,6 +7,7 @@ import schema from './graphql'
 import { makeLink } from './link'
 
 import { Sorts } from './sorts'
+import { InMemoryCache } from '@apollo/client/core'
 
 export type BaseContext = ApolloBaseContext & {
   fetch: typeof fetch
@@ -27,6 +28,8 @@ export type MakeServerOptions<Context extends ApolloBaseContext> = {
 }
 
 export default <Context extends BaseContext, T extends MakeServerOptions<Context>>({ operationPrefix, typeDefs, resolvers, silenceResolverErrors, context }: T) => {
+  const inMemoryCache = new InMemoryCache()
+  
   const rootQueries = [
     ...new Map(
         resolvers
@@ -135,12 +138,27 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
                 if (sortRest.length) return sortBy(sorted, sortRest[0]!, sortRest.slice(1))
                 return sorted
               }
-    
-              return (
+
+              const sortedResults =
                 sorts
                   ? sortBy(results, sorts[0]!, sorts.slice(1))
                   : results
-              )
+              
+              for (const result of sortedResults) {
+                inMemoryCache.modify({
+                  id: inMemoryCache.identify({ __ref: `${normalizedKey}:${result.uri}`, __typename: normalizedKey }),
+                  fields:
+                    Object.fromEntries(
+                      Object
+                        .entries(result)
+                        .map(([key, value]) => [key, () => value])
+                    )
+                })
+
+                // impl a "scannarr" source that takes data from all related items
+              }
+
+              return sortedResults
             }
           ]
         })
