@@ -425,7 +425,7 @@ export type Mutation = {
 
 export type Page = {
   __typename?: 'Page';
-  media?: Maybe<Array<Maybe<Media>>>;
+  media?: Maybe<Array<Media>>;
   pageInfo?: Maybe<PageInfo>;
 };
 
@@ -453,15 +453,23 @@ export type PageMediaArgs = {
 export type PageInfo = {
   __typename?: 'PageInfo';
   /** The current page */
-  currentPage?: Maybe<Scalars['Int']>;
-  /** If there is another page */
-  hasNextPage?: Maybe<Scalars['Boolean']>;
-  /** The last page */
-  lastPage?: Maybe<Scalars['Int']>;
-  /** The count on a page */
-  perPage?: Maybe<Scalars['Int']>;
+  currentPageCursor?: Maybe<Scalars['String']>;
+  /** The first page */
+  firstPageCursor?: Maybe<Scalars['String']>;
+  /** Total number of items on the current page */
+  inPage?: Maybe<Scalars['Int']>;
+  /** The last page cursor */
+  lastPageCursor?: Maybe<Scalars['String']>;
+  /** The current page */
+  nextPageCursor?: Maybe<Scalars['String']>;
+  /** The current page */
+  previousPageCursor?: Maybe<Scalars['String']>;
   /** The total number of items. Note: This value is not guaranteed to be accurate, do not rely on this for logic */
   total?: Maybe<Scalars['Int']>;
+  /** Total number of items after the current page. Note: This value is not guaranteed to be accurate, do not rely on this for logic */
+  totalAfter?: Maybe<Scalars['Int']>;
+  /** Total number of items before the current page. Note: This value is not guaranteed to be accurate, do not rely on this for logic */
+  totalBefore?: Maybe<Scalars['Int']>;
 };
 
 export type Query = {
@@ -490,6 +498,13 @@ export type QueryMediaArgs = {
   status_in?: InputMaybe<Array<InputMaybe<MediaStatus>>>;
   status_not?: InputMaybe<MediaStatus>;
   status_not_in?: InputMaybe<Array<InputMaybe<MediaStatus>>>;
+};
+
+
+export type QueryPageArgs = {
+  after?: InputMaybe<Scalars['Int']>;
+  at?: InputMaybe<Scalars['String']>;
+  before?: InputMaybe<Scalars['Int']>;
 };
 
 export type Resource = Handle & {
@@ -802,23 +817,27 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
 };
 
 export type PageResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Page'] = ResolversParentTypes['Page']> = {
-  media?: Resolver<Maybe<Array<Maybe<ResolversTypes['Media']>>>, ParentType, ContextType, Partial<PageMediaArgs>>;
+  media?: Resolver<Maybe<Array<ResolversTypes['Media']>>, ParentType, ContextType, Partial<PageMediaArgs>>;
   pageInfo?: Resolver<Maybe<ResolversTypes['PageInfo']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type PageInfoResolvers<ContextType = Context, ParentType extends ResolversParentTypes['PageInfo'] = ResolversParentTypes['PageInfo']> = {
-  currentPage?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
-  hasNextPage?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
-  lastPage?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
-  perPage?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  currentPageCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  firstPageCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  inPage?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  lastPageCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  nextPageCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  previousPageCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   total?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  totalAfter?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  totalBefore?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type QueryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   Media?: Resolver<Maybe<ResolversTypes['Media']>, ParentType, ContextType, Partial<QueryMediaArgs>>;
-  Page?: Resolver<Maybe<ResolversTypes['Page']>, ParentType, ContextType>;
+  Page?: Resolver<Maybe<ResolversTypes['Page']>, ParentType, ContextType, Partial<QueryPageArgs>>;
   dummy?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 

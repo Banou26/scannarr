@@ -2276,9 +2276,13 @@
               "kind": "LIST",
               "name": null,
               "ofType": {
-                "kind": "OBJECT",
-                "name": "Media",
-                "ofType": null
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "OBJECT",
+                  "name": "Media",
+                  "ofType": null
+                }
               }
             },
             "isDeprecated": false,
@@ -2308,11 +2312,35 @@
         "description": null,
         "fields": [
           {
-            "name": "currentPage",
+            "name": "currentPageCursor",
             "description": "The current page",
             "args": [],
             "type": {
               "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "firstPageCursor",
+            "description": "The first page",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "inPage",
+            "description": "Total number of items on the current page",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
               "name": "Int",
               "ofType": null
             },
@@ -2320,36 +2348,36 @@
             "deprecationReason": null
           },
           {
-            "name": "hasNextPage",
-            "description": "If there is another page",
+            "name": "lastPageCursor",
+            "description": "The last page cursor",
             "args": [],
             "type": {
               "kind": "SCALAR",
-              "name": "Boolean",
+              "name": "String",
               "ofType": null
             },
             "isDeprecated": false,
             "deprecationReason": null
           },
           {
-            "name": "lastPage",
-            "description": "The last page",
+            "name": "nextPageCursor",
+            "description": "The current page",
             "args": [],
             "type": {
               "kind": "SCALAR",
-              "name": "Int",
+              "name": "String",
               "ofType": null
             },
             "isDeprecated": false,
             "deprecationReason": null
           },
           {
-            "name": "perPage",
-            "description": "The count on a page",
+            "name": "previousPageCursor",
+            "description": "The current page",
             "args": [],
             "type": {
               "kind": "SCALAR",
-              "name": "Int",
+              "name": "String",
               "ofType": null
             },
             "isDeprecated": false,
@@ -2358,6 +2386,30 @@
           {
             "name": "total",
             "description": "The total number of items. Note: This value is not guaranteed to be accurate, do not rely on this for logic",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "Int",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "totalAfter",
+            "description": "Total number of items after the current page. Note: This value is not guaranteed to be accurate, do not rely on this for logic",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "Int",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "totalBefore",
+            "description": "Total number of items before the current page. Note: This value is not guaranteed to be accurate, do not rely on this for logic",
             "args": [],
             "type": {
               "kind": "SCALAR",
@@ -2610,7 +2662,44 @@
           {
             "name": "Page",
             "description": null,
-            "args": [],
+            "args": [
+              {
+                "name": "after",
+                "description": "How many pages after the cursor to return",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "Int",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "at",
+                "description": "Cursor from where to start",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "before",
+                "description": "How many pages before the cursor to return",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "Int",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              }
+            ],
             "type": {
               "kind": "OBJECT",
               "name": "Page",
