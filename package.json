@@ -44,6 +44,7 @@
     "anitomyscript": "^2.0.4",
     "dependency-graph": "^0.11.0",
     "fp-ts": "^2.12.1",
+    "graphql": "^16.6.0",
     "react": "^18.2.0",
     "rxjs": "^7.5.5",
     "seal-wasm": "^0.0.1"
