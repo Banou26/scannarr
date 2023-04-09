@@ -67,7 +67,7 @@ type Media implements Handle {
   id: String!
   uri: Uri!
   url: String
-  handles: [MediaConnection!]!
+  handles: MediaConnection!
 
   # Media properties
   """The official titles of the media in various languages"""
@@ -132,11 +132,14 @@ type Media implements Handle {
 
 type MediaEdge implements HandleEdge {
   node: Media!
+
+  """The relation between the two handles"""
+  handleRelationType: HandleRelation!
 }
 
 type MediaConnection implements HandleConnection {
-  edges: [MediaEdge]
-  nodes: [Media]
+  edges: [MediaEdge!]!
+  nodes: [Media!]!
 
   """The pagination information"""
   pageInfo: PageInfo
@@ -168,7 +171,7 @@ type MediaExternalLink implements Handle {
   id: String!
   uri: Uri!
   url: String
-  handles: [HandleConnection!]!
+  handles: HandleConnection!
 
   # MediaExternalLink properties
   color: String
@@ -193,7 +196,7 @@ type MediaTrailer implements Handle {
   id: String!
   uri: Uri!
   url: String
-  handles: [HandleConnection!]!
+  handles: HandleConnection!
 
   # MediaTrailer properties
   """The url for the thumbnail image of the video"""

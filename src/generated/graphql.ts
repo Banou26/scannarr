@@ -62,7 +62,7 @@ export type FuzzyDateInput = {
 export type Handle = {
   /**  The name of the handler, e.g: 'fkn' for packages handled by FKN  */
   handler: Scalars['String'];
-  handles: Array<HandleConnection>;
+  handles: HandleConnection;
   /**  The id of the resource, e.g: 'react' for the React package  */
   id: Scalars['String'];
   /**  The origin of the resource, e.g: 'npm', generally the host of the resource  */
@@ -78,15 +78,21 @@ export type Handle = {
 };
 
 export type HandleConnection = {
-  edges?: Maybe<Array<Maybe<HandleEdge>>>;
-  nodes?: Maybe<Array<Maybe<Handle>>>;
+  edges: Array<HandleEdge>;
+  nodes: Array<Handle>;
   /** The pagination information */
   pageInfo?: Maybe<PageInfo>;
 };
 
 export type HandleEdge = {
+  /** The relation between the two handles */
+  handleRelationType: HandleRelation;
   node: Handle;
 };
+
+export enum HandleRelation {
+  Identical = 'IDENTICAL'
+}
 
 /**
  * Media is a type of handle that represents a media file.
@@ -108,7 +114,7 @@ export type Media = Handle & {
   externalLinks?: Maybe<Array<Maybe<MediaExternalLink>>>;
   format?: Maybe<MediaFormat>;
   handler: Scalars['String'];
-  handles: Array<MediaConnection>;
+  handles: MediaConnection;
   id: Scalars['String'];
   /** If the media is intended only for 18+ adult audiences */
   isAdult?: Maybe<Scalars['Boolean']>;
@@ -157,8 +163,8 @@ export type MediaShortDescriptionArgs = {
 
 export type MediaConnection = HandleConnection & {
   __typename?: 'MediaConnection';
-  edges?: Maybe<Array<Maybe<MediaEdge>>>;
-  nodes?: Maybe<Array<Maybe<Media>>>;
+  edges: Array<MediaEdge>;
+  nodes: Array<Media>;
   /** The pagination information */
   pageInfo?: Maybe<PageInfo>;
 };
@@ -180,6 +186,8 @@ export type MediaCoverImage = {
 
 export type MediaEdge = HandleEdge & {
   __typename?: 'MediaEdge';
+  /** The relation between the two handles */
+  handleRelationType: HandleRelation;
   node: Media;
 };
 
@@ -188,7 +196,7 @@ export type MediaExternalLink = Handle & {
   __typename?: 'MediaExternalLink';
   color?: Maybe<Scalars['String']>;
   handler: Scalars['String'];
-  handles: Array<HandleConnection>;
+  handles: HandleConnection;
   /** The icon image url of the site. Not available for all links */
   icon?: Maybe<Scalars['String']>;
   id: Scalars['String'];
@@ -353,7 +361,7 @@ export type MediaTitleLanguageArgs = {
 export type MediaTrailer = Handle & {
   __typename?: 'MediaTrailer';
   handler: Scalars['String'];
-  handles: Array<HandleConnection>;
+  handles: HandleConnection;
   id: Scalars['String'];
   origin: Scalars['String'];
   /** The url for the thumbnail image of the video */
@@ -511,7 +519,7 @@ export type Resource = Handle & {
   __typename?: 'Resource';
   batchResources: Array<ResourceConnection>;
   handler: Scalars['String'];
-  handles: Array<ResourceConnection>;
+  handles: ResourceConnection;
   id: Scalars['String'];
   isBatch?: Maybe<Scalars['Boolean']>;
   origin: Scalars['String'];
@@ -521,14 +529,16 @@ export type Resource = Handle & {
 
 export type ResourceConnection = HandleConnection & {
   __typename?: 'ResourceConnection';
-  edges?: Maybe<Array<Maybe<ResourceEdge>>>;
-  nodes?: Maybe<Array<Maybe<Resource>>>;
+  edges: Array<ResourceEdge>;
+  nodes: Array<Resource>;
   /** The pagination information */
   pageInfo?: Maybe<PageInfo>;
 };
 
 export type ResourceEdge = HandleEdge & {
   __typename?: 'ResourceEdge';
+  /** The relation between the two handles */
+  handleRelationType: HandleRelation;
   node: Resource;
 };
 
@@ -614,6 +624,7 @@ export type ResolversTypes = {
   Handle: ResolversTypes['Media'] | ResolversTypes['MediaExternalLink'] | ResolversTypes['MediaTrailer'] | ResolversTypes['Resource'];
   HandleConnection: ResolversTypes['MediaConnection'] | ResolversTypes['ResourceConnection'];
   HandleEdge: ResolversTypes['MediaEdge'] | ResolversTypes['ResourceEdge'];
+  HandleRelation: HandleRelation;
   Int: ResolverTypeWrapper<Scalars['Int']>;
   Json: ResolverTypeWrapper<Scalars['Json']>;
   Media: ResolverTypeWrapper<Media>;
@@ -696,7 +707,7 @@ export interface FuzzyDateIntScalarConfig extends GraphQLScalarTypeConfig<Resolv
 export type HandleResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Handle'] = ResolversParentTypes['Handle']> = {
   __resolveType: TypeResolveFn<'Media' | 'MediaExternalLink' | 'MediaTrailer' | 'Resource', ParentType, ContextType>;
   handler?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  handles?: Resolver<Array<ResolversTypes['HandleConnection']>, ParentType, ContextType>;
+  handles?: Resolver<ResolversTypes['HandleConnection'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   origin?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   uri?: Resolver<ResolversTypes['Uri'], ParentType, ContextType>;
@@ -705,13 +716,14 @@ export type HandleResolvers<ContextType = Context, ParentType extends ResolversP
 
 export type HandleConnectionResolvers<ContextType = Context, ParentType extends ResolversParentTypes['HandleConnection'] = ResolversParentTypes['HandleConnection']> = {
   __resolveType: TypeResolveFn<'MediaConnection' | 'ResourceConnection', ParentType, ContextType>;
-  edges?: Resolver<Maybe<Array<Maybe<ResolversTypes['HandleEdge']>>>, ParentType, ContextType>;
-  nodes?: Resolver<Maybe<Array<Maybe<ResolversTypes['Handle']>>>, ParentType, ContextType>;
+  edges?: Resolver<Array<ResolversTypes['HandleEdge']>, ParentType, ContextType>;
+  nodes?: Resolver<Array<ResolversTypes['Handle']>, ParentType, ContextType>;
   pageInfo?: Resolver<Maybe<ResolversTypes['PageInfo']>, ParentType, ContextType>;
 };
 
 export type HandleEdgeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['HandleEdge'] = ResolversParentTypes['HandleEdge']> = {
   __resolveType: TypeResolveFn<'MediaEdge' | 'ResourceEdge', ParentType, ContextType>;
+  handleRelationType?: Resolver<ResolversTypes['HandleRelation'], ParentType, ContextType>;
   node?: Resolver<ResolversTypes['Handle'], ParentType, ContextType>;
 };
 
@@ -728,7 +740,7 @@ export type MediaResolvers<ContextType = Context, ParentType extends ResolversPa
   externalLinks?: Resolver<Maybe<Array<Maybe<ResolversTypes['MediaExternalLink']>>>, ParentType, ContextType>;
   format?: Resolver<Maybe<ResolversTypes['MediaFormat']>, ParentType, ContextType>;
   handler?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  handles?: Resolver<Array<ResolversTypes['MediaConnection']>, ParentType, ContextType>;
+  handles?: Resolver<ResolversTypes['MediaConnection'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   isAdult?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   origin?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -748,8 +760,8 @@ export type MediaResolvers<ContextType = Context, ParentType extends ResolversPa
 };
 
 export type MediaConnectionResolvers<ContextType = Context, ParentType extends ResolversParentTypes['MediaConnection'] = ResolversParentTypes['MediaConnection']> = {
-  edges?: Resolver<Maybe<Array<Maybe<ResolversTypes['MediaEdge']>>>, ParentType, ContextType>;
-  nodes?: Resolver<Maybe<Array<Maybe<ResolversTypes['Media']>>>, ParentType, ContextType>;
+  edges?: Resolver<Array<ResolversTypes['MediaEdge']>, ParentType, ContextType>;
+  nodes?: Resolver<Array<ResolversTypes['Media']>, ParentType, ContextType>;
   pageInfo?: Resolver<Maybe<ResolversTypes['PageInfo']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
@@ -764,6 +776,7 @@ export type MediaCoverImageResolvers<ContextType = Context, ParentType extends R
 };
 
 export type MediaEdgeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['MediaEdge'] = ResolversParentTypes['MediaEdge']> = {
+  handleRelationType?: Resolver<ResolversTypes['HandleRelation'], ParentType, ContextType>;
   node?: Resolver<ResolversTypes['Media'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
@@ -771,7 +784,7 @@ export type MediaEdgeResolvers<ContextType = Context, ParentType extends Resolve
 export type MediaExternalLinkResolvers<ContextType = Context, ParentType extends ResolversParentTypes['MediaExternalLink'] = ResolversParentTypes['MediaExternalLink']> = {
   color?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   handler?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  handles?: Resolver<Array<ResolversTypes['HandleConnection']>, ParentType, ContextType>;
+  handles?: Resolver<ResolversTypes['HandleConnection'], ParentType, ContextType>;
   icon?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   isDisabled?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
@@ -803,7 +816,7 @@ export type MediaTitleResolvers<ContextType = Context, ParentType extends Resolv
 
 export type MediaTrailerResolvers<ContextType = Context, ParentType extends ResolversParentTypes['MediaTrailer'] = ResolversParentTypes['MediaTrailer']> = {
   handler?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  handles?: Resolver<Array<ResolversTypes['HandleConnection']>, ParentType, ContextType>;
+  handles?: Resolver<ResolversTypes['HandleConnection'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   origin?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   thumbnail?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -844,7 +857,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
 export type ResourceResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Resource'] = ResolversParentTypes['Resource']> = {
   batchResources?: Resolver<Array<ResolversTypes['ResourceConnection']>, ParentType, ContextType>;
   handler?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  handles?: Resolver<Array<ResolversTypes['ResourceConnection']>, ParentType, ContextType>;
+  handles?: Resolver<ResolversTypes['ResourceConnection'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   isBatch?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   origin?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -854,13 +867,14 @@ export type ResourceResolvers<ContextType = Context, ParentType extends Resolver
 };
 
 export type ResourceConnectionResolvers<ContextType = Context, ParentType extends ResolversParentTypes['ResourceConnection'] = ResolversParentTypes['ResourceConnection']> = {
-  edges?: Resolver<Maybe<Array<Maybe<ResolversTypes['ResourceEdge']>>>, ParentType, ContextType>;
-  nodes?: Resolver<Maybe<Array<Maybe<ResolversTypes['Resource']>>>, ParentType, ContextType>;
+  edges?: Resolver<Array<ResolversTypes['ResourceEdge']>, ParentType, ContextType>;
+  nodes?: Resolver<Array<ResolversTypes['Resource']>, ParentType, ContextType>;
   pageInfo?: Resolver<Maybe<ResolversTypes['PageInfo']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type ResourceEdgeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['ResourceEdge'] = ResolversParentTypes['ResourceEdge']> = {
+  handleRelationType?: Resolver<ResolversTypes['HandleRelation'], ParentType, ContextType>;
   node?: Resolver<ResolversTypes['Resource'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };

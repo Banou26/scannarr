@@ -17,16 +17,23 @@ interface Handle {
   """ The URL of the resource, e.g: 'https://npmjs.com/package/react' """
   url: String
 
-  handles: [HandleConnection!]!
+  handles: HandleConnection!
+}
+
+enum HandleRelation {
+  IDENTICAL
 }
 
 interface HandleEdge {
   node: Handle!
+
+  """The relation between the two handles"""
+  handleRelationType: HandleRelation!
 }
 
 interface HandleConnection {
-  edges: [HandleEdge]
-  nodes: [Handle]
+  edges: [HandleEdge!]!
+  nodes: [Handle!]!
 
   """The pagination information"""
   pageInfo: PageInfo

@@ -7,7 +7,7 @@ type Resource implements Handle {
   id: String!
   uri: Uri!
   url: String
-  handles: [ResourceConnection!]!
+  handles: ResourceConnection!
 
   # Resource properties
   isBatch: Boolean
@@ -16,11 +16,14 @@ type Resource implements Handle {
 
 type ResourceEdge implements HandleEdge {
   node: Resource!
+
+  """The relation between the two handles"""
+  handleRelationType: HandleRelation!
 }
 
 type ResourceConnection implements HandleConnection {
-  edges: [ResourceEdge]
-  nodes: [Resource]
+  edges: [ResourceEdge!]!
+  nodes: [Resource!]!
 
   """The pagination information"""
   pageInfo: PageInfo
