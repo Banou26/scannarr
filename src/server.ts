@@ -204,11 +204,6 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
                 return sorted
               }
 
-              const sortedResults =
-                sorts
-                  ? sortBy(results, sorts[0]!, sorts.slice(1))
-                  : results
-
               const addTypename = (value: any, type: GraphQLType) => {
                 if (value === null || value === undefined) return null
                 if (isNonNullType(type)) return addTypename(value, type.ofType)
@@ -229,7 +224,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
                 return value
               }
 
-              console.log('sortedResults', sortedResults)
+              console.log('results', results)
 
               try {
                 const previousState = client.extract(true)
@@ -265,7 +260,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
                   }
                 }
 
-                for (const handle of sortedResults) {
+                for (const handle of results) {
                   addHandleRecursiveToIndex(handle)
                 }
 
@@ -279,7 +274,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
                     )
                   ].map((uris) => uris.split(' '))
 
-              const handleGroups = groups.map((uris) => sortedResults.filter((handle) => uris.includes(handle.uri)))
+              const handleGroups = groups.map((uris) => results.filter((handle) => uris.includes(handle.uri)))
 
                 console.log('index', index)
                 console.log('groups', groups)
@@ -310,7 +305,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
                 const newState = {
                   ...previousState,
                   ...Object.fromEntries(
-                    [...scannarrHandles, ...sortedResults].map((result) => [
+                    [...scannarrHandles, ...results].map((result) => [
                       `${typeName}:{"uri":"${result.uri}"}`,
                       addTypename(result, info.returnType.ofType.ofType)
                     ])
@@ -319,7 +314,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
                     "__typename": "Query",
                     ...previousState.ROOT_QUERY,
                     ...Object.fromEntries(
-                      [...scannarrHandles, ...sortedResults].map((result) => [
+                      [...scannarrHandles, ...results].map((result) => [
                         `${normalizedKey}({"uri":"${result.uri}"})`,
                         { __ref: `${typeName}:{"uri":"${result.uri}"}` }
                       ])
@@ -357,13 +352,18 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
                       ),
                       ...handle
                     })),
-                  // ...sortedResults
+                  // ...results
                 ]
 
                 console.log('finalResults', finalResults.map((result) => ({ uri: result.uri, ...result.handles })))
                 console.log('finalResults2', finalResults)
 
-                return finalResults
+                const sortedResults =
+                  sorts
+                    ? sortBy(finalResults, sorts[0]!, sorts.slice(1))
+                    : finalResults
+
+                return sortedResults
 
               } catch (err: any) {
                 console.error(err)
