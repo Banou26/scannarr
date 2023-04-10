@@ -174,6 +174,8 @@ export type MediaCoverImage = {
   __typename?: 'MediaCoverImage';
   /** Average #hex color of cover image */
   color?: Maybe<Scalars['String']>;
+  /** The cover image of the media by default. Using highest resolution available. */
+  default?: Maybe<Scalars['String']>;
   /** The cover image of the media at its largest size. 500x735 */
   extraLarge?: Maybe<Scalars['String']>;
   /** The cover image of the media at large size. 250x367 */
@@ -768,6 +770,7 @@ export type MediaConnectionResolvers<ContextType = Context, ParentType extends R
 
 export type MediaCoverImageResolvers<ContextType = Context, ParentType extends ResolversParentTypes['MediaCoverImage'] = ResolversParentTypes['MediaCoverImage']> = {
   color?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  default?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   extraLarge?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   large?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   medium?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;

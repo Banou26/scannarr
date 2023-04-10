@@ -386,6 +386,13 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
         Page: () => Page
       },
       Page,
+      MediaCoverImage: {
+        default: (mediaCoverImage) =>
+          mediaCoverImage.extraLarge
+          ?? mediaCoverImage.large
+          ?? mediaCoverImage.medium
+          ?? mediaCoverImage.small
+      },
       MediaConnection: {
         nodes: (mediaConnection) => mediaConnection.edges?.map(edge => edge.node) ?? []
       }

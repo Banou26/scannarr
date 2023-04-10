@@ -150,6 +150,9 @@ type MediaCoverImage {
   """Average #hex color of cover image"""
   color: String
 
+  """The cover image of the media by default. Using highest resolution available."""
+  default: String
+
   """The cover image of the media at its largest size. 500x735"""
   extraLarge: String
 
