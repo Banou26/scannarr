@@ -446,6 +446,7 @@ export type PageMediaArgs = {
   endDate_lesser?: InputMaybe<Scalars['FuzzyDateInt']>;
   endDate_like?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['String']>;
+  origin?: InputMaybe<Scalars['String']>;
   search?: InputMaybe<Scalars['String']>;
   season?: InputMaybe<MediaSeason>;
   seasonYear?: InputMaybe<Scalars['Int']>;
@@ -458,6 +459,7 @@ export type PageMediaArgs = {
   status_in?: InputMaybe<Array<InputMaybe<MediaStatus>>>;
   status_not?: InputMaybe<MediaStatus>;
   status_not_in?: InputMaybe<Array<InputMaybe<MediaStatus>>>;
+  uri?: InputMaybe<Scalars['String']>;
 };
 
 export type PageInfo = {
@@ -496,6 +498,7 @@ export type QueryMediaArgs = {
   endDate_lesser?: InputMaybe<Scalars['FuzzyDateInt']>;
   endDate_like?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['String']>;
+  origin?: InputMaybe<Scalars['String']>;
   search?: InputMaybe<Scalars['String']>;
   season?: InputMaybe<MediaSeason>;
   seasonYear?: InputMaybe<Scalars['Int']>;
@@ -508,6 +511,7 @@ export type QueryMediaArgs = {
   status_in?: InputMaybe<Array<InputMaybe<MediaStatus>>>;
   status_not?: InputMaybe<MediaStatus>;
   status_not_in?: InputMaybe<Array<InputMaybe<MediaStatus>>>;
+  uri?: InputMaybe<Scalars['String']>;
 };
 
 

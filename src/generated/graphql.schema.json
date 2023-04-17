@@ -2177,6 +2177,18 @@
                 "deprecationReason": null
               },
               {
+                "name": "origin",
+                "description": "Filter by the media origin",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
                 "name": "search",
                 "description": "Filter by search terms",
                 "type": {
@@ -2327,6 +2339,18 @@
                     "name": "MediaStatus",
                     "ofType": null
                   }
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "uri",
+                "description": "Filter by the media uri",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
                 },
                 "defaultValue": null,
                 "isDeprecated": false,
@@ -2556,6 +2580,18 @@
                 "deprecationReason": null
               },
               {
+                "name": "origin",
+                "description": "Filter by the media origin",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
                 "name": "search",
                 "description": "Filter by search terms",
                 "type": {
@@ -2706,6 +2742,18 @@
                     "name": "MediaStatus",
                     "ofType": null
                   }
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "uri",
+                "description": "Filter by the media uri",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
                 },
                 "defaultValue": null,
                 "isDeprecated": false,

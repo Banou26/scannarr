@@ -1,6 +1,10 @@
 export const MediaParameters = `#graphql
     """Filter by the media id"""
     id: String
+    """Filter by the media origin"""
+    origin: String
+    """Filter by the media uri"""
+    uri: String
     """Filter by search terms"""
     search: String
     """Filter by search terms"""
