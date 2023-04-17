@@ -64,23 +64,6 @@ export type MakeServerOptions<Context extends ApolloBaseContext> = {
 //   return mergeDeep(target, ...sources);
 // }
 
-const mergeDeep = (...values: any[]) =>
-  values.reduce((acc, value) => {
-    // if (Array.isArray(value)) {
-    //   console.log('DEEP MERGE IS ARRAY', values, acc, value)
-    // }
-    if (Array.isArray(value)) {
-      return [...Array.isArray(acc) ? acc : [], ...value]
-    }
-    if (typeof acc === 'object' && typeof value === 'object' && value !== null) {
-      return Object.keys(value).reduce((acc, key) => {
-        acc[key] = mergeDeep(acc[key], value[key])
-        return acc
-      }, { ...acc })
-    }
-    return value
-  }, {})
-
 export default <Context extends BaseContext, T extends MakeServerOptions<Context>>({ operationPrefix, typeDefs, resolvers, silenceResolverErrors, context }: T) => {
   const inMemoryCache = new InMemoryCache({
     addTypename: false,
@@ -180,7 +163,6 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
           return [
             normalizedKey,
             async (parent, args, context, info: GraphQLResolveInfo) => {
-              console.log(`${typeName} resolver`, parent, args, context, info)
               const { sort } = args as { sort: (keyof typeof Sorts)[] }
               const results =
                 (await Promise.allSettled(
@@ -224,11 +206,8 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
                 return value
               }
 
-              console.log('results', results)
-
               try {
                 const previousState = client.extract(true)
-                console.log('previousState', previousState)
 
                 const index: { [key: string]: string[] } = {}
                 const alreadyRecursed = new Set()
@@ -248,13 +227,13 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
                   for (const handle of identicalHandles) {
                     if (!index[handle.node.uri]) index[handle.node.uri] = [handle.node.uri]
 
-                    if (!index[_handle.uri].includes(handle.node.uri)) index[_handle.uri].push(handle.node.uri)
-                    if (!index[handle.node.uri].includes(handle.node.uri)) index[handle.node.uri].push(_handle.uri)
-                    for (const uri of index[_handle.uri]) {
-                      if (!index[uri].includes(handle.node.uri)) index[uri].push(handle.node.uri)
+                    if (!index[_handle.uri]?.includes(handle.node.uri)) index[_handle.uri]?.push(handle.node.uri)
+                    if (!index[handle.node.uri]?.includes(handle.node.uri)) index[handle.node.uri]?.push(_handle.uri)
+                    for (const uri of index[_handle.uri] ?? []) {
+                      if (!index[uri]?.includes(handle.node.uri)) index[uri]?.push(handle.node.uri)
                     }
-                    for (const uri of index[handle.node.uri]) {
-                      if (!index[uri].includes(_handle.uri)) index[uri].push(_handle.uri)
+                    for (const uri of index[handle.node.uri] ?? []) {
+                      if (!index[uri]?.includes(_handle.uri)) index[uri]?.push(_handle.uri)
                     }
                     addHandleRecursiveToIndex(handle.node)
                   }
@@ -274,11 +253,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
                     )
                   ].map((uris) => uris.split(' '))
 
-              const handleGroups = groups.map((uris) => results.filter((handle) => uris.includes(handle.uri)))
-
-                console.log('index', index)
-                console.log('groups', groups)
-                console.log('handleGroups', handleGroups)
+                const handleGroups = groups.map((uris) => results.filter((handle) => uris.includes(handle.uri)))
 
                 const scannarrHandles =
                   handleGroups
@@ -321,7 +296,6 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
                     ),
                   }
                 }
-                console.log('newState', newState)
 
                 inMemoryCache.restore(newState)
 
@@ -352,11 +326,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
                       ),
                       ...handle
                     })),
-                  // ...results
                 ]
-
-                console.log('finalResults', finalResults.map((result) => ({ uri: result.uri, ...result.handles })))
-                console.log('finalResults2', finalResults)
 
                 const sortedResults =
                   sorts
