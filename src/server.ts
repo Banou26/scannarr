@@ -10,7 +10,7 @@ import { makeLink } from './link'
 import { Sorts } from './sorts'
 import { ApolloClient, InMemoryCache, Resolver, gql } from '@apollo/client/core'
 import { isNonNullType, isListType, isObjectType } from 'graphql'
-import { cyrb53 } from './utils/hash'
+// import { cyrb53 } from './utils/hash'
 import { populateUri } from './utils'
 
 
@@ -260,7 +260,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
                     .map((handles) => populateUri({
                       __typename: typeName,
                       origin: 'scannarr',
-                      id: String(cyrb53(handles.map(handle => handle.uri).join(','))),
+                      id: btoa(handles.map(handle => handle.uri).join(',')),
                       handles: {
                         __typename: `${typeName}Connection`,
                         edges: handles.map((handle) => ({
