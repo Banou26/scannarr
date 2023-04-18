@@ -47,3 +47,7 @@ export const populateUri = <T extends Partial<Pick<Handle, 'uri' | 'handler'>> &
   handler: handle.handler ? handle.handler : 'fkn',
   uri: toUri({ handler: handle.handler, origin: handle.origin, id: handle.id })
 })
+
+export const toScannarrUri = (uris: Uris): Uri => `scannarr:${btoa(uris)}`
+export const toScannarrId = (uris: Uris): string => btoa(uris)
+export const fromScannarrUri = (uri: Uri): Uri[] => atob(uri.split(':')[1]!).split(',') as Uri[]

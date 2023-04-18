@@ -11,7 +11,8 @@ import { Sorts } from './sorts'
 import { ApolloClient, InMemoryCache, Resolver, gql } from '@apollo/client/core'
 import { isNonNullType, isListType, isObjectType } from 'graphql'
 // import { cyrb53 } from './utils/hash'
-import { populateUri } from './utils'
+import { fromScannarrUri, fromUri, isUri, populateUri } from './utils'
+import { graphify } from './utils/resolver'
 
 
 export type BaseContext = ApolloBaseContext & {
@@ -82,6 +83,13 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
           ?.flatMap((resolver) => Object.entries(resolver))
       )
   ]
+
+  const allQueryQueries =
+    resolvers
+      ?.flatMap((resolver) => Object.entries(resolver))
+      .filter(([key]) => key === 'Query')
+      .flatMap(([key, value]) => Object.entries(value))
+      ?? []
 
   const allPageQueries =
     resolvers
@@ -186,187 +194,88 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
                 return sorted
               }
 
-              const addTypename = (value: any, type: GraphQLType) => {
-                if (value === null || value === undefined) return null
-                if (isNonNullType(type)) return addTypename(value, type.ofType)
-                if (isListType(type)) return value.map((item: any) => addTypename(item, type.ofType))
-                if (isObjectType(type)) {
-                  return {
-                    __typename: type.name,
-                    ...Object.fromEntries(
-                      Object
-                        .entries(value)
-                        .map(([key, value]) => [
-                          key,
-                          addTypename(value, type.getFields()[key]?.type!)
-                        ])
-                    )
-                   }
-                }
-                return value
-              }
+              const finalResults = graphify({ results, typeName, client, normalizedKey, info })
 
-              try {
-                const previousState = client.extract(true)
+              const sortedResults =
+                sorts
+                  ? sortBy(finalResults, sorts[0]!, sorts.slice(1))
+                  : finalResults
 
-                const index: { [key: string]: string[] } = {}
-                const alreadyRecursed = new Set()
-
-                const addHandleRecursiveToIndex = (_handle: Handle) => {
-                  if (alreadyRecursed.has(_handle.uri)) return
-                  alreadyRecursed.add(_handle.uri)
-
-                  if (!index[_handle.uri]) index[_handle.uri] = [_handle.uri]
-                  const identicalHandles =
-                    _handle
-                      .handles
-                      .edges
-                      .filter(handleConnection =>
-                        handleConnection?.handleRelationType === HandleRelation.Identical
-                      )
-                  for (const handle of identicalHandles) {
-                    if (!index[handle.node.uri]) index[handle.node.uri] = [handle.node.uri]
-
-                    if (!index[_handle.uri]?.includes(handle.node.uri)) index[_handle.uri]?.push(handle.node.uri)
-                    if (!index[handle.node.uri]?.includes(handle.node.uri)) index[handle.node.uri]?.push(_handle.uri)
-                    for (const uri of index[_handle.uri] ?? []) {
-                      if (!index[uri]?.includes(handle.node.uri)) index[uri]?.push(handle.node.uri)
-                    }
-                    for (const uri of index[handle.node.uri] ?? []) {
-                      if (!index[uri]?.includes(_handle.uri)) index[uri]?.push(_handle.uri)
-                    }
-                    addHandleRecursiveToIndex(handle.node)
-                  }
-                }
-
-                for (const handle of results) {
-                  addHandleRecursiveToIndex(handle)
-                }
-
-                const groups =
-                  [
-                    ...new Set(
-                      Object
-                        .values(index)
-                        .map((uris) => uris.sort((a, b) => a.localeCompare(b)))
-                        .map((uris) => uris.join(' '))
-                    )
-                  ].map((uris) => uris.split(' '))
-
-                const handleGroups = groups.map((uris) => results.filter((handle) => uris.includes(handle.uri)))
-
-                const scannarrHandles =
-                  handleGroups
-                    .map((handles) => populateUri({
-                      __typename: typeName,
-                      origin: 'scannarr',
-                      id: btoa(handles.map(handle => handle.uri).join(',')),
-                      handles: {
-                        __typename: `${typeName}Connection`,
-                        edges: handles.map((handle) => ({
-                          __typename: `${typeName}Edge`,
-                          node: {
-                            __typename: typeName,
-                            ...handle
-                          }
-                        })),
-                        nodes: handles.map((handle) => ({
-                          __typename: typeName,
-                          ...handle
-                        }))
-                      }
-                    }))
-
-                const newState = {
-                  ...previousState,
-                  ...Object.fromEntries(
-                    [...scannarrHandles, ...results].map((result) => [
-                      `${typeName}:{"uri":"${result.uri}"}`,
-                      addTypename(result, info.returnType.ofType.ofType)
-                    ])
-                  ),
-                  ROOT_QUERY: {
-                    "__typename": "Query",
-                    ...previousState.ROOT_QUERY,
-                    ...Object.fromEntries(
-                      [...scannarrHandles, ...results].map((result) => [
-                        `${normalizedKey}({"uri":"${result.uri}"})`,
-                        { __ref: `${typeName}:{"uri":"${result.uri}"}` }
-                      ])
-                    ),
-                  }
-                }
-
-                inMemoryCache.restore(newState)
-
-                const finalResults = [
-                  ...scannarrHandles
-                    .map(handle => ({
-                      ...Object.fromEntries(
-                        [
-                          ...Object.entries(handle),
-                          ...handle.handles.nodes.flatMap(handle => Object.entries(handle))
-                        ]
-                          .map(([key, value]) => [
-                            key,
-                            handle.handles.nodes
-                              ? (
-                                mergeDeep(
-                                  value,
-                                  ...handle
-                                    .handles
-                                    .nodes
-                                    ?.map(handle => handle.node?.[key])
-                                    .filter((value: any) => !!value)
-                                )
-                                ?? value
-                              )
-                              : value
-                          ])
-                      ),
-                      ...handle
-                    })),
-                ]
-
-                const sortedResults =
-                  sorts
-                    ? sortBy(finalResults, sorts[0]!, sorts.slice(1))
-                    : finalResults
-
-                return sortedResults
-
-              } catch (err: any) {
-                console.error(err)
-                throw err
-              }
+              return sortedResults
             }
           ]
         })
     )
+
+  const _resolvers: Resolvers = {
+    ...resolversObj,
+    Query: {
+      ...resolversObj.Query,
+      Media: async (...args) => {
+        const [parent, params, context, info] = args
+
+        console.log('allQueryQueries', allQueryQueries)
+        const queryResolvers =
+          allQueryQueries
+            .filter(([_key]) => _key === 'Media')
+            .filter(([_key, value]) => typeof value === 'function')
+            .map(([, value]) => value)
+        console.log('queryResolvers', queryResolvers)
+
+        if (params?.uri && isUri(params.uri) && params.uri.startsWith('scannarr:')) {
+          const uri = params.uri
+          const uris = fromScannarrUri(uri)
+          console.log('uris', uris)
+          // const handle = context.handles?.find(handle => handle.uri === uri)
+          const results =
+            await Promise.all(
+              (await Promise.allSettled(
+                uris.map(uri =>
+                  queryResolvers?.map((resolverFunction) =>
+                    void console.log('resolverFunction', resolverFunction) ||
+                    resolverFunction(parent, { uri, id: fromUri(uri).id, origin: fromUri(uri).origin }, context, info)
+                      .catch(err => {
+                        if (!silenceResolverErrors) console.error(err)
+                        throw err
+                      })
+                  )  
+                )
+              ))
+                .filter((result) => result.status === 'fulfilled')
+                .flatMap((result) => (result as PromiseFulfilledResult<any>).value)
+                .filter((result) => result !== undefined && result !== null)
+            )
+          console.log('results', results)
+
+          const finalResults = graphify({ results, typeName: 'Media', client, normalizedKey: 'media', info })
+          console.log('finalResults', finalResults)
+
+          return finalResults[0]
+        }
+
+        return resolversObj.Query?.Media?.(...args)
+      },
+      Page: () => Page
+    },
+    Page,
+    MediaCoverImage: {
+      default: (mediaCoverImage) =>
+        mediaCoverImage.extraLarge
+        ?? mediaCoverImage.large
+        ?? mediaCoverImage.medium
+        ?? mediaCoverImage.small
+    },
+    MediaConnection: {
+      nodes: (mediaConnection) => mediaConnection.edges?.map(edge => edge.node) ?? []
+    }
+  }
 
   const server = new ApolloServer<Context>({
     typeDefs:
       typeDefs
         ? `${schema}\n\n${typeDefs}`
         : schema,
-    resolvers: {
-      ...resolversObj,
-      Query: {
-        ...resolversObj.Query,
-        Page: () => Page
-      },
-      Page,
-      MediaCoverImage: {
-        default: (mediaCoverImage) =>
-          mediaCoverImage.extraLarge
-          ?? mediaCoverImage.large
-          ?? mediaCoverImage.medium
-          ?? mediaCoverImage.small
-      },
-      MediaConnection: {
-        nodes: (mediaConnection) => mediaConnection.edges?.map(edge => edge.node) ?? []
-      }
-    }
+    resolvers: _resolvers
   })
 
   const link = makeLink({
