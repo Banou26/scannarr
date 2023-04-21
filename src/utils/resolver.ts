@@ -10,7 +10,7 @@ export const graphify = (
   { client, results: _results, typeName, normalizedKey, info }:
   { client: ApolloClient<NormalizedCacheObject>, results: Handle[], typeName: string, normalizedKey: string, info: GraphQLResolveInfo }
 ) => {
-  const results = [...new Map(_results.map(item => [item.uri, item])).values()]
+  let results = [...new Map(_results.map(item => [item.uri, item])).values()]
 
   const addTypename = (value: any, type: GraphQLType) => {
     if (value === null || value === undefined) return null
@@ -41,6 +41,10 @@ export const graphify = (
     const addHandleRecursiveToIndex = (_handle: Handle) => {
       if (alreadyRecursed.has(_handle.uri)) return
       alreadyRecursed.add(_handle.uri)
+      
+      if (!results.some(handle => handle.uri === _handle.uri)) {
+        results = [...results, _handle]
+      }
 
       if (!index[_handle.uri]) index[_handle.uri] = [_handle.uri]
       const identicalHandles =
