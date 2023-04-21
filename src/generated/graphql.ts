@@ -1,5 +1,6 @@
 import type { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
 import type { Context } from '../server';
+import { Uri } from '../utils/uri'
 import gql from 'graphql-tag';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
@@ -22,7 +23,7 @@ export type Scalars = {
   /** ISO 21778:2017 JavaScript Object Notation (JSON) */
   Json: any;
   /** RFC 3986 uniform resource identifier (URI) as stricter form "scheme:path */
-  Uri: any;
+  Uri: Uri;
 };
 
 export enum ExternalLinkMediaType {

@@ -3,13 +3,15 @@ import type { GraphQLResolveInfo, GraphQLType } from 'graphql'
 
 import { isListType, isNonNullType, isObjectType } from 'graphql'
 import { Handle, HandleRelation } from '../generated/graphql'
-import { populateUri, toScannarrId } from './uri'
+import { Uri, Uris, populateUri, toScannarrId } from './uri'
 import { mergeDeep } from './merge'
 
 export const graphify = (
-  { client, results, typeName, normalizedKey, info }:
-  { client: ApolloClient<NormalizedCacheObject>, results: any[], typeName: string, normalizedKey: string, info: GraphQLResolveInfo }
+  { client, results: _results, typeName, normalizedKey, info }:
+  { client: ApolloClient<NormalizedCacheObject>, results: Handle[], typeName: string, normalizedKey: string, info: GraphQLResolveInfo }
 ) => {
+  const results = [...new Map(_results.map(item => [item.uri, item])).values()]
+
   const addTypename = (value: any, type: GraphQLType) => {
     if (value === null || value === undefined) return null
     if (isNonNullType(type)) return addTypename(value, type.ofType)
@@ -77,14 +79,17 @@ export const graphify = (
         )
       ].map((uris) => uris.split(' '))
 
+    // console.log('groups', groups)
+
     const handleGroups = groups.map((uris) => results.filter((handle) => uris.includes(handle.uri)))
+    // console.log('handleGroups', handleGroups)
 
     const scannarrHandles =
       handleGroups
         .map((handles) => populateUri({
           __typename: typeName,
           origin: 'scannarr',
-          id: toScannarrId(handles.map(handle => handle.uri).join(',')),
+          id: toScannarrId(handles.map(handle => handle.uri).join(',') as Uris),
           handles: {
             __typename: `${typeName}Connection`,
             edges: handles.map((handle) => ({
@@ -125,8 +130,11 @@ export const graphify = (
 
     client.cache.restore(newState)
 
+    // console.log('scannarrHandles', scannarrHandles)
+
     const finalResults = [
       ...scannarrHandles
+        .filter(Boolean)
         .map(handle => ({
           ...Object.fromEntries(
             [

@@ -1,3 +1,4 @@
+import BigNumber from '../utils/uri'
 {
   "__schema": {
     "queryType": {

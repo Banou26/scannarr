@@ -4,7 +4,7 @@ export type Uri = `${`${string}:` | ''}${string}:${string}`
 
 type Separated<S extends string> = `${S}${''|`,${S}`}`
 
-type Uris = Separated<Separated<Uri>>
+export type Uris = Separated<Separated<Uri>>
 
 export type UriValues = {
   id: string

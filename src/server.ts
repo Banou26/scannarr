@@ -214,21 +214,21 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
       Media: async (...args) => {
         const [parent, params, context, info] = args
 
-        console.log('allQueryQueries', allQueryQueries)
+        // console.log('allQueryQueries', allQueryQueries)
         const queryResolvers =
           allQueryQueries
             .filter(([_key]) => _key === 'Media')
             .filter(([_key, value]) => typeof value === 'function')
             .map(([, value]) => value)
-        console.log('queryResolvers', queryResolvers)
+        // console.log('queryResolvers', queryResolvers)
 
         if (params?.uri && isUri(params.uri) && params.uri.startsWith('scannarr:')) {
           const uri = params.uri
           const uris = fromScannarrUri(uri)
-          console.log('uris', uris)
+          // console.log('uris', uris)
           // const handle = context.handles?.find(handle => handle.uri === uri)
           const results =
-            await Promise.all(
+            (await Promise.all(
               (await Promise.allSettled(
                 uris.map(uri =>
                   queryResolvers?.map((resolverFunction) =>
@@ -243,12 +243,12 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
               ))
                 .filter((result) => result.status === 'fulfilled')
                 .flatMap((result) => (result as PromiseFulfilledResult<any>).value)
-                .filter((result) => result !== undefined && result !== null)
-            )
-          console.log('results', results)
+            ))
+            .filter((result) => result !== undefined && result !== null)
+          // console.log('results', results)
 
           const finalResults = graphify({ results, typeName: 'Media', client, normalizedKey: 'media', info })
-          console.log('finalResults', finalResults)
+          // console.log('finalResults', finalResults)
 
           return finalResults[0]
         }
