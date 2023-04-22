@@ -101,6 +101,8 @@ export enum HandleRelation {
  */
 export type Media = Handle & {
   __typename?: 'Media';
+  /** The media's entire airing schedule */
+  airingSchedule?: Maybe<MediaAiringScheduleConnection>;
   /** The average score of the media */
   averageScore?: Maybe<Scalars['Int']>;
   /** The banner image of the media */
@@ -149,6 +151,17 @@ export type Media = Handle & {
  * Media is a type of handle that represents a media file.
  * It generally represents a Movie, TV Show, Game, Package, ect...
  */
+export type MediaAiringScheduleArgs = {
+  notYetAired?: InputMaybe<Scalars['Boolean']>;
+  page?: InputMaybe<Scalars['Int']>;
+  perPage?: InputMaybe<Scalars['Int']>;
+};
+
+
+/**
+ * Media is a type of handle that represents a media file.
+ * It generally represents a Movie, TV Show, Game, Package, ect...
+ */
 export type MediaDescriptionArgs = {
   asHtml?: InputMaybe<Scalars['Boolean']>;
 };
@@ -160,6 +173,49 @@ export type MediaDescriptionArgs = {
  */
 export type MediaShortDescriptionArgs = {
   asHtml?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** Media Airing Schedule. NOTE: We only aim to guarantee that FUTURE airing data is present and accurate. */
+export type MediaAiringSchedule = Handle & {
+  __typename?: 'MediaAiringSchedule';
+  /** The time the episode airs at */
+  airingAt: Scalars['Int'];
+  /** The description of the episode */
+  description?: Maybe<Scalars['String']>;
+  /** The airing episode number */
+  episode: Scalars['Int'];
+  handler: Scalars['String'];
+  handles: HandleConnection;
+  id: Scalars['String'];
+  /** The associate media of the airing episode */
+  media?: Maybe<Media>;
+  /** The associate media uri of the airing episode */
+  mediaUri: Scalars['String'];
+  origin: Scalars['String'];
+  /** The url for the thumbnail image of the video */
+  thumbnail?: Maybe<Scalars['String']>;
+  /** Seconds until episode starts airing */
+  timeUntilAiring: Scalars['Int'];
+  /** The title of the episode */
+  title?: Maybe<Scalars['String']>;
+  uri: Scalars['Uri'];
+  url?: Maybe<Scalars['String']>;
+};
+
+export type MediaAiringScheduleConnection = {
+  __typename?: 'MediaAiringScheduleConnection';
+  edges?: Maybe<Array<Maybe<MediaAiringScheduleEdge>>>;
+  nodes?: Maybe<Array<Maybe<MediaAiringSchedule>>>;
+  /** The pagination information */
+  pageInfo?: Maybe<PageInfo>;
+};
+
+/** MediaAiringSchedule connection edge */
+export type MediaAiringScheduleEdge = {
+  __typename?: 'MediaAiringScheduleEdge';
+  node?: Maybe<MediaAiringSchedule>;
+  /** The uri of the connection */
+  uri?: Maybe<Scalars['Int']>;
 };
 
 export type MediaConnection = HandleConnection & {
@@ -628,13 +684,16 @@ export type ResolversTypes = {
   FuzzyDate: ResolverTypeWrapper<FuzzyDate>;
   FuzzyDateInput: FuzzyDateInput;
   FuzzyDateInt: ResolverTypeWrapper<Scalars['FuzzyDateInt']>;
-  Handle: ResolversTypes['Media'] | ResolversTypes['MediaExternalLink'] | ResolversTypes['MediaTrailer'] | ResolversTypes['Resource'];
+  Handle: ResolversTypes['Media'] | ResolversTypes['MediaAiringSchedule'] | ResolversTypes['MediaExternalLink'] | ResolversTypes['MediaTrailer'] | ResolversTypes['Resource'];
   HandleConnection: ResolversTypes['MediaConnection'] | ResolversTypes['ResourceConnection'];
   HandleEdge: ResolversTypes['MediaEdge'] | ResolversTypes['ResourceEdge'];
   HandleRelation: HandleRelation;
   Int: ResolverTypeWrapper<Scalars['Int']>;
   Json: ResolverTypeWrapper<Scalars['Json']>;
   Media: ResolverTypeWrapper<Media>;
+  MediaAiringSchedule: ResolverTypeWrapper<MediaAiringSchedule>;
+  MediaAiringScheduleConnection: ResolverTypeWrapper<MediaAiringScheduleConnection>;
+  MediaAiringScheduleEdge: ResolverTypeWrapper<MediaAiringScheduleEdge>;
   MediaConnection: ResolverTypeWrapper<MediaConnection>;
   MediaCoverImage: ResolverTypeWrapper<MediaCoverImage>;
   MediaEdge: ResolverTypeWrapper<MediaEdge>;
@@ -668,12 +727,15 @@ export type ResolversParentTypes = {
   FuzzyDate: FuzzyDate;
   FuzzyDateInput: FuzzyDateInput;
   FuzzyDateInt: Scalars['FuzzyDateInt'];
-  Handle: ResolversParentTypes['Media'] | ResolversParentTypes['MediaExternalLink'] | ResolversParentTypes['MediaTrailer'] | ResolversParentTypes['Resource'];
+  Handle: ResolversParentTypes['Media'] | ResolversParentTypes['MediaAiringSchedule'] | ResolversParentTypes['MediaExternalLink'] | ResolversParentTypes['MediaTrailer'] | ResolversParentTypes['Resource'];
   HandleConnection: ResolversParentTypes['MediaConnection'] | ResolversParentTypes['ResourceConnection'];
   HandleEdge: ResolversParentTypes['MediaEdge'] | ResolversParentTypes['ResourceEdge'];
   Int: Scalars['Int'];
   Json: Scalars['Json'];
   Media: Media;
+  MediaAiringSchedule: MediaAiringSchedule;
+  MediaAiringScheduleConnection: MediaAiringScheduleConnection;
+  MediaAiringScheduleEdge: MediaAiringScheduleEdge;
   MediaConnection: MediaConnection;
   MediaCoverImage: MediaCoverImage;
   MediaEdge: MediaEdge;
@@ -712,7 +774,7 @@ export interface FuzzyDateIntScalarConfig extends GraphQLScalarTypeConfig<Resolv
 }
 
 export type HandleResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Handle'] = ResolversParentTypes['Handle']> = {
-  __resolveType: TypeResolveFn<'Media' | 'MediaExternalLink' | 'MediaTrailer' | 'Resource', ParentType, ContextType>;
+  __resolveType: TypeResolveFn<'Media' | 'MediaAiringSchedule' | 'MediaExternalLink' | 'MediaTrailer' | 'Resource', ParentType, ContextType>;
   handler?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   handles?: Resolver<ResolversTypes['HandleConnection'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -739,6 +801,7 @@ export interface JsonScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes
 }
 
 export type MediaResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Media'] = ResolversParentTypes['Media']> = {
+  airingSchedule?: Resolver<Maybe<ResolversTypes['MediaAiringScheduleConnection']>, ParentType, ContextType, Partial<MediaAiringScheduleArgs>>;
   averageScore?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   bannerImage?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   coverImage?: Resolver<Maybe<Array<Maybe<ResolversTypes['MediaCoverImage']>>>, ParentType, ContextType>;
@@ -763,6 +826,37 @@ export type MediaResolvers<ContextType = Context, ParentType extends ResolversPa
   type?: Resolver<Maybe<ResolversTypes['MediaType']>, ParentType, ContextType>;
   uri?: Resolver<ResolversTypes['Uri'], ParentType, ContextType>;
   url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type MediaAiringScheduleResolvers<ContextType = Context, ParentType extends ResolversParentTypes['MediaAiringSchedule'] = ResolversParentTypes['MediaAiringSchedule']> = {
+  airingAt?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  episode?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  handler?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  handles?: Resolver<ResolversTypes['HandleConnection'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  media?: Resolver<Maybe<ResolversTypes['Media']>, ParentType, ContextType>;
+  mediaUri?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  origin?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  thumbnail?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  timeUntilAiring?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  title?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  uri?: Resolver<ResolversTypes['Uri'], ParentType, ContextType>;
+  url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type MediaAiringScheduleConnectionResolvers<ContextType = Context, ParentType extends ResolversParentTypes['MediaAiringScheduleConnection'] = ResolversParentTypes['MediaAiringScheduleConnection']> = {
+  edges?: Resolver<Maybe<Array<Maybe<ResolversTypes['MediaAiringScheduleEdge']>>>, ParentType, ContextType>;
+  nodes?: Resolver<Maybe<Array<Maybe<ResolversTypes['MediaAiringSchedule']>>>, ParentType, ContextType>;
+  pageInfo?: Resolver<Maybe<ResolversTypes['PageInfo']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type MediaAiringScheduleEdgeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['MediaAiringScheduleEdge'] = ResolversParentTypes['MediaAiringScheduleEdge']> = {
+  node?: Resolver<Maybe<ResolversTypes['MediaAiringSchedule']>, ParentType, ContextType>;
+  uri?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -901,6 +995,9 @@ export type Resolvers<ContextType = Context> = {
   HandleEdge?: HandleEdgeResolvers<ContextType>;
   Json?: GraphQLScalarType;
   Media?: MediaResolvers<ContextType>;
+  MediaAiringSchedule?: MediaAiringScheduleResolvers<ContextType>;
+  MediaAiringScheduleConnection?: MediaAiringScheduleConnectionResolvers<ContextType>;
+  MediaAiringScheduleEdge?: MediaAiringScheduleEdgeResolvers<ContextType>;
   MediaConnection?: MediaConnectionResolvers<ContextType>;
   MediaCoverImage?: MediaCoverImageResolvers<ContextType>;
   MediaEdge?: MediaEdgeResolvers<ContextType>;

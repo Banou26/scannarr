@@ -132,6 +132,71 @@ type Media implements Handle {
 
   """The last official release date of the media"""
   endDate: FuzzyDate
+
+  """The media's entire airing schedule"""
+  airingSchedule(
+    """Filter to episodes that have not yet aired"""
+    notYetAired: Boolean
+
+    """The page"""
+    page: Int
+
+    """The amount of entries per page, max 25"""
+    perPage: Int
+  ): MediaAiringScheduleConnection
+}
+
+"""
+Media Airing Schedule. NOTE: We only aim to guarantee that FUTURE airing data is present and accurate.
+"""
+type MediaAiringSchedule implements Handle {
+  # Handle properties
+  handler: String!
+  origin: String!
+  id: String!
+  uri: Uri!
+  url: String
+  handles: HandleConnection!
+
+  # MediaAiringSchedule properties
+  """The time the episode airs at"""
+  airingAt: Int!
+
+  """The airing episode number"""
+  episode: Int!
+
+  """The associate media of the airing episode"""
+  media: Media
+
+  """The associate media uri of the airing episode"""
+  mediaUri: String!
+
+  """Seconds until episode starts airing"""
+  timeUntilAiring: Int!
+
+  """The url for the thumbnail image of the video"""
+  thumbnail: String
+
+  """The title of the episode"""
+  title: String
+
+  """The description of the episode"""
+  description: String
+}
+
+type MediaAiringScheduleConnection {
+  edges: [MediaAiringScheduleEdge]
+  nodes: [MediaAiringSchedule]
+
+  """The pagination information"""
+  pageInfo: PageInfo
+}
+
+"""MediaAiringSchedule connection edge"""
+type MediaAiringScheduleEdge {
+  """The uri of the connection"""
+  uri: Int
+  node: MediaAiringSchedule
 }
 
 type MediaEdge implements HandleEdge {

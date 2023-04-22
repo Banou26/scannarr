@@ -267,6 +267,9 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
     },
     MediaConnection: {
       nodes: (mediaConnection) => mediaConnection.edges?.map(edge => edge.node) ?? []
+    },
+    MediaAiringScheduleConnection: {
+      nodes: (mediaConnection) => mediaConnection.edges?.map(edge => edge?.node) ?? []
     }
   }
 
