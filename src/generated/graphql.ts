@@ -179,7 +179,7 @@ export type MediaShortDescriptionArgs = {
 export type MediaAiringSchedule = Handle & {
   __typename?: 'MediaAiringSchedule';
   /** The time the episode airs at */
-  airingAt: Scalars['Int'];
+  airingAt: Scalars['Float'];
   /** The description of the episode */
   description?: Maybe<Scalars['String']>;
   /** The airing episode number */
@@ -195,9 +195,9 @@ export type MediaAiringSchedule = Handle & {
   /** The url for the thumbnail image of the video */
   thumbnail?: Maybe<Scalars['String']>;
   /** Seconds until episode starts airing */
-  timeUntilAiring: Scalars['Int'];
+  timeUntilAiring: Scalars['Float'];
   /** The title of the episode */
-  title?: Maybe<Scalars['String']>;
+  title?: Maybe<MediaTitle>;
   uri: Scalars['Uri'];
   url?: Maybe<Scalars['String']>;
 };
@@ -830,7 +830,7 @@ export type MediaResolvers<ContextType = Context, ParentType extends ResolversPa
 };
 
 export type MediaAiringScheduleResolvers<ContextType = Context, ParentType extends ResolversParentTypes['MediaAiringSchedule'] = ResolversParentTypes['MediaAiringSchedule']> = {
-  airingAt?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  airingAt?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   episode?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   handler?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -840,8 +840,8 @@ export type MediaAiringScheduleResolvers<ContextType = Context, ParentType exten
   mediaUri?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   origin?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   thumbnail?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  timeUntilAiring?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  title?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  timeUntilAiring?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  title?: Resolver<Maybe<ResolversTypes['MediaTitle']>, ParentType, ContextType>;
   uri?: Resolver<ResolversTypes['Uri'], ParentType, ContextType>;
   url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;

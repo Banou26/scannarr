@@ -947,7 +947,7 @@ import BigNumber from '../utils/uri'
               "name": null,
               "ofType": {
                 "kind": "SCALAR",
-                "name": "Int",
+                "name": "Float",
                 "ofType": null
               }
             },
@@ -1095,7 +1095,7 @@ import BigNumber from '../utils/uri'
               "name": null,
               "ofType": {
                 "kind": "SCALAR",
-                "name": "Int",
+                "name": "Float",
                 "ofType": null
               }
             },
@@ -1107,8 +1107,8 @@ import BigNumber from '../utils/uri'
             "description": "The title of the episode",
             "args": [],
             "type": {
-              "kind": "SCALAR",
-              "name": "String",
+              "kind": "OBJECT",
+              "name": "MediaTitle",
               "ofType": null
             },
             "isDeprecated": false,

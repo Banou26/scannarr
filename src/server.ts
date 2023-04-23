@@ -131,24 +131,74 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
               )
           ].map(([key]) => [
             key,
-            (parent, args, context, info) =>
-              Promise.any(
+            async (...args) => {
+              const [parent, params, context, info] = args
+              console.log('args', args)
+
+              const rootUri = params?.uri ?? parent.uri
+              // console.log('rootUri', rootUri)
+              const resolvers =
                 typeResolvers
                   .flatMap(([_, value]) => Object.entries(value))
                   .filter(([_key, value]) => typeof value === 'function')
-                  .map(async ([, resolverFunction]) =>
-                    resolverFunction(parent, args, context, info)
-                      .catch(err => {
-                        if (!silenceResolverErrors) console.error(err)
-                        throw err
-                      })
-                  )
-                  .map(async result =>
-                    (await result) === undefined || (await result) === null
-                      ? Promise.reject()
-                      : result
-                  )
+
+              if (rootUri && isUri(rootUri) && rootUri.startsWith('scannarr:')) {
+                const uri = rootUri
+                const uris = fromScannarrUri(uri)
+                // console.log('uris', uris)
+                // const handle = context.handles?.find(handle => handle.uri === uri)
+                const results =
+                  (await Promise.all(
+                    (await Promise.allSettled(
+                      uris.map(uri =>
+                        resolvers?.map(([, resolverFunction]) =>
+                          void console.log('resolverFunction', uri, resolverFunction) ||
+                          resolverFunction(parent, params, { uri, id: fromUri(uri).id, origin: fromUri(uri).origin, ...context }, info)
+                            .catch(err => {
+                              if (!silenceResolverErrors) console.error(err)
+                              throw err
+                            })
+                        )
+                      )
+                    ))
+                      .filter((result) => console.log('result', result) || result.status === 'fulfilled')
+                      .flatMap((result) => (result as PromiseFulfilledResult<any>).value)
+                  ))
+                  .filter((result) => result !== undefined && result !== null)
+                  .flat()
+
+                
+                if (!results.every(result => result.handles)) {
+
+                  return results[0]
+                }
+
+                console.log('before graphify results', results)
+      
+                const finalResults = graphify({ results, typeName: 'Media', client, normalizedKey: 'media', info })
+                console.log('finalResults', finalResults)
+      
+                return finalResults[0]
+              }
+
+              return (
+                Promise.any(
+                  resolvers
+                    .map(async ([, resolverFunction]) =>
+                      resolverFunction(...args)
+                        .catch(err => {
+                          if (!silenceResolverErrors) console.error(err)
+                          throw err
+                        })
+                    )
+                    .map(async result =>
+                      (await result) === undefined || (await result) === null
+                        ? Promise.reject()
+                        : result
+                    )
+                )
               )
+            }
           ])
         )
       ]
@@ -232,8 +282,13 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
               (await Promise.allSettled(
                 uris.map(uri =>
                   queryResolvers?.map((resolverFunction) =>
-                    void console.log('resolverFunction', resolverFunction) ||
-                    resolverFunction(parent, { uri, id: fromUri(uri).id, origin: fromUri(uri).origin }, context, info)
+                    // void console.log('resolverFunction', resolverFunction) ||
+                    resolverFunction(
+                      parent,
+                      { uri, id: fromUri(uri).id, origin: fromUri(uri).origin, ...params },
+                      { uri, id: fromUri(uri).id, origin: fromUri(uri).origin, ...context },
+                      info
+                    )
                       .catch(err => {
                         if (!silenceResolverErrors) console.error(err)
                         throw err
