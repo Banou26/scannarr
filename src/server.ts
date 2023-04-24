@@ -1,19 +1,19 @@
-import type { BaseContext as ApolloBaseContext, ContextThunk, GraphQLFieldResolverParams } from '@apollo/server'
-import { Handle, HandleRelation, Resolvers } from './generated/graphql'
-import type { GraphQLResolveInfo, FieldNode, GraphQLType } from 'graphql'
-
+import type { BaseContext as ApolloBaseContext, ContextThunk } from '@apollo/server'
+import { Resolvers } from './generated/graphql'
+import type { GraphQLResolveInfo } from 'graphql'
+import { split } from '@apollo/client/link/core'
+import { HttpLink } from '@apollo/client/link/http'
+import { getMainDefinition } from '@apollo/client/utilities'
 import { ApolloServer } from '@apollo/server'
+import { onError } from '@apollo/client/link/error'
 
 import schema from './graphql'
-import { makeLink } from './link'
 
 import { Sorts } from './sorts'
-import { ApolloClient, InMemoryCache, Resolver, gql } from '@apollo/client/core'
-import { isNonNullType, isListType, isObjectType } from 'graphql'
-// import { cyrb53 } from './utils/hash'
+import { ApolloClient, InMemoryCache, gql } from '@apollo/client/core'
 import { fromScannarrUri, fromUri, isUri, populateUri } from './utils'
 import { graphify } from './utils/resolver'
-
+import { makeLink } from './link'
 
 export type BaseContext = ApolloBaseContext & {
   fetch: typeof fetch
@@ -27,7 +27,7 @@ export {
 
 export type MakeServerOptions<Context extends ApolloBaseContext> = {
   typeDefs?: string
-  resolvers?: Resolvers[]
+  resolversList?: Resolvers[]
   operationPrefix?: string
   silenceResolverErrors?: boolean
   context: ContextThunk<Context>
@@ -65,7 +65,7 @@ export type MakeServerOptions<Context extends ApolloBaseContext> = {
 //   return mergeDeep(target, ...sources);
 // }
 
-export default <Context extends BaseContext, T extends MakeServerOptions<Context>>({ operationPrefix, typeDefs, resolvers, silenceResolverErrors, context }: T) => {
+export default <Context extends BaseContext, T extends MakeServerOptions<Context>>({ operationPrefix, typeDefs, resolversList, silenceResolverErrors, context }: T) => {
   const inMemoryCache = new InMemoryCache({
     addTypename: false,
     typePolicies: {
@@ -74,273 +74,170 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
       }
     }
   })
-  const client = new ApolloClient({ cache: inMemoryCache, typeDefs })
-  console.log('inMemoryCache', inMemoryCache)
-  
-  const rootQueries = [
-    ...new Map(
-        resolvers
-          ?.flatMap((resolver) => Object.entries(resolver))
-      )
-  ]
 
-  const allQueryQueries =
-    resolvers
-      ?.flatMap((resolver) => Object.entries(resolver))
-      .filter(([key]) => key === 'Query')
-      .flatMap(([key, value]) => Object.entries(value))
-      ?? []
-
-  const allPageQueries =
-    resolvers
-      ?.flatMap((resolver) => Object.entries(resolver))
-      .filter(([key]) => key === 'Page')
-      .flatMap(([key, value]) => Object.entries(value))
-      ?? []
-
-  const pageQueries = [
-    ...new Map(
-      resolvers
-      ?.flatMap((resolver) => Object.entries(resolver))
-      .filter(([key]) => key === 'Page')
-        .flatMap(([key, value]) =>
-          Object.entries(
-            rootQueries
-              .find(([_key]) => _key === key)
-              ?.[1]
-            ?? {}
-          )
-        )
-    )
-  ]
-
-  const resolversObj = Object.fromEntries(
-    rootQueries.map(([key]) => {
-      const typeResolvers =
-        (resolvers ?? [])
-          ?.flatMap((resolver) => Object.entries(resolver))
-          .filter(([_key]) => _key === key)
-
-      return [
-        key,
-        Object.fromEntries(
-          [
-            ...new Map(
-                typeResolvers
-                  ?.flatMap(([, resolver]) => Object.entries(resolver))
-              )
-          ].map(([key]) => [
-            key,
-            async (...args) => {
-              const [parent, params, context, info] = args
-              console.log('args', args)
-
-              const rootUri = params?.uri ?? parent.uri
-              // console.log('rootUri', rootUri)
-              const resolvers =
-                typeResolvers
-                  .flatMap(([_, value]) => Object.entries(value))
-                  .filter(([_key, value]) => typeof value === 'function')
-
-              if (rootUri && isUri(rootUri) && rootUri.startsWith('scannarr:')) {
-                const uri = rootUri
-                const uris = fromScannarrUri(uri)
-                // console.log('uris', uris)
-                // const handle = context.handles?.find(handle => handle.uri === uri)
-                const results =
-                  (await Promise.all(
-                    (await Promise.allSettled(
-                      uris.map(uri =>
-                        resolvers?.map(([, resolverFunction]) =>
-                          void console.log('resolverFunction', uri, resolverFunction) ||
-                          resolverFunction(parent, params, { uri, id: fromUri(uri).id, origin: fromUri(uri).origin, ...context }, info)
-                            .catch(err => {
-                              if (!silenceResolverErrors) console.error(err)
-                              throw err
-                            })
-                        )
-                      )
-                    ))
-                      .filter((result) => console.log('result', result) || result.status === 'fulfilled')
-                      .flatMap((result) => (result as PromiseFulfilledResult<any>).value)
-                  ))
-                  .filter((result) => result !== undefined && result !== null)
-                  .flat()
-
-                
-                if (!results.every(result => result.handles)) {
-
-                  return results[0]
-                }
-
-                console.log('before graphify results', results)
-      
-                const finalResults = graphify({ results, typeName: 'Media', client, normalizedKey: 'media', info })
-                console.log('finalResults', finalResults)
-      
-                return finalResults[0]
-              }
-
-              return (
-                Promise.any(
-                  resolvers
-                    .map(async ([, resolverFunction]) =>
-                      resolverFunction(...args)
-                        .catch(err => {
-                          if (!silenceResolverErrors) console.error(err)
-                          throw err
-                        })
-                    )
-                    .map(async result =>
-                      (await result) === undefined || (await result) === null
-                        ? Promise.reject()
-                        : result
-                    )
-                )
-              )
-            }
-          ])
-        )
-      ]
-    })
-  )
-
-  const Page =
-    Object.fromEntries(
-      pageQueries
-        .map(([key]) => {
-          const pageResolvers =
-            allPageQueries
-              .filter(([_key]) => _key === key)
-              .filter(([_key, value]) => typeof value === 'function')
-              .map(([, value]) => value)
-
-          const normalizedKey = `${key[0]?.toLowerCase()}${key.slice(1)}`
-          const typeName = `${key[0]?.toUpperCase()}${key.slice(1)}`
-
-          return [
-            normalizedKey,
-            async (parent, args, context, info: GraphQLResolveInfo) => {
-              const { sort } = args as { sort: (keyof typeof Sorts)[] }
-              const results =
-                (await Promise.allSettled(
-                  pageResolvers?.map((resolverFunction) =>
-                    resolverFunction(parent, args, context, info)
-                      .catch(err => {
-                        if (!silenceResolverErrors) console.error(err)
-                        throw err
-                      })
-                  )
-                ))
-                  .filter((result) => result.status === 'fulfilled')
-                  .flatMap((result) => (result as PromiseFulfilledResult<any>).value)
-                  .filter((result) => result !== undefined && result !== null)
-
-              const sorts = sort?.map((sort) => Sorts[sort])
-
-              const sortBy = (results: any[], sort: (a, b) => number, sortRest: ((a, b) => number)[]) => {
-                const sorted = results.sort(sort)
-                if (sortRest.length) return sortBy(sorted, sortRest[0]!, sortRest.slice(1))
-                return sorted
-              }
-
-              const finalResults = graphify({ results, typeName, client, normalizedKey, info })
-
-              const sortedResults =
-                sorts
-                  ? sortBy(finalResults, sorts[0]!, sorts.slice(1))
-                  : finalResults
-
-              return sortedResults
-            }
-          ]
-        })
-    )
-
-  const _resolvers: Resolvers = {
-    ...resolversObj,
-    Query: {
-      ...resolversObj.Query,
-      Media: async (...args) => {
-        const [parent, params, context, info] = args
-
-        // console.log('allQueryQueries', allQueryQueries)
-        const queryResolvers =
-          allQueryQueries
-            .filter(([_key]) => _key === 'Media')
-            .filter(([_key, value]) => typeof value === 'function')
-            .map(([, value]) => value)
-        // console.log('queryResolvers', queryResolvers)
-
-        if (params?.uri && isUri(params.uri) && params.uri.startsWith('scannarr:')) {
-          const uri = params.uri
-          const uris = fromScannarrUri(uri)
-          // console.log('uris', uris)
-          // const handle = context.handles?.find(handle => handle.uri === uri)
-          const results =
-            (await Promise.all(
-              (await Promise.allSettled(
-                uris.map(uri =>
-                  queryResolvers?.map((resolverFunction) =>
-                    // void console.log('resolverFunction', resolverFunction) ||
-                    resolverFunction(
-                      parent,
-                      { uri, id: fromUri(uri).id, origin: fromUri(uri).origin, ...params },
-                      { uri, id: fromUri(uri).id, origin: fromUri(uri).origin, ...context },
-                      info
-                    )
-                      .catch(err => {
-                        if (!silenceResolverErrors) console.error(err)
-                        throw err
-                      })
-                  )  
-                )
-              ))
-                .filter((result) => result.status === 'fulfilled')
-                .flatMap((result) => (result as PromiseFulfilledResult<any>).value)
-            ))
-            .filter((result) => result !== undefined && result !== null)
-          // console.log('results', results)
-
-          const finalResults = graphify({ results, typeName: 'Media', client, normalizedKey: 'media', info })
-          // console.log('finalResults', finalResults)
-
-          return finalResults[0]
-        }
-
-        return resolversObj.Query?.Media?.(...args)
-      },
-      Page: () => Page
-    },
-    Page,
+  const defaultResolvers = (resolvers: Resolvers) => ({
+    ...resolvers,
     MediaCoverImage: {
       default: (mediaCoverImage) =>
         mediaCoverImage.extraLarge
         ?? mediaCoverImage.large
         ?? mediaCoverImage.medium
-        ?? mediaCoverImage.small
+        ?? mediaCoverImage.small,
+      ...resolvers.MediaCoverImage
     },
     MediaConnection: {
-      nodes: (mediaConnection) => mediaConnection.edges?.map(edge => edge.node) ?? []
+      nodes: (mediaConnection) => mediaConnection.edges?.map(edge => edge.node) ?? [],
+      ...resolvers.MediaConnection
     },
     MediaAiringScheduleConnection: {
-      nodes: (mediaConnection) => mediaConnection.edges?.map(edge => edge?.node) ?? []
+      nodes: (mediaConnection) => mediaConnection.edges?.map(edge => edge?.node) ?? [],
+      ...resolvers.MediaAiringScheduleConnection
     }
-  }
+  })
+
+  const resolversClients =
+    resolversList?.map(resolvers => {
+      const server = new ApolloServer<Context>({
+        typeDefs:
+          typeDefs
+            ? `${schema}\n\n${typeDefs}`
+            : schema,
+        resolvers: defaultResolvers(resolvers),
+      })
+
+      server.start()
+    
+      const link = makeLink({
+        prefix: operationPrefix,
+        server,
+        context
+      })
+
+      return new ApolloClient({
+        cache: inMemoryCache,
+        link,
+        defaultOptions: {
+          query: { fetchPolicy: 'network-only' }
+        }
+      })
+    })
+    ?? []
+
+  const client = new ApolloClient({ cache: inMemoryCache, typeDefs })
+
+  setInterval(() => {
+    console.log('state', client.extract())
+  }, 10000)
 
   const server = new ApolloServer<Context>({
     typeDefs:
       typeDefs
         ? `${schema}\n\n${typeDefs}`
         : schema,
-    resolvers: _resolvers
+    resolvers: defaultResolvers({
+      Query: {
+        Media: async (...args) => {
+          const [_, { uri, id = fromUri(uri).id, origin: _origin = fromUri(uri).origin }] = args
+          console.log('Media query', args)
+          const uris = fromScannarrUri(uri)
+          const edges =
+            uris.map(uri => ({
+              node: populateUri({
+                id: fromUri(uri).id,
+                origin: fromUri(uri).origin,
+                handles: {
+                  nodes: [],
+                  edges: []
+                }
+              })
+            }))
+
+          return populateUri({
+            origin: _origin,
+            id: id!,
+            handles: {
+              edges,
+              nodes: edges?.map(edge => edge?.node) ?? []
+            }
+          })
+        }
+      }
+    })
   })
 
-  const link = makeLink({
-    prefix: operationPrefix,
-    server,
-    context
-  })
+  const fetch: (input: RequestInfo | URL, init: RequestInit) => Promise<Response> = async (input, init) => {
+    const body = JSON.parse(init.body!.toString())
+    const headers = new Map<string, string>()
+    for (const [key, value] of Object.entries(init.headers!)) {
+      if (value !== undefined) {
+        headers.set(key, Array.isArray(value) ? value.join(', ') : value)
+      }
+    }
+
+    const rootUri = body.variables.uri
+    const uris = isUri(rootUri) && rootUri.startsWith('scannarr:') ? fromScannarrUri(rootUri) : [rootUri]
+
+    const resolversResults =
+      (await Promise.all(
+        (await Promise.allSettled(
+          uris.flatMap(uri =>
+            resolversClients?.map(client =>
+              client
+                .query({
+                  query: gql(body.query),
+                  variables: {
+                    ...body.variables,
+                    uri,
+                    id: fromUri(uri).id,
+                    origin: fromUri(uri).origin
+                  }
+                })
+                .catch(err => {
+                  if (!silenceResolverErrors) console.error(err)
+                  throw err
+                })
+            )
+          )
+        ))
+          .filter((result) => result.status === 'fulfilled')
+          .flatMap((result) => (result as PromiseFulfilledResult<any>).value)
+          .filter((result) => result !== undefined && result !== null)
+      ))
+    console.log('resolversResults', resolversResults)
+
+    const res = await server.executeHTTPGraphQLRequest({
+      httpGraphQLRequest: {
+        body,
+        // @ts-expect-error
+        headers,
+        method: init.method!,
+        search: ''
+      },
+      context: async () => ({ ...await context?.(), input, init, body, headers, method: init.method!, resolversResults })
+    })
+    // @ts-expect-error
+    return new Response(res.body.string, { headers: res.headers })
+  }
+
+  const link = 
+    onError(({ graphQLErrors, networkError }) => {
+      if (graphQLErrors) {
+        graphQLErrors.forEach(({ message, locations, path }) =>
+          console.error(
+            `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
+          )
+        )
+      }
+      if (networkError) console.error(networkError)
+    }).concat(
+      split(
+        ({ query }) => {
+          const definition = getMainDefinition(query)
+          return !operationPrefix || Boolean(definition.name?.value.startsWith(operationPrefix))
+        },
+        new HttpLink({ fetch })
+      )
+    )
 
   return {
     server,

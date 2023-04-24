@@ -3,6 +3,8 @@ import type { ApolloServer, ContextThunk } from '@apollo/server'
 import { split } from '@apollo/client/link/core'
 import { HttpLink } from '@apollo/client/link/http'
 import { getMainDefinition } from '@apollo/client/utilities'
+import { onError } from '@apollo/client/link/error'
+
 import { BaseContext } from './server'
 
 export const makeLink = <
@@ -34,11 +36,22 @@ export const makeLink = <
     return new Response(res.body.string, { headers: res.headers })
   }
 
-  return split(
-    ({ query }) => {
-      const definition = getMainDefinition(query)
-      return !prefix || Boolean(definition.name?.value.startsWith(prefix))
-    },
-    new HttpLink({ fetch })
+  return onError(({ graphQLErrors, networkError }) => {
+    if (graphQLErrors) {
+      graphQLErrors.forEach(({ message, locations, path }) =>
+        console.error(
+          `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
+        )
+      )
+    }
+    if (networkError) console.error(networkError)
+  }).concat(
+    split(
+      ({ query }) => {
+        const definition = getMainDefinition(query)
+        return !prefix || Boolean(definition.name?.value.startsWith(prefix))
+      },
+      new HttpLink({ fetch })
+    )
   )
 }
