@@ -1,6 +1,5 @@
 import type { BaseContext as ApolloBaseContext, ContextThunk } from '@apollo/server'
 import { Resolvers } from './generated/graphql'
-import type { GraphQLResolveInfo } from 'graphql'
 import { split } from '@apollo/client/link/core'
 import { HttpLink } from '@apollo/client/link/http'
 import { getMainDefinition } from '@apollo/client/utilities'
@@ -9,10 +8,8 @@ import { onError } from '@apollo/client/link/error'
 
 import schema from './graphql'
 
-import { Sorts } from './sorts'
 import { ApolloClient, InMemoryCache, gql } from '@apollo/client/core'
 import { fromScannarrUri, fromUri, isUri, populateUri } from './utils'
-import { graphify } from './utils/resolver'
 import { makeLink } from './link'
 
 export type BaseContext = ApolloBaseContext & {
@@ -33,44 +30,21 @@ export type MakeServerOptions<Context extends ApolloBaseContext> = {
   context: ContextThunk<Context>
 }
 
-// /**
-//  * Simple object check.
-//  * @param item
-//  * @returns {boolean}
-//  */
-// export function isObject(item) {
-//   return (item && typeof item === 'object' && !Array.isArray(item));
-// }
-
-// /**
-//  * Deep merge two objects.
-//  * @param target
-//  * @param ...sources
-//  */
-// export function mergeDeep(target, ...sources) {
-//   if (!sources.length) return target;
-//   const source = sources.shift();
-
-//   if (isObject(target) && isObject(source)) {
-//     for (const key in source) {
-//       if (isObject(source[key])) {
-//         if (!target[key]) Object.assign(target, { [key]: {} });
-//         mergeDeep(target[key], source[key]);
-//       } else {
-//         Object.assign(target, { [key]: source[key] });
-//       }
-//     }
-//   }
-
-//   return mergeDeep(target, ...sources);
-// }
-
 export default <Context extends BaseContext, T extends MakeServerOptions<Context>>({ operationPrefix, typeDefs, resolversList, silenceResolverErrors, context }: T) => {
   const inMemoryCache = new InMemoryCache({
     addTypename: false,
     typePolicies: {
       Media: {
-        keyFields: ['uri']
+        keyFields: ['uri'],
+        fields: {
+          description: (existing, { readField }) =>
+            readField('handles')?.nodes?.[0]
+              ? readField('description', readField('handles')?.nodes?.[0])
+              : (existing ?? null),
+        }
+      },
+      MediaTitle: {
+        merge: (existing, incoming) => ({ ...existing, ...incoming })
       }
     }
   })
@@ -123,12 +97,6 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
     })
     ?? []
 
-  const client = new ApolloClient({ cache: inMemoryCache, typeDefs })
-
-  setInterval(() => {
-    console.log('state', client.extract())
-  }, 10000)
-
   const server = new ApolloServer<Context>({
     typeDefs:
       typeDefs
@@ -137,33 +105,46 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
     resolvers: defaultResolvers({
       Query: {
         Media: async (...args) => {
-          const [_, { uri, id = fromUri(uri).id, origin: _origin = fromUri(uri).origin }] = args
+          const [_, { uri, id = fromUri(uri).id, origin: _origin = fromUri(uri).origin }, { resolversResults }] = args
           console.log('Media query', args)
           const uris = fromScannarrUri(uri)
           const edges =
             uris.map(uri => ({
-              node: populateUri({
-                id: fromUri(uri).id,
-                origin: fromUri(uri).origin,
-                handles: {
-                  nodes: [],
-                  edges: []
-                }
-              })
+              node: {
+                ...populateUri({
+                  id: fromUri(uri).id,
+                  origin: fromUri(uri).origin,
+                  handles: {
+                    nodes: [],
+                    edges: []
+                  }
+                }),
+                ...resolversResults?.find(result => result?.data?.Media?.uri === uri)?.data?.Media
+              }
             }))
 
-          return populateUri({
-            origin: _origin,
-            id: id!,
-            handles: {
-              edges,
-              nodes: edges?.map(edge => edge?.node) ?? []
-            }
-          })
+          return {
+            ...populateUri({
+              origin: _origin,
+              id: id!,
+              handles: {
+                edges,
+                nodes: edges?.map(edge => edge?.node) ?? []
+              }
+            })
+          }
         }
       }
     })
   })
+
+  const clientLink = makeLink({
+    prefix: operationPrefix,
+    server,
+    context
+  })
+
+  const client = new ApolloClient({ cache: inMemoryCache, typeDefs, link: clientLink })
 
   const fetch: (input: RequestInfo | URL, init: RequestInit) => Promise<Response> = async (input, init) => {
     const body = JSON.parse(init.body!.toString())
@@ -203,7 +184,6 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
           .flatMap((result) => (result as PromiseFulfilledResult<any>).value)
           .filter((result) => result !== undefined && result !== null)
       ))
-    console.log('resolversResults', resolversResults)
 
     const res = await server.executeHTTPGraphQLRequest({
       httpGraphQLRequest: {
@@ -215,8 +195,17 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
       },
       context: async () => ({ ...await context?.(), input, init, body, headers, method: init.method!, resolversResults })
     })
+
+    client.writeQuery({
+      query: gql(body.query),
+      variables: body.variables,
+      data: JSON.parse(res.body.string).data
+    })
+
+    const res2 = JSON.stringify(await client.query({ query: gql(body.query), variables: body.variables, fetchPolicy: 'cache-only' }))
+
     // @ts-expect-error
-    return new Response(res.body.string, { headers: res.headers })
+    return new Response(res2, { headers: res2.headers })
   }
 
   const link = 
