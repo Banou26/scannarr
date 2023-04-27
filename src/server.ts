@@ -5,10 +5,11 @@ import { HttpLink } from '@apollo/client/link/http'
 import { getMainDefinition } from '@apollo/client/utilities'
 import { ApolloServer } from '@apollo/server'
 import { onError } from '@apollo/client/link/error'
+import deepmerge from 'deepmerge'
 
 import schema from './graphql'
 
-import { ApolloClient, InMemoryCache, gql } from '@apollo/client/core'
+import { ApolloClient, FieldFunctionOptions, InMemoryCache, gql } from '@apollo/client/core'
 import { fromScannarrUri, fromUri, isUri, populateUri } from './utils'
 import { makeLink } from './link'
 
@@ -31,16 +32,34 @@ export type MakeServerOptions<Context extends ApolloBaseContext> = {
 }
 
 export default <Context extends BaseContext, T extends MakeServerOptions<Context>>({ operationPrefix, typeDefs, resolversList, silenceResolverErrors, context }: T) => {
+  const getHandlesField = (fieldName: string) =>
+    (existing: any, { readField }: FieldFunctionOptions<Record<string, any>, Record<string, any>>) =>
+      readField('handles')?.nodes?.[0]
+        ? readField(fieldName, readField('handles')?.nodes?.[0])
+        : (existing ?? null)
+
+  const deepMergeHandlesFields = (fieldName: string) =>
+    (existing: any, { readField }: FieldFunctionOptions<Record<string, any>, Record<string, any>>) =>
+      readField('handles')
+        ?.nodes
+        ?.reduce((acc: any, node: any) => {
+          const field = readField(fieldName, node)
+          return field ? deepmerge(acc, field) : acc
+        }, existing)
+
   const inMemoryCache = new InMemoryCache({
     addTypename: false,
     typePolicies: {
       Media: {
         keyFields: ['uri'],
         fields: {
-          description: (existing, { readField }) =>
-            readField('handles')?.nodes?.[0]
-              ? readField('description', readField('handles')?.nodes?.[0])
-              : (existing ?? null),
+          description: getHandlesField('description'),
+          shortDescription: getHandlesField('shortDescription'),
+          coverImage: deepMergeHandlesFields('coverImage'),
+          bannerImage: deepMergeHandlesFields('bannerImage'),
+          airingSchedule: deepMergeHandlesFields('airingSchedule'),
+          title: deepMergeHandlesFields('title'),
+          trailers: deepMergeHandlesFields('trailers')
         }
       },
       MediaTitle: {
