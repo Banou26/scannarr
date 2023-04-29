@@ -32,20 +32,25 @@ export type MakeServerOptions<Context extends ApolloBaseContext> = {
 }
 
 export default <Context extends BaseContext, T extends MakeServerOptions<Context>>({ operationPrefix, typeDefs, resolversList, silenceResolverErrors, context }: T) => {
-  const getHandlesField = (fieldName: string) =>
+  const getHandlesField = <T>(fieldName: string, defaultValue?: T) =>
     (existing: any, { readField }: FieldFunctionOptions<Record<string, any>, Record<string, any>>) =>
-      readField('handles')?.edges?.[0]?.node
-        ? readField(fieldName, readField('handles')?.edges?.[0]?.node)
-        : (existing ?? null)
+      (
+        readField('handles')?.edges?.[0]?.node
+          ? readField(fieldName, readField('handles')?.edges?.[0]?.node)
+          : (existing ?? null)
+      )
+      ?? defaultValue
 
-  const deepMergeHandlesFields = (fieldName: string) =>
+  const deepMergeHandlesFields = <T>(fieldName: string, defaultValue?: T) =>
     (existing: any, { readField }: FieldFunctionOptions<Record<string, any>, Record<string, any>>) =>
       readField('handles')
         ?.edges
         ?.reduce((acc: any, edge: any) => {
           const field = readField(fieldName, edge.node)
+          if (acc === undefined || acc === null) return field
           return field ? deepmerge(acc, field) : acc
         }, existing)
+      ?? defaultValue
 
   const inMemoryCache = new InMemoryCache({
     addTypename: false,
@@ -67,7 +72,11 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
             },
             merge: (existing, incoming) => console.log('MEMORY CACHE MERGE', existing, incoming) || [
               ...(existing?.filter(item => !incoming.some(_item => _item.uri === item.uri)) ?? []),
-              ...(incoming ?? [])
+              ...(incoming.map(item => {
+                // existing?.find(_item => _item.uri === item.uri ? deepmerge(_item, item) : false) ?? item
+                const _item = existing?.find(_item => _item.uri === item.uri)
+                return _item ? deepmerge(_item, item) : item
+              }) ?? [])
             ]
           }
         }
@@ -75,18 +84,18 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
       Media: {
         keyFields: ['uri'],
         fields: {
-          description: getHandlesField('description'),
+          description: getHandlesField('description', null),
           popularity: (existing, { readField }: FieldFunctionOptions<Record<string, any>, Record<string, any>>) =>
             readField('handles')
               ?.edges
               .reduce((acc: number, edge: any) => Math.max(acc, readField('popularity', edge.node)), 0)
               ?? existing,
-          shortDescription: getHandlesField('shortDescription'),
-          coverImage: deepMergeHandlesFields('coverImage'),
-          bannerImage: deepMergeHandlesFields('bannerImage'),
-          airingSchedule: deepMergeHandlesFields('airingSchedule'),
-          title: deepMergeHandlesFields('title'),
-          trailers: deepMergeHandlesFields('trailers')
+          shortDescription: getHandlesField('shortDescription', null),
+          coverImage: deepMergeHandlesFields('coverImage', []),
+          bannerImage: deepMergeHandlesFields('bannerImage', []),
+          airingSchedule: deepMergeHandlesFields('airingSchedule', []),
+          title: deepMergeHandlesFields('title', { romanized: null, native: null, english: null }),
+          trailers: deepMergeHandlesFields('trailers', [])
         }
       },
       MediaTitle: {
