@@ -1,5 +1,5 @@
 import type { BaseContext as ApolloBaseContext, ContextThunk } from '@apollo/server'
-import { Resolvers } from './generated/graphql'
+import { HandleRelation, Resolvers } from './generated/graphql'
 import { split } from '@apollo/client/link/core'
 import { HttpLink } from '@apollo/client/link/http'
 import { getMainDefinition } from '@apollo/client/utilities'
@@ -10,7 +10,7 @@ import deepmerge from 'deepmerge'
 import schema from './graphql'
 
 import { ApolloClient, FieldFunctionOptions, InMemoryCache, gql } from '@apollo/client/core'
-import { fromScannarrUri, fromUri, isUri, populateUri } from './utils'
+import { fromScannarrUri, fromUri, isUri, populateUri, toScannarrId } from './utils'
 import { makeLink } from './link'
 
 export type BaseContext = ApolloBaseContext & {
@@ -34,26 +34,53 @@ export type MakeServerOptions<Context extends ApolloBaseContext> = {
 export default <Context extends BaseContext, T extends MakeServerOptions<Context>>({ operationPrefix, typeDefs, resolversList, silenceResolverErrors, context }: T) => {
   const getHandlesField = (fieldName: string) =>
     (existing: any, { readField }: FieldFunctionOptions<Record<string, any>, Record<string, any>>) =>
-      readField('handles')?.nodes?.[0]
-        ? readField(fieldName, readField('handles')?.nodes?.[0])
+      readField('handles')?.edges?.[0]?.node
+        ? readField(fieldName, readField('handles')?.edges?.[0]?.node)
         : (existing ?? null)
 
   const deepMergeHandlesFields = (fieldName: string) =>
     (existing: any, { readField }: FieldFunctionOptions<Record<string, any>, Record<string, any>>) =>
       readField('handles')
-        ?.nodes
-        ?.reduce((acc: any, node: any) => {
-          const field = readField(fieldName, node)
+        ?.edges
+        ?.reduce((acc: any, edge: any) => {
+          const field = readField(fieldName, edge.node)
           return field ? deepmerge(acc, field) : acc
         }, existing)
 
   const inMemoryCache = new InMemoryCache({
     addTypename: false,
     typePolicies: {
+      MediaConnection: {
+        fields: {
+          nodes: (existing, { readField }: FieldFunctionOptions<Record<string, any>, Record<string, any>>) =>
+            readField('edges')
+              ?.map((edge: any) => edge.node)
+            ?? existing
+        }
+      },
+      Page: {
+        fields: {
+          media: {
+            keyArgs: false,
+            read: (existing, { args, ...rest}: FieldFunctionOptions<Record<string, any>, Record<string, any>>) => {
+              return existing
+            },
+            merge: (existing, incoming) => console.log('MEMORY CACHE MERGE', existing, incoming) || [
+              ...(existing?.filter(item => !incoming.some(_item => _item.uri === item.uri)) ?? []),
+              ...(incoming ?? [])
+            ]
+          }
+        }
+      },
       Media: {
         keyFields: ['uri'],
         fields: {
           description: getHandlesField('description'),
+          popularity: (existing, { readField }: FieldFunctionOptions<Record<string, any>, Record<string, any>>) =>
+            readField('handles')
+              ?.edges
+              .reduce((acc: number, edge: any) => Math.max(acc, readField('popularity', edge.node)), 0)
+              ?? existing,
           shortDescription: getHandlesField('shortDescription'),
           coverImage: deepMergeHandlesFields('coverImage'),
           bannerImage: deepMergeHandlesFields('bannerImage'),
@@ -122,7 +149,116 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
         ? `${schema}\n\n${typeDefs}`
         : schema,
     resolvers: defaultResolvers({
+      Page: {
+        media: async (...args) => {
+          const [_, __, { resolversResults }] = args
+
+          const _results = resolversResults.flatMap(results => results.data.Page.media)
+          console.log('Page media', args)
+          
+          console.log('_results', _results)
+
+          const typeName = 'Media'
+          let results = [...new Map(_results.map(item => [item.uri, item])).values()]
+          const index: { [key: string]: string[] } = {}
+          const alreadyRecursed = new Set()
+      
+          const addHandleRecursiveToIndex = (_handle: Handle) => {
+            if (alreadyRecursed.has(_handle.uri)) return
+            alreadyRecursed.add(_handle.uri)
+            
+            if (!results.some(handle => handle.uri === _handle.uri)) {
+              results = [...results, _handle]
+            }
+      
+            if (!index[_handle.uri]) index[_handle.uri] = [_handle.uri]
+            const identicalHandles =
+              _handle
+                .handles
+                ?.edges
+                // ?.filter(handleConnection =>
+                //   handleConnection?.handleRelationType === HandleRelation.Identical
+                // )
+                ?? []
+            for (const handle of identicalHandles) {
+              if (!index[handle.node.uri]) index[handle.node.uri] = [handle.node.uri]
+      
+              if (!index[_handle.uri]?.includes(handle.node.uri)) index[_handle.uri]?.push(handle.node.uri)
+              if (!index[handle.node.uri]?.includes(handle.node.uri)) index[handle.node.uri]?.push(_handle.uri)
+              for (const uri of index[_handle.uri] ?? []) {
+                if (!index[uri]?.includes(handle.node.uri)) index[uri]?.push(handle.node.uri)
+              }
+              for (const uri of index[handle.node.uri] ?? []) {
+                if (!index[uri]?.includes(_handle.uri)) index[uri]?.push(_handle.uri)
+              }
+              addHandleRecursiveToIndex(handle.node)
+            }
+          }
+      
+          for (const handle of _results) {
+            addHandleRecursiveToIndex(handle)
+          }
+
+          console.log('index', index)
+
+          const groups =
+          [
+            ...new Set(
+              Object
+                .values(index)
+                .map((uris) => uris.sort((a, b) => a.localeCompare(b)))
+                .map((uris) => uris.join(' '))
+            )
+          ].map((uris) => uris.split(' '))
+    
+        console.log('groups', groups)
+    
+        const handleGroups = groups.map((uris) => results.filter((handle) => uris.includes(handle.uri)))
+        console.log('handleGroups', handleGroups)
+    
+        const scannarrHandles =
+          handleGroups
+            .map((handles) => populateUri({
+              __typename: typeName,
+              origin: 'scannarr',
+              id: toScannarrId(handles.map(handle => handle.uri).join(',') as Uris),
+              handles: {
+                __typename: `${typeName}Connection`,
+                edges: handles.map((handle) => ({
+                  __typename: `${typeName}Edge`,
+                  handleRelationType: HandleRelation.Identical,
+                  node: {
+                    __typename: typeName,
+                    ...handle
+                  }
+                })),
+                nodes: handles.map((handle) => ({
+                  __typename: typeName,
+                  ...handle
+                }))
+              }
+            }))
+        
+          console.log('scannarrHandles', scannarrHandles)
+
+          return scannarrHandles
+        }
+      },
       Query: {
+        Page: () => void console.log('server Page') || ({}),
+        // Page: async (...args) => {
+        //   const [_, __, { resolversResults }] = args
+        //   console.log('Page query', args)
+        //   return {
+        //     media: resolversResults.flatMap(result => result?.data?.Page?.media),
+        //     pageInfo: {
+        //       hasNextPage: false,
+        //       hasPreviousPage: false,
+        //       currentPage: 1,
+        //       lastPage: 1
+        //     }
+        //   }
+        // },
         Media: async (...args) => {
           const [_, { uri, id = fromUri(uri).id, origin: _origin = fromUri(uri).origin }, { resolversResults }] = args
           console.log('Media query', args)
@@ -163,7 +299,11 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
     context
   })
 
-  const client = new ApolloClient({ cache: inMemoryCache, typeDefs, link: clientLink })
+  const client = new ApolloClient({
+    cache: inMemoryCache,
+    // typeDefs,
+    link: clientLink
+  })
 
   const fetch: (input: RequestInfo | URL, init: RequestInit) => Promise<Response> = async (input, init) => {
     const body = JSON.parse(init.body!.toString())
@@ -175,34 +315,46 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
     }
 
     const rootUri = body.variables.uri
-    const uris = isUri(rootUri) && rootUri.startsWith('scannarr:') ? fromScannarrUri(rootUri) : [rootUri]
+    const uris =
+      rootUri && isUri(rootUri) && rootUri.startsWith('scannarr:')
+        ? fromScannarrUri(rootUri)
+        : undefined
+
+    console.log('body', body)
 
     const resolversResults =
-      (await Promise.all(
+      await Promise.all(
         (await Promise.allSettled(
-          uris.flatMap(uri =>
-            resolversClients?.map(client =>
-              client
-                .query({
-                  query: gql(body.query),
-                  variables: {
-                    ...body.variables,
-                    uri,
-                    id: fromUri(uri).id,
-                    origin: fromUri(uri).origin
-                  }
-                })
-                .catch(err => {
-                  if (!silenceResolverErrors) console.error(err)
-                  throw err
-                })
+          (uris ?? [undefined])
+            .flatMap(uri =>
+              resolversClients?.map(client =>
+                client
+                  .query({
+                    query: gql(body.query),
+                    variables:
+                      uri
+                        ? ({
+                          ...body.variables,
+                          uri,
+                          id: fromUri(uri).id,
+                          origin: fromUri(uri).origin
+                        })
+                        : body.variables
+                  })
+                  .then(res => console.log('client query res', res) || res)
+                  .catch(err => {
+                    if (!silenceResolverErrors) console.error(err)
+                    throw err
+                  })
+              )
             )
-          )
         ))
           .filter((result) => result.status === 'fulfilled')
           .flatMap((result) => (result as PromiseFulfilledResult<any>).value)
           .filter((result) => result !== undefined && result !== null)
-      ))
+      )
+
+    console.log('resolversResults', resolversResults)
 
     const res = await server.executeHTTPGraphQLRequest({
       httpGraphQLRequest: {
@@ -215,13 +367,28 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
       context: async () => ({ ...await context?.(), input, init, body, headers, method: init.method!, resolversResults })
     })
 
+    console.log('res', res, JSON.parse(res.body.string))
+
+    if (JSON.parse(res.body.string).errors) {
+      throw JSON.parse(res.body.string).errors
+    }
+
     client.writeQuery({
       query: gql(body.query),
       variables: body.variables,
       data: JSON.parse(res.body.string).data
     })
 
-    const res2 = JSON.stringify(await client.query({ query: gql(body.query), variables: body.variables, fetchPolicy: 'cache-only' }))
+    console.log('client.query cache-only')
+    const res2 = JSON.stringify(
+      await client.query({
+        query: gql(body.query),
+        variables: body.variables,
+        fetchPolicy: 'cache-only'
+      })
+    )
+
+    console.log('res22', JSON.parse(res2))
 
     // @ts-expect-error
     return new Response(res2, { headers: res2.headers })
