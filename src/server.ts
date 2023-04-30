@@ -88,12 +88,12 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
           popularity: (existing, { readField }: FieldFunctionOptions<Record<string, any>, Record<string, any>>) =>
             readField('handles')
               ?.edges
-              .reduce((acc: number, edge: any) => Math.max(acc, readField('popularity', edge.node)), 0)
+              ?.reduce((acc: number, edge: any) => Math.max(acc, readField('popularity', edge.node)), 0)
               ?? existing,
           shortDescription: getHandlesField('shortDescription', null),
           coverImage: deepMergeHandlesFields('coverImage', []),
           bannerImage: deepMergeHandlesFields('bannerImage', []),
-          airingSchedule: deepMergeHandlesFields('airingSchedule', []),
+          airingSchedule: deepMergeHandlesFields('airingSchedule', { edges: [] }),
           title: deepMergeHandlesFields('title', { romanized: null, native: null, english: null }),
           trailers: deepMergeHandlesFields('trailers', [])
         }
