@@ -35,21 +35,31 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
   const getHandlesField = <T>(fieldName: string, defaultValue?: T) =>
     (existing: any, { readField }: FieldFunctionOptions<Record<string, any>, Record<string, any>>) =>
       (
-        readField('handles')?.edges?.[0]?.node
-          ? readField(fieldName, readField('handles')?.edges?.[0]?.node)
-          : (existing ?? null)
+        fromUri(readField('uri')).origin === 'scannarr'
+        ? (
+          readField('handles')?.edges?.[0]?.node
+            ? readField(fieldName, readField('handles')?.edges?.[0]?.node)
+            : (existing ?? null)
+        ) ?? existing
+        : existing
       )
       ?? defaultValue
 
   const deepMergeHandlesFields = <T>(fieldName: string, defaultValue?: T) =>
     (existing: any, { readField }: FieldFunctionOptions<Record<string, any>, Record<string, any>>) =>
-      readField('handles')
-        ?.edges
-        ?.reduce((acc: any, edge: any) => {
-          const field = readField(fieldName, edge.node)
-          if (acc === undefined || acc === null) return field
-          return field ? deepmerge(acc, field) : acc
-        }, existing)
+      (
+        fromUri(readField('uri')).origin === 'scannarr'
+          ? (
+            readField('handles')
+            ?.edges
+            ?.reduce((acc: any, edge: any) => {
+              const field = readField(fieldName, edge.node)
+              if (acc === undefined || acc === null) return field
+              return field ? deepmerge(acc, field) : acc
+            }, existing)
+          ) ?? existing
+          : existing
+      )
       ?? defaultValue
 
   const inMemoryCache = new InMemoryCache({
@@ -57,10 +67,14 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
     typePolicies: {
       MediaConnection: {
         fields: {
+          edges: (existing) =>
+            existing
+            ?? [],
           nodes: (existing, { readField }: FieldFunctionOptions<Record<string, any>, Record<string, any>>) =>
             readField('edges')
               ?.map((edge: any) => edge.node)
             ?? existing
+            ?? []
         }
       },
       Page: {
@@ -70,7 +84,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
             read: (existing, { args, ...rest}: FieldFunctionOptions<Record<string, any>, Record<string, any>>) => {
               return existing
             },
-            merge: (existing, incoming) => console.log('MEMORY CACHE MERGE', existing, incoming) || [
+            merge: (existing, incoming) => [
               ...(existing?.filter(item => !incoming.some(_item => _item.uri === item.uri)) ?? []),
               ...(incoming.map(item => {
                 // existing?.find(_item => _item.uri === item.uri ? deepmerge(_item, item) : false) ?? item
@@ -86,16 +100,32 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
         fields: {
           description: getHandlesField('description', null),
           popularity: (existing, { readField }: FieldFunctionOptions<Record<string, any>, Record<string, any>>) =>
-            readField('handles')
-              ?.edges
-              ?.reduce((acc: number, edge: any) => Math.max(acc, readField('popularity', edge.node)), 0)
-              ?? existing,
+            fromUri(readField('uri')).origin === 'scannarr'
+              ? (
+                readField('handles')
+                  ?.edges
+                  ?.reduce((acc: number, edge: any) => Math.max(acc, readField('popularity', edge.node)), 0)
+              ) ?? existing
+              : existing,
           shortDescription: getHandlesField('shortDescription', null),
           coverImage: deepMergeHandlesFields('coverImage', []),
           bannerImage: deepMergeHandlesFields('bannerImage', []),
           airingSchedule: deepMergeHandlesFields('airingSchedule', { edges: [] }),
           title: deepMergeHandlesFields('title', { romanized: null, native: null, english: null }),
-          trailers: deepMergeHandlesFields('trailers', [])
+          trailers: deepMergeHandlesFields('trailers', []),
+          // handles: (existing, { readField }: FieldFunctionOptions<Record<string, any>, Record<string, any>>) =>
+          //   void console.log('handles', existing) ||
+          //   fromUri(readField('uri')).origin === 'scannarr'
+          //     ? (
+          //       existing
+          //         ?.edges
+          //         ?.reduce((acc: any, edge: any) => {
+          //           const field = readField('handles', edge.node)
+          //           if (acc === undefined || acc === null) return field
+          //           return field ? deepmerge(acc, field) : acc
+          //         }, existing)
+          //     )
+          //     : existing
         }
       },
       MediaTitle: {
@@ -163,9 +193,9 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
           const [_, __, { resolversResults }] = args
 
           const _results = resolversResults.flatMap(results => results.data.Page.media)
-          console.log('Page media', args)
+          // console.log('Page media', args)
           
-          console.log('_results', _results)
+          // console.log('_results', _results)
 
           const typeName = 'Media'
           let results = [...new Map(_results.map(item => [item.uri, item])).values()]
@@ -208,7 +238,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
             addHandleRecursiveToIndex(handle)
           }
 
-          console.log('index', index)
+          // console.log('index', index)
 
           const groups =
           [
@@ -220,10 +250,10 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
             )
           ].map((uris) => uris.split(' '))
     
-        console.log('groups', groups)
+        // console.log('groups', groups)
     
         const handleGroups = groups.map((uris) => results.filter((handle) => uris.includes(handle.uri)))
-        console.log('handleGroups', handleGroups)
+        // console.log('handleGroups', handleGroups)
     
         const scannarrHandles =
           handleGroups
@@ -248,7 +278,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
               }
             }))
         
-          console.log('scannarrHandles', scannarrHandles)
+          // console.log('scannarrHandles', scannarrHandles)
 
           return scannarrHandles
         }
@@ -270,7 +300,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
         // },
         Media: async (...args) => {
           const [_, { uri, id = fromUri(uri).id, origin: _origin = fromUri(uri).origin }, { resolversResults }] = args
-          console.log('Media query', args)
+          // console.log('Media query', args)
           const uris = fromScannarrUri(uri)
           const edges =
             uris.map(uri => ({
@@ -288,6 +318,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
             }))
 
           return {
+            ...deepmerge.all(edges.map(edge => edge?.node)),
             ...populateUri({
               origin: _origin,
               id: id!,
@@ -329,7 +360,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
         ? fromScannarrUri(rootUri)
         : undefined
 
-    console.log('body', body)
+    // console.log('body', body)
 
     const resolversResults =
       await Promise.all(
@@ -350,7 +381,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
                         })
                         : body.variables
                   })
-                  .then(res => console.log('client query res', res) || res)
+                  .then(res => console.log('client query res', uri, res) || res)
                   .catch(err => {
                     if (!silenceResolverErrors) console.error(err)
                     throw err
@@ -360,7 +391,11 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
         ))
           .filter((result) => result.status === 'fulfilled')
           .flatMap((result) => (result as PromiseFulfilledResult<any>).value)
-          .filter((result) => result !== undefined && result !== null)
+          .filter((result) =>
+            result !== undefined
+            && result !== null
+            && Object.values(result.data).some((value) => value !== undefined && value !== null)
+          )
       )
 
     console.log('resolversResults', resolversResults)
