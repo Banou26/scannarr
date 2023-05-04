@@ -68,35 +68,14 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
     typePolicies: {
       MediaConnection: {
         fields: {
-          edges: {
-            read: (existing) =>
-              existing
-              ?? [],
-            // merge: (existing, incoming) => [
-            //   ...(existing?.filter(item => !incoming.some(_item => _item.node.uri === item.node.uri)) ?? []),
-            //   ...(incoming.map(item => {
-            //     // existing?.find(_item => _item.node.uri === item.node.uri ? deepmerge(_item, item) : false) ?? item
-            //     const _item = existing?.find(_item => _item.node.uri === item.node.uri)
-            //     return _item ? deepmerge(_item, item) : item
-            //   }) ?? [])
-            // ]
-          },
-          nodes: {
-            read: (existing, { readField }: FieldFunctionOptions<Record<string, any>, Record<string, any>>) =>
-              readField('edges')
-                ?.map((edge: any) => edge.node)
-              ?? existing
-              ?? [],
-            // merge: (existing, incoming) => [
-            //   ...(existing?.filter(item => !incoming.some(_item => _item.uri === item.uri)) ?? []),
-            //   ...(incoming.map(item => {
-            //     // existing?.find(_item => _item.uri === item.uri ? deepmerge(_item, item) : false) ?? item
-            //     const _item = existing?.find(_item => _item.uri === item.uri)
-            //     return _item ? deepmerge(_item, item) : item
-            //   }
-            //   ) ?? [])
-            // ]
-          }
+          edges: (existing) =>
+            existing
+            ?? [],
+          nodes: (existing, { readField }: FieldFunctionOptions<Record<string, any>, Record<string, any>>) =>
+            readField('edges')
+              ?.map((edge: any) => edge.node)
+            ?? existing
+            ?? []
         }
       },
       Page: {
@@ -109,7 +88,6 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
             merge: (existing, incoming) => [
               ...(existing?.filter(item => !incoming.some(_item => _item.uri === item.uri)) ?? []),
               ...(incoming.map(item => {
-                // existing?.find(_item => _item.uri === item.uri ? deepmerge(_item, item) : false) ?? item
                 const _item = existing?.find(_item => _item.uri === item.uri)
                 return _item ? deepmerge(_item, item) : item
               }) ?? [])
@@ -137,11 +115,9 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
           trailers: deepMergeHandlesFields('trailers', []),
           handles: {
             merge: (existing, incoming) => {
-              // console.log('handles', existing, incoming)
               const edges = [
                 ...(existing?.edges?.filter(item => !incoming?.edges?.some(_item => _item.node.uri === item.node.uri)) ?? []),
                 ...(incoming?.edges?.map(item => {
-                  // existing?.edges?.find(_item => _item.node.uri === item.node.uri ? deepmerge(_item, item) : false) ?? item
                   const _item = existing?.edges?.find(_item => _item.node.uri === item.node.uri)
                   return _item ? deepmerge(_item, item) : item
                 }) ?? [])
@@ -150,43 +126,9 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
                 ...existing,
                 edges,
                 nodes: edges.map((edge: any) => edge.node)
-                // nodes: [
-                //   ...(existing?.nodes?.filter(item => !incoming?.nodes?.some(_item => _item.uri === item.uri)) ?? []),
-                //   ...(incoming?.nodes?.map(item => {
-                //     // existing?.nodes?.find(_item => _item.uri === item.uri ? deepmerge(_item, item) : false) ?? item
-                //     const _item = existing?.nodes?.find(_item => _item.uri === item.uri)
-                //     return _item ? deepmerge(_item, item) : item
-                //   }) ?? [])
-                // ]
               }
             }
           }
-          // handles: {
-          //   merge: (existing, incoming) => ({
-          //     ...existing,
-          //     edges: [
-          //       ...(existing.edges?.filter(item => !incoming.edges?.some(_item => _item.uri === item.uri)) ?? []),
-          //       ...(incoming.edges?.map(item => {
-          //         // existing.edges?.find(_item => _item.uri === item.uri ? deepmerge(_item, item) : false) ?? item
-          //         const _item = existing.edges?.find(_item => _item.uri === item.uri)
-          //         return _item ? deepmerge(_item, item) : item
-          //       }) ?? [])
-          //     ]
-          //   })
-          // }
-          // handles: (existing, { readField }: FieldFunctionOptions<Record<string, any>, Record<string, any>>) =>
-          //   void console.log('handles', existing) ||
-          //   fromUri(readField('uri')).origin === 'scannarr'
-          //     ? (
-          //       existing
-          //         ?.edges
-          //         ?.reduce((acc: any, edge: any) => {
-          //           const field = readField('handles', edge.node)
-          //           if (acc === undefined || acc === null) return field
-          //           return field ? deepmerge(acc, field) : acc
-          //         }, existing)
-          //     )
-          //     : existing
         }
       },
       MediaTitle: {
@@ -369,7 +311,8 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
         }
       },
       Query: {
-        Page: () => void console.log('server Page') || ({}),
+        Page: () => ({}),
+        // Page: () => void console.log('server Page') || ({}),
         // Page: async (...args) => {
         //   const [_, __, { resolversResults }] = args
         //   console.log('Page query', args)
@@ -402,7 +345,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
               }
             }))
           
-          console.log('edges', edges)
+          // console.log('edges', edges)
 
           return {
             ...deepmerge.all(edges.map(edge => edge?.node)),
@@ -468,7 +411,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
                         })
                         : body.variables
                   })
-                  .then(res => console.log('client query res', uri, res) || res)
+                  // .then(res => console.log('client query res', uri, res) || res)
                   .catch(err => {
                     if (!silenceResolverErrors) console.error(err)
                     throw err
@@ -485,7 +428,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
           )
       )
 
-    console.log('resolversResults', resolversResults)
+    // console.log('resolversResults', resolversResults)
 
     const res = await server.executeHTTPGraphQLRequest({
       httpGraphQLRequest: {
@@ -498,24 +441,19 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
       context: async () => ({ ...await context?.(), input, init, body, headers, method: init.method!, resolversResults })
     })
 
-    console.log('res', res, JSON.parse(res.body.string))
+    // console.log('res', res, JSON.parse(res.body.string))
 
     if (JSON.parse(res.body.string).errors) {
       throw JSON.parse(res.body.string).errors
     }
 
-    try {
-      client.writeQuery({
-        query: gql(body.query),
-        variables: body.variables,
-        data: JSON.parse(res.body.string).data
-      })
-    } catch (err) {
-      console.log('writeQuery err', err)
-      throw err
-    }
+    client.writeQuery({
+      query: gql(body.query),
+      variables: body.variables,
+      data: JSON.parse(res.body.string).data
+    })
 
-    console.log('client.query cache-only')
+    // console.log('client.query cache-only')
     const res2 = JSON.stringify(
       await client.query({
         query: gql(body.query),
@@ -524,7 +462,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
       })
     )
 
-    console.log('res22', JSON.parse(res2))
+    // console.log('res22', JSON.parse(res2))
 
     // @ts-expect-error
     return new Response(res2, { headers: res2.headers })
