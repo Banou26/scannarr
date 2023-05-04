@@ -10,7 +10,7 @@ import deepmerge from 'deepmerge'
 import schema from './graphql'
 
 import { ApolloClient, FieldFunctionOptions, InMemoryCache, gql } from '@apollo/client/core'
-import { fromScannarrUri, fromUri, isUri, populateUri, toScannarrId, toScannarrUri } from './utils'
+import { Uris, fromScannarrUri, fromUri, isUri, populateUri, toScannarrId, toScannarrUri } from './utils'
 import { makeLink } from './link'
 import { groupBy } from './utils/groupBy'
 
@@ -68,14 +68,35 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
     typePolicies: {
       MediaConnection: {
         fields: {
-          edges: (existing) =>
-            existing
-            ?? [],
-          nodes: (existing, { readField }: FieldFunctionOptions<Record<string, any>, Record<string, any>>) =>
-            readField('edges')
-              ?.map((edge: any) => edge.node)
-            ?? existing
-            ?? []
+          edges: {
+            read: (existing) =>
+              existing
+              ?? [],
+            // merge: (existing, incoming) => [
+            //   ...(existing?.filter(item => !incoming.some(_item => _item.node.uri === item.node.uri)) ?? []),
+            //   ...(incoming.map(item => {
+            //     // existing?.find(_item => _item.node.uri === item.node.uri ? deepmerge(_item, item) : false) ?? item
+            //     const _item = existing?.find(_item => _item.node.uri === item.node.uri)
+            //     return _item ? deepmerge(_item, item) : item
+            //   }) ?? [])
+            // ]
+          },
+          nodes: {
+            read: (existing, { readField }: FieldFunctionOptions<Record<string, any>, Record<string, any>>) =>
+              readField('edges')
+                ?.map((edge: any) => edge.node)
+              ?? existing
+              ?? [],
+            // merge: (existing, incoming) => [
+            //   ...(existing?.filter(item => !incoming.some(_item => _item.uri === item.uri)) ?? []),
+            //   ...(incoming.map(item => {
+            //     // existing?.find(_item => _item.uri === item.uri ? deepmerge(_item, item) : false) ?? item
+            //     const _item = existing?.find(_item => _item.uri === item.uri)
+            //     return _item ? deepmerge(_item, item) : item
+            //   }
+            //   ) ?? [])
+            // ]
+          }
         }
       },
       Page: {
@@ -114,6 +135,45 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
           airingSchedule: deepMergeHandlesFields('airingSchedule', { edges: [] }),
           title: deepMergeHandlesFields('title', { romanized: null, native: null, english: null }),
           trailers: deepMergeHandlesFields('trailers', []),
+          handles: {
+            merge: (existing, incoming) => {
+              // console.log('handles', existing, incoming)
+              const edges = [
+                ...(existing?.edges?.filter(item => !incoming?.edges?.some(_item => _item.node.uri === item.node.uri)) ?? []),
+                ...(incoming?.edges?.map(item => {
+                  // existing?.edges?.find(_item => _item.node.uri === item.node.uri ? deepmerge(_item, item) : false) ?? item
+                  const _item = existing?.edges?.find(_item => _item.node.uri === item.node.uri)
+                  return _item ? deepmerge(_item, item) : item
+                }) ?? [])
+              ]
+              return {
+                ...existing,
+                edges,
+                nodes: edges.map((edge: any) => edge.node)
+                // nodes: [
+                //   ...(existing?.nodes?.filter(item => !incoming?.nodes?.some(_item => _item.uri === item.uri)) ?? []),
+                //   ...(incoming?.nodes?.map(item => {
+                //     // existing?.nodes?.find(_item => _item.uri === item.uri ? deepmerge(_item, item) : false) ?? item
+                //     const _item = existing?.nodes?.find(_item => _item.uri === item.uri)
+                //     return _item ? deepmerge(_item, item) : item
+                //   }) ?? [])
+                // ]
+              }
+            }
+          }
+          // handles: {
+          //   merge: (existing, incoming) => ({
+          //     ...existing,
+          //     edges: [
+          //       ...(existing.edges?.filter(item => !incoming.edges?.some(_item => _item.uri === item.uri)) ?? []),
+          //       ...(incoming.edges?.map(item => {
+          //         // existing.edges?.find(_item => _item.uri === item.uri ? deepmerge(_item, item) : false) ?? item
+          //         const _item = existing.edges?.find(_item => _item.uri === item.uri)
+          //         return _item ? deepmerge(_item, item) : item
+          //       }) ?? [])
+          //     ]
+          //   })
+          // }
           // handles: (existing, { readField }: FieldFunctionOptions<Record<string, any>, Record<string, any>>) =>
           //   void console.log('handles', existing) ||
           //   fromUri(readField('uri')).origin === 'scannarr'
@@ -135,23 +195,25 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
       MediaAiringScheduleConnection: {
         fields: {
           // todo: this needs refactor
-          edges: (existing, { readField }) =>
+          edges: (existing) =>
             [...groupBy(existing, (edge) => edge.node.episode).entries()]
-              .map(([episode, edges]) => edges.reduce((acc, edge) => ({
-                node: {
-                  ...deepmerge(acc.node ?? {}, edge.node),
-                  media: {
-                    ...populateUri({
-                      id: toScannarrId([...new Set(existing.map(edge => edge.node.mediaUri))].join(',') as Uris),
-                      origin: 'scannarr'
-                    }),
-                    url: null
+              .map(([episode, edges]) =>
+                edges.reduce((acc, edge) => ({
+                  node: {
+                    ...deepmerge(acc.node ?? {}, edge.node) as any,
+                    media: {
+                      ...populateUri({
+                        id: toScannarrId([...new Set(existing.map(edge => edge.node.mediaUri))].join(',') as Uris),
+                        origin: 'scannarr'
+                      }),
+                      url: null
+                    },
+                    mediaUri: toScannarrUri([...new Set(existing.map(edge => edge.node.mediaUri))].join(',') as Uris),
+                    uri: `${toScannarrUri([...new Set(existing.map(edge => edge.node.mediaUri))].join(',') as Uris)}-${edge.node.episode}`,
                   },
-                  mediaUri: `scannarr:${toScannarrId([...new Set(existing.map(edge => edge.node.mediaUri))].join(',') as Uris)}`,
-                  uri: `scannarr:${toScannarrId([...new Set(existing.map(edge => edge.node.mediaUri))].join(',') as Uris)}-${edge.node.episode}`,
-                },
-                uri: `scannarr:${toScannarrId([...new Set(existing.map(edge => edge.node.mediaUri))].join(',') as Uris)}`,
-              }), {}))
+                  uri: toScannarrUri([...new Set(existing.map(edge => edge.node.mediaUri))].join(',') as Uris),
+                }), {})
+              )
         }
       }
     }
@@ -442,11 +504,16 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
       throw JSON.parse(res.body.string).errors
     }
 
-    client.writeQuery({
-      query: gql(body.query),
-      variables: body.variables,
-      data: JSON.parse(res.body.string).data
-    })
+    try {
+      client.writeQuery({
+        query: gql(body.query),
+        variables: body.variables,
+        data: JSON.parse(res.body.string).data
+      })
+    } catch (err) {
+      console.log('writeQuery err', err)
+      throw err
+    }
 
     console.log('client.query cache-only')
     const res2 = JSON.stringify(
