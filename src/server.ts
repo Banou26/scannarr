@@ -10,8 +10,9 @@ import deepmerge from 'deepmerge'
 import schema from './graphql'
 
 import { ApolloClient, FieldFunctionOptions, InMemoryCache, gql } from '@apollo/client/core'
-import { fromScannarrUri, fromUri, isUri, populateUri, toScannarrId } from './utils'
+import { fromScannarrUri, fromUri, isUri, populateUri, toScannarrId, toScannarrUri } from './utils'
 import { makeLink } from './link'
+import { groupBy } from './utils/groupBy'
 
 export type BaseContext = ApolloBaseContext & {
   fetch: typeof fetch
@@ -130,6 +131,28 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
       },
       MediaTitle: {
         merge: (existing, incoming) => ({ ...existing, ...incoming })
+      },
+      MediaAiringScheduleConnection: {
+        fields: {
+          // todo: this needs refactor
+          edges: (existing, { readField }) =>
+            [...groupBy(existing, (edge) => edge.node.episode).entries()]
+              .map(([episode, edges]) => edges.reduce((acc, edge) => ({
+                node: {
+                  ...deepmerge(acc.node ?? {}, edge.node),
+                  media: {
+                    ...populateUri({
+                      id: toScannarrId([...new Set(existing.map(edge => edge.node.mediaUri))].join(',') as Uris),
+                      origin: 'scannarr'
+                    }),
+                    url: null
+                  },
+                  mediaUri: `scannarr:${toScannarrId([...new Set(existing.map(edge => edge.node.mediaUri))].join(',') as Uris)}`,
+                  uri: `scannarr:${toScannarrId([...new Set(existing.map(edge => edge.node.mediaUri))].join(',') as Uris)}-${edge.node.episode}`,
+                },
+                uri: `scannarr:${toScannarrId([...new Set(existing.map(edge => edge.node.mediaUri))].join(',') as Uris)}`,
+              }), {}))
+        }
       }
     }
   })
@@ -316,6 +339,8 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
                 ...resolversResults?.find(result => result?.data?.Media?.uri === uri)?.data?.Media
               }
             }))
+          
+          console.log('edges', edges)
 
           return {
             ...deepmerge.all(edges.map(edge => edge?.node)),

@@ -45,7 +45,8 @@ export const isUris = (uri: string): uri is Uris =>
 export const populateUri = <T extends Partial<Pick<Handle, 'uri' | 'handler'>> & Omit<Handle, 'uri' | 'handler'>>(handle: T): T & Handle => ({
   ...handle,
   handler: handle.handler ? handle.handler : 'fkn',
-  uri: toUri({ handler: handle.handler, origin: handle.origin, id: handle.id })
+  uri: toUri({ handler: handle.handler, origin: handle.origin, id: handle.id }),
+  url: handle.url ? handle.url : undefined
 })
 
 export const toScannarrUri = (uris: Uris): Uri => `scannarr:${btoa(uris)}`
