@@ -1,5 +1,5 @@
 import type { BaseContext as ApolloBaseContext, ContextThunk } from '@apollo/server'
-import { HandleRelation, MediaTrailer, Resolvers } from './generated/graphql'
+import { Handle, HandleRelation, MediaTrailer, Resolvers } from './generated/graphql'
 import { split } from '@apollo/client/link/core'
 import { HttpLink } from '@apollo/client/link/http'
 import { getMainDefinition } from '@apollo/client/utilities'
@@ -29,10 +29,40 @@ export type MakeServerOptions<Context extends ApolloBaseContext> = {
   resolversList?: Resolvers[]
   operationPrefix?: string
   silenceResolverErrors?: boolean
-  context: ContextThunk<Context>
+  context: ContextThunk<Context>,
+  originPriority?: string[]
 }
 
-export default <Context extends BaseContext, T extends MakeServerOptions<Context>>({ operationPrefix, typeDefs, resolversList, silenceResolverErrors, context }: T) => {
+const sortHandles = (priorityList: string[], handles: Handle[], getHandle: (value: any) => Handle) =>
+  void console.log(
+    'sortHandles',
+    priorityList,
+    handles,
+    [...handles]
+      .sort((a, b) => {
+        const aPriority = priorityList.indexOf(getHandle(a)?.origin)
+        const bPriority = priorityList.indexOf(getHandle(b)?.origin)
+        if (aPriority === -1 && bPriority === -1) return 0
+        if (aPriority === -1) return 1
+        if (bPriority === -1) return -1
+        return aPriority - bPriority
+      })
+      // .reverse()
+  ) ||
+  [...handles]
+    .sort((a, b) => {
+      const aPriority = priorityList.indexOf(getHandle(a)?.origin)
+      const bPriority = priorityList.indexOf(getHandle(b)?.origin)
+      if (aPriority === -1 && bPriority === -1) return 0
+      if (aPriority === -1) return 1
+      if (bPriority === -1) return -1
+      return aPriority - bPriority
+    })
+    // .reverse()
+
+
+export default <Context extends BaseContext, T extends MakeServerOptions<Context>>({ operationPrefix, typeDefs, resolversList, silenceResolverErrors, context, originPriority = [] }: T) => {
+  
   const getHandlesField = <T>(fieldName: string, defaultValue?: T) =>
     (existing: any, { readField }: FieldFunctionOptions<Record<string, any>, Record<string, any>>) =>
       (
@@ -51,12 +81,27 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
       (
         fromUri(readField('uri')).origin === 'scannarr'
           ? (
-            readField('handles')
-            ?.edges
+            sortHandles(
+              originPriority,
+              readField('handles')?.edges ?? [],
+              (value: any) =>
+                fromUri(
+                  JSON.parse(
+                    inMemoryCache
+                      .identify(readField('node', value))
+                      .split(':')
+                      .slice(1)
+                      .join(':')
+                  )
+                  .uri
+                )
+            )
             ?.reduce((acc: any, edge: any) => {
               const field = readField(fieldName, edge.node)
               if (acc === undefined || acc === null) return field
-              return field ? deepmerge(acc, field) : acc
+              const res = field ? deepmerge(acc, field) : acc
+              console.log('deepmerge', acc, field, res)
+              return res
             }, existing)
           ) ?? existing
           : existing
@@ -64,15 +109,41 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
       ?? defaultValue
 
     const deepMergeUniqueHandlesFields = <T>(fieldName: string, keyGetter: (item: Reference) => string, defaultValue?: T) =>
-      (existing: any, args: FieldFunctionOptions<Record<string, any>, Record<string, any>>) =>
-        [
-          ...groupBy(
-            deepMergeHandlesFields(fieldName, defaultValue)(existing, args),
-            keyGetter
-          )
-            .values()
-        ]
-          .map(values => values[0])
+      (existing: any, args: FieldFunctionOptions<Record<string, any>, Record<string, any>>) => {
+        const { readField } = args
+        if (fromUri(readField('uri')).origin === 'scannarr') {
+          return sortHandles(
+            originPriority,
+            readField('handles')?.edges ?? [],
+            (value: any) =>
+              fromUri(
+                JSON.parse(
+                  inMemoryCache
+                    .identify(readField('node', value))
+                    .split(':')
+                    .slice(1)
+                    .join(':')
+                )
+                .uri
+              )
+          ).flatMap(edge => readField(fieldName, edge.node))
+        }
+
+        return existing ?? defaultValue
+        // const res = [
+        //   ...new Set(
+        //     deepMergeHandlesFields(fieldName, defaultValue)(existing, args)
+        //       .map(ref => ref.__ref)
+        //   )
+        // ].map(refString => ({ __ref: refString }))
+        // console.log(
+        //   'trailers',
+        //   fromUri(args.readField('uri')).origin === 'scannarr',
+        //   deepMergeHandlesFields(fieldName, defaultValue)(existing, args),
+        //   res
+        // )
+        // return res
+      }
 
   const inMemoryCache = new InMemoryCache({
     addTypename: false,
