@@ -1,5 +1,5 @@
 import type { BaseContext as ApolloBaseContext, ContextThunk } from '@apollo/server'
-import { HandleRelation, Resolvers } from './generated/graphql'
+import { HandleRelation, MediaTrailer, Resolvers } from './generated/graphql'
 import { split } from '@apollo/client/link/core'
 import { HttpLink } from '@apollo/client/link/http'
 import { getMainDefinition } from '@apollo/client/utilities'
@@ -9,7 +9,7 @@ import deepmerge from 'deepmerge'
 
 import schema from './graphql'
 
-import { ApolloClient, FieldFunctionOptions, InMemoryCache, gql } from '@apollo/client/core'
+import { ApolloClient, FieldFunctionOptions, InMemoryCache, Reference, gql } from '@apollo/client/core'
 import { Uris, fromScannarrUri, fromUri, isUri, populateUri, toScannarrId, toScannarrUri } from './utils'
 import { makeLink } from './link'
 import { groupBy } from './utils/groupBy'
@@ -63,6 +63,17 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
       )
       ?? defaultValue
 
+    const deepMergeUniqueHandlesFields = <T>(fieldName: string, keyGetter: (item: Reference) => string, defaultValue?: T) =>
+      (existing: any, args: FieldFunctionOptions<Record<string, any>, Record<string, any>>) =>
+        [
+          ...groupBy(
+            deepMergeHandlesFields(fieldName, defaultValue)(existing, args),
+            keyGetter
+          )
+            .values()
+        ]
+          .map(values => values[0])
+
   const inMemoryCache = new InMemoryCache({
     addTypename: false,
     typePolicies: {
@@ -112,7 +123,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
           bannerImage: deepMergeHandlesFields('bannerImage', []),
           airingSchedule: deepMergeHandlesFields('airingSchedule', { edges: [] }),
           title: deepMergeHandlesFields('title', { romanized: null, native: null, english: null }),
-          trailers: deepMergeHandlesFields('trailers', []),
+          trailers: deepMergeUniqueHandlesFields('trailers', mediaTrailer => mediaTrailer.__ref, []),
           handles: {
             merge: (existing, incoming) => {
               const edges = [
