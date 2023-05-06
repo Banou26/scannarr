@@ -35,21 +35,6 @@ export type MakeServerOptions<Context extends ApolloBaseContext> = {
 }
 
 const sortHandles = (priorityList: string[], handles: Handle[], getHandle: (value: any) => Handle) =>
-  // void console.log(
-  //   'sortHandles',
-  //   priorityList,
-  //   handles,
-  //   [...handles]
-  //     .sort((a, b) => {
-  //       const aPriority = priorityList.indexOf(getHandle(a)?.origin)
-  //       const bPriority = priorityList.indexOf(getHandle(b)?.origin)
-  //       if (aPriority === -1 && bPriority === -1) return 0
-  //       if (aPriority === -1) return 1
-  //       if (bPriority === -1) return -1
-  //       return aPriority - bPriority
-  //     })
-  //     // .reverse()
-  // ) ||
   [...handles]
     .sort((a, b) => {
       const aPriority = priorityList.indexOf(getHandle(a)?.origin)
@@ -59,7 +44,6 @@ const sortHandles = (priorityList: string[], handles: Handle[], getHandle: (valu
       if (bPriority === -1) return -1
       return aPriority - bPriority
     })
-    // .reverse()
 
 
 export default <Context extends BaseContext, T extends MakeServerOptions<Context>>({ operationPrefix, typeDefs, resolversList, silenceResolverErrors, context, originPriority = [] }: T) => {
@@ -100,9 +84,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
             ?.reduce((acc: any, edge: any) => {
               const field = readField(fieldName, edge.node)
               if (acc === undefined || acc === null) return field
-              const res = field ? deepmerge(acc, field) : acc
-              // console.log('deepmerge', acc, field, res)
-              return res
+              return field ? deepmerge(acc, field) : acc
             }, existing)
           ) ?? existing
           : existing
@@ -164,13 +146,6 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
                 sorts
                   ? sortBy([...existing], sorts[0]!, sorts.slice(1))
                   : existing
-
-              console.log(
-                'client sorts',
-                sorts,
-                existing,
-                sortedResults
-              )
 
               return sortedResults
             },
@@ -306,20 +281,8 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
     resolvers: defaultResolvers({
       Page: {
         media: async (...params) => {
-          const [_, args, { resolversResults }] = params
-          // const { sort } = args as { sort: (keyof typeof Sorts)[] }
+          const [_, __, { resolversResults }] = params
           const _results = resolversResults.flatMap(results => results.data.Page.media)
-          // console.log('Page media', args)
-          
-          // console.log('_results', _results)
-
-          // const sorts = sort?.map((sort) => Sorts[sort])
-
-          // const sortBy = (results: any[], sort: (a, b) => number, sortRest: ((a, b) => number)[]) => {
-          //   const sorted = results.sort(sort)
-          //   if (sortRest.length) return sortBy(sorted, sortRest[0]!, sortRest.slice(1))
-          //   return sorted
-          // }
 
           const typeName = 'Media'
           let results = [...new Map(_results.map(item => [item.uri, item])).values()]
@@ -339,9 +302,6 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
               _handle
                 .handles
                 ?.edges
-                // ?.filter(handleConnection =>
-                //   handleConnection?.handleRelationType === HandleRelation.Identical
-                // )
                 ?? []
             for (const handle of identicalHandles) {
               if (!index[handle.node.uri]) index[handle.node.uri] = [handle.node.uri]
@@ -362,8 +322,6 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
             addHandleRecursiveToIndex(handle)
           }
 
-          // console.log('index', index)
-
           const groups =
           [
             ...new Set(
@@ -374,11 +332,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
             )
           ].map((uris) => uris.split(' '))
     
-        // console.log('groups', groups)
-    
         const handleGroups = groups.map((uris) => results.filter((handle) => uris.includes(handle.uri)))
-        // console.log('handleGroups', handleGroups)
-    
         const scannarrHandles =
           handleGroups
             .map((handles) => populateUri({
@@ -402,42 +356,13 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
               }
             }))
         
-          // console.log('scannarrHandles', scannarrHandles)
-
-          // const sortedResults =
-          //   sorts
-          //     ? sortBy(scannarrHandles, sorts[0]!, sorts.slice(1))
-          //     : scannarrHandles
-
-          // console.log(
-          //   'server sorts',
-          //   sorts,
-          //   scannarrHandles,
-          //   sortedResults
-          // )
-
           return scannarrHandles
         }
       },
       Query: {
         Page: () => ({}),
-        // Page: () => void console.log('server Page') || ({}),
-        // Page: async (...args) => {
-        //   const [_, __, { resolversResults }] = args
-        //   console.log('Page query', args)
-        //   return {
-        //     media: resolversResults.flatMap(result => result?.data?.Page?.media),
-        //     pageInfo: {
-        //       hasNextPage: false,
-        //       hasPreviousPage: false,
-        //       currentPage: 1,
-        //       lastPage: 1
-        //     }
-        //   }
-        // },
         Media: async (...args) => {
           const [_, { uri, id = fromUri(uri).id, origin: _origin = fromUri(uri).origin }, { resolversResults }] = args
-          // console.log('Media query', args)
           const uris = fromScannarrUri(uri)
           const edges =
             uris.map(uri => ({
@@ -453,8 +378,6 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
                 ...resolversResults?.find(result => result?.data?.Media?.uri === uri)?.data?.Media
               }
             }))
-          
-          // console.log('edges', edges)
 
           return {
             ...deepmerge.all(edges.map(edge => edge?.node)),
@@ -499,8 +422,6 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
         ? fromScannarrUri(rootUri)
         : undefined
 
-    // console.log('body', body)
-
     const resolversResults =
       await Promise.all(
         (await Promise.allSettled(
@@ -520,7 +441,6 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
                         })
                         : body.variables
                   })
-                  // .then(res => console.log('client query res', uri, res) || res)
                   .catch(err => {
                     if (!silenceResolverErrors) console.error(err)
                     throw err
@@ -537,8 +457,6 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
           )
       )
 
-    // console.log('resolversResults', resolversResults)
-
     const res = await server.executeHTTPGraphQLRequest({
       httpGraphQLRequest: {
         body,
@@ -550,8 +468,6 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
       context: async () => ({ ...await context?.(), input, init, body, headers, method: init.method!, resolversResults })
     })
 
-    // console.log('res', res, JSON.parse(res.body.string))
-
     if (JSON.parse(res.body.string).errors) {
       throw JSON.parse(res.body.string).errors
     }
@@ -562,7 +478,6 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
       data: JSON.parse(res.body.string).data
     })
 
-    // console.log('client.query cache-only')
     const res2 = JSON.stringify(
       await client.query({
         query: gql(body.query),
@@ -570,8 +485,6 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
         fetchPolicy: 'cache-only'
       })
     )
-
-    // console.log('res22', JSON.parse(res2))
 
     // @ts-expect-error
     return new Response(res2, { headers: res2.headers })
