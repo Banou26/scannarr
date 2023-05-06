@@ -109,10 +109,10 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
       ?? defaultValue
 
     const deepMergeUniqueHandlesFields = <T>(fieldName: string, keyGetter: (item: Reference) => string, defaultValue?: T) =>
-      (existing: any, args: FieldFunctionOptions<Record<string, any>, Record<string, any>>) => {
-        const { readField } = args
-        if (fromUri(readField('uri')).origin === 'scannarr') {
-          return sortHandles(
+      (existing: any, { readField }: FieldFunctionOptions<Record<string, any>, Record<string, any>>) =>
+      fromUri(readField('uri')).origin === 'scannarr'
+        ? (
+          sortHandles(
             originPriority,
             readField('handles')?.edges ?? [],
             (value: any) =>
@@ -127,23 +127,8 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
                 .uri
               )
           ).flatMap(edge => readField(fieldName, edge.node))
-        }
-
-        return existing ?? defaultValue
-        // const res = [
-        //   ...new Set(
-        //     deepMergeHandlesFields(fieldName, defaultValue)(existing, args)
-        //       .map(ref => ref.__ref)
-        //   )
-        // ].map(refString => ({ __ref: refString }))
-        // console.log(
-        //   'trailers',
-        //   fromUri(args.readField('uri')).origin === 'scannarr',
-        //   deepMergeHandlesFields(fieldName, defaultValue)(existing, args),
-        //   res
-        // )
-        // return res
-      }
+        )
+        : existing ?? defaultValue
 
   const inMemoryCache = new InMemoryCache({
     addTypename: false,
