@@ -38,11 +38,8 @@ export const makeLink = <
 
   return onError(({ graphQLErrors, networkError }) => {
     if (graphQLErrors) {
-      graphQLErrors.forEach(({ message, locations, path }) =>
-        console.error(
-          `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
-        )
-      )
+      graphQLErrors.forEach(({ extensions }) =>
+        console.error(extensions.stacktrace.join('\n')))
     }
     if (networkError) console.error(networkError)
   }).concat(

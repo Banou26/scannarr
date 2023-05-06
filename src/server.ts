@@ -253,6 +253,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
             ? `${schema}\n\n${typeDefs}`
             : schema,
         resolvers: defaultResolvers(resolvers),
+        includeStacktraceInErrorResponses: true
       })
 
       server.start()
@@ -274,6 +275,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
     ?? []
 
   const server = new ApolloServer<Context>({
+    includeStacktraceInErrorResponses: true,
     typeDefs:
       typeDefs
         ? `${schema}\n\n${typeDefs}`
@@ -442,7 +444,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
                         : body.variables
                   })
                   .catch(err => {
-                    if (!silenceResolverErrors) console.error(err)
+                    // if (!silenceResolverErrors) console.error(err)
                     throw err
                   })
               )
