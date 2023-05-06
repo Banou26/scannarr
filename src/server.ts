@@ -6,6 +6,7 @@ import { getMainDefinition } from '@apollo/client/utilities'
 import { ApolloServer } from '@apollo/server'
 import { onError } from '@apollo/client/link/error'
 import deepmerge from 'deepmerge'
+import { Sorts } from './sorts'
 
 import schema from './graphql'
 
@@ -34,21 +35,21 @@ export type MakeServerOptions<Context extends ApolloBaseContext> = {
 }
 
 const sortHandles = (priorityList: string[], handles: Handle[], getHandle: (value: any) => Handle) =>
-  void console.log(
-    'sortHandles',
-    priorityList,
-    handles,
-    [...handles]
-      .sort((a, b) => {
-        const aPriority = priorityList.indexOf(getHandle(a)?.origin)
-        const bPriority = priorityList.indexOf(getHandle(b)?.origin)
-        if (aPriority === -1 && bPriority === -1) return 0
-        if (aPriority === -1) return 1
-        if (bPriority === -1) return -1
-        return aPriority - bPriority
-      })
-      // .reverse()
-  ) ||
+  // void console.log(
+  //   'sortHandles',
+  //   priorityList,
+  //   handles,
+  //   [...handles]
+  //     .sort((a, b) => {
+  //       const aPriority = priorityList.indexOf(getHandle(a)?.origin)
+  //       const bPriority = priorityList.indexOf(getHandle(b)?.origin)
+  //       if (aPriority === -1 && bPriority === -1) return 0
+  //       if (aPriority === -1) return 1
+  //       if (bPriority === -1) return -1
+  //       return aPriority - bPriority
+  //     })
+  //     // .reverse()
+  // ) ||
   [...handles]
     .sort((a, b) => {
       const aPriority = priorityList.indexOf(getHandle(a)?.origin)
@@ -100,7 +101,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
               const field = readField(fieldName, edge.node)
               if (acc === undefined || acc === null) return field
               const res = field ? deepmerge(acc, field) : acc
-              console.log('deepmerge', acc, field, res)
+              // console.log('deepmerge', acc, field, res)
               return res
             }, existing)
           ) ?? existing
@@ -150,7 +151,28 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
           media: {
             keyArgs: false,
             read: (existing, { args, ...rest}: FieldFunctionOptions<Record<string, any>, Record<string, any>>) => {
-              return existing
+              const { sort } = args as { sort: (keyof typeof Sorts)[] }
+              const sorts = sort?.map((sort) => Sorts[sort])
+    
+              const sortBy = (results: any[], sort: (a, b, params: FieldFunctionOptions<Record<string, any>, Record<string, any>>) => number, sortRest: ((a, b) => number)[]) => {
+                const sorted = results.sort((a, b) => sort(a, b, { args, ...rest }))
+                if (sortRest.length) return sortBy(sorted, sortRest[0]!, sortRest.slice(1))
+                return sorted
+              }
+
+              const sortedResults =
+                sorts
+                  ? sortBy([...existing], sorts[0]!, sorts.slice(1))
+                  : existing
+
+              console.log(
+                'client sorts',
+                sorts,
+                existing,
+                sortedResults
+              )
+
+              return sortedResults
             },
             merge: (existing, incoming) => [
               ...(existing?.filter(item => !incoming.some(_item => _item.uri === item.uri)) ?? []),
@@ -283,13 +305,21 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
         : schema,
     resolvers: defaultResolvers({
       Page: {
-        media: async (...args) => {
-          const [_, __, { resolversResults }] = args
-
+        media: async (...params) => {
+          const [_, args, { resolversResults }] = params
+          // const { sort } = args as { sort: (keyof typeof Sorts)[] }
           const _results = resolversResults.flatMap(results => results.data.Page.media)
           // console.log('Page media', args)
           
           // console.log('_results', _results)
+
+          // const sorts = sort?.map((sort) => Sorts[sort])
+
+          // const sortBy = (results: any[], sort: (a, b) => number, sortRest: ((a, b) => number)[]) => {
+          //   const sorted = results.sort(sort)
+          //   if (sortRest.length) return sortBy(sorted, sortRest[0]!, sortRest.slice(1))
+          //   return sorted
+          // }
 
           const typeName = 'Media'
           let results = [...new Map(_results.map(item => [item.uri, item])).values()]
@@ -373,6 +403,18 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
             }))
         
           // console.log('scannarrHandles', scannarrHandles)
+
+          // const sortedResults =
+          //   sorts
+          //     ? sortBy(scannarrHandles, sorts[0]!, sorts.slice(1))
+          //     : scannarrHandles
+
+          // console.log(
+          //   'server sorts',
+          //   sorts,
+          //   scannarrHandles,
+          //   sortedResults
+          // )
 
           return scannarrHandles
         }
