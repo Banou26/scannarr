@@ -96,13 +96,11 @@ export enum HandleRelation {
 }
 
 /**
- * Media is a type of handle that represents a media file.
+ * Media is a type of handle that represents a media.
  * It generally represents a Movie, TV Show, Game, Package, ect...
  */
 export type Media = Handle & {
   __typename?: 'Media';
-  /** The media's entire airing schedule */
-  airingSchedule?: Maybe<MediaAiringScheduleConnection>;
   /** The average score of the media */
   averageScore?: Maybe<Scalars['Int']>;
   /** The banner image of the media */
@@ -113,6 +111,7 @@ export type Media = Handle & {
   description?: Maybe<Scalars['String']>;
   /** The last official release date of the media */
   endDate?: Maybe<FuzzyDate>;
+  episodes?: Maybe<MediaEpisodeConnection>;
   /** External links to another site related to the media */
   externalLinks?: Maybe<Array<Maybe<MediaExternalLink>>>;
   format?: Maybe<MediaFormat>;
@@ -148,18 +147,7 @@ export type Media = Handle & {
 
 
 /**
- * Media is a type of handle that represents a media file.
- * It generally represents a Movie, TV Show, Game, Package, ect...
- */
-export type MediaAiringScheduleArgs = {
-  notYetAired?: InputMaybe<Scalars['Boolean']>;
-  page?: InputMaybe<Scalars['Int']>;
-  perPage?: InputMaybe<Scalars['Int']>;
-};
-
-
-/**
- * Media is a type of handle that represents a media file.
+ * Media is a type of handle that represents a media.
  * It generally represents a Movie, TV Show, Game, Package, ect...
  */
 export type MediaDescriptionArgs = {
@@ -168,7 +156,18 @@ export type MediaDescriptionArgs = {
 
 
 /**
- * Media is a type of handle that represents a media file.
+ * Media is a type of handle that represents a media.
+ * It generally represents a Movie, TV Show, Game, Package, ect...
+ */
+export type MediaEpisodesArgs = {
+  notYetAired?: InputMaybe<Scalars['Boolean']>;
+  page?: InputMaybe<Scalars['Int']>;
+  perPage?: InputMaybe<Scalars['Int']>;
+};
+
+
+/**
+ * Media is a type of handle that represents a media.
  * It generally represents a Movie, TV Show, Game, Package, ect...
  */
 export type MediaShortDescriptionArgs = {
@@ -183,7 +182,7 @@ export type MediaAiringSchedule = Handle & {
   /** The description of the episode */
   description?: Maybe<Scalars['String']>;
   /** The airing episode number */
-  episode: Scalars['Int'];
+  episodeNumber: Scalars['Int'];
   handler: Scalars['String'];
   handles: HandleConnection;
   id: Scalars['String'];
@@ -248,6 +247,46 @@ export type MediaEdge = HandleEdge & {
   /** The relation between the two handles */
   handleRelationType: HandleRelation;
   node: Media;
+};
+
+export type MediaEpisode = Handle & {
+  __typename?: 'MediaEpisode';
+  /** The time the episode airs at */
+  airingAt: Scalars['Float'];
+  /** The description of the episode */
+  description?: Maybe<Scalars['String']>;
+  handler: Scalars['String'];
+  handles: HandleConnection;
+  id: Scalars['String'];
+  /** The associate media of the episode */
+  media?: Maybe<Media>;
+  /** The associate media uri of the episode */
+  mediaUri: Scalars['String'];
+  /** The episode number */
+  number: Scalars['Int'];
+  origin: Scalars['String'];
+  /** The url for the thumbnail image of the video */
+  thumbnail?: Maybe<Scalars['String']>;
+  /** Seconds until episode starts airing */
+  timeUntilAiring: Scalars['Float'];
+  /** The title of the episode */
+  title?: Maybe<MediaTitle>;
+  uri: Scalars['Uri'];
+  url?: Maybe<Scalars['String']>;
+};
+
+export type MediaEpisodeConnection = {
+  __typename?: 'MediaEpisodeConnection';
+  edges?: Maybe<Array<Maybe<MediaEpisodeEdge>>>;
+  nodes?: Maybe<Array<Maybe<MediaEpisode>>>;
+  /** The pagination information */
+  pageInfo?: Maybe<PageInfo>;
+};
+
+/** MediaEpisode connection edge */
+export type MediaEpisodeEdge = {
+  __typename?: 'MediaEpisodeEdge';
+  node?: Maybe<MediaEpisode>;
 };
 
 /** An external link to another site related to the media or its properties */
@@ -684,7 +723,7 @@ export type ResolversTypes = {
   FuzzyDate: ResolverTypeWrapper<FuzzyDate>;
   FuzzyDateInput: FuzzyDateInput;
   FuzzyDateInt: ResolverTypeWrapper<Scalars['FuzzyDateInt']>;
-  Handle: ResolversTypes['Media'] | ResolversTypes['MediaAiringSchedule'] | ResolversTypes['MediaExternalLink'] | ResolversTypes['MediaTrailer'] | ResolversTypes['Resource'];
+  Handle: ResolversTypes['Media'] | ResolversTypes['MediaAiringSchedule'] | ResolversTypes['MediaEpisode'] | ResolversTypes['MediaExternalLink'] | ResolversTypes['MediaTrailer'] | ResolversTypes['Resource'];
   HandleConnection: ResolversTypes['MediaConnection'] | ResolversTypes['ResourceConnection'];
   HandleEdge: ResolversTypes['MediaEdge'] | ResolversTypes['ResourceEdge'];
   HandleRelation: HandleRelation;
@@ -697,6 +736,9 @@ export type ResolversTypes = {
   MediaConnection: ResolverTypeWrapper<MediaConnection>;
   MediaCoverImage: ResolverTypeWrapper<MediaCoverImage>;
   MediaEdge: ResolverTypeWrapper<MediaEdge>;
+  MediaEpisode: ResolverTypeWrapper<MediaEpisode>;
+  MediaEpisodeConnection: ResolverTypeWrapper<MediaEpisodeConnection>;
+  MediaEpisodeEdge: ResolverTypeWrapper<MediaEpisodeEdge>;
   MediaExternalLink: ResolverTypeWrapper<MediaExternalLink>;
   MediaFormat: MediaFormat;
   MediaSeason: MediaSeason;
@@ -727,7 +769,7 @@ export type ResolversParentTypes = {
   FuzzyDate: FuzzyDate;
   FuzzyDateInput: FuzzyDateInput;
   FuzzyDateInt: Scalars['FuzzyDateInt'];
-  Handle: ResolversParentTypes['Media'] | ResolversParentTypes['MediaAiringSchedule'] | ResolversParentTypes['MediaExternalLink'] | ResolversParentTypes['MediaTrailer'] | ResolversParentTypes['Resource'];
+  Handle: ResolversParentTypes['Media'] | ResolversParentTypes['MediaAiringSchedule'] | ResolversParentTypes['MediaEpisode'] | ResolversParentTypes['MediaExternalLink'] | ResolversParentTypes['MediaTrailer'] | ResolversParentTypes['Resource'];
   HandleConnection: ResolversParentTypes['MediaConnection'] | ResolversParentTypes['ResourceConnection'];
   HandleEdge: ResolversParentTypes['MediaEdge'] | ResolversParentTypes['ResourceEdge'];
   Int: Scalars['Int'];
@@ -739,6 +781,9 @@ export type ResolversParentTypes = {
   MediaConnection: MediaConnection;
   MediaCoverImage: MediaCoverImage;
   MediaEdge: MediaEdge;
+  MediaEpisode: MediaEpisode;
+  MediaEpisodeConnection: MediaEpisodeConnection;
+  MediaEpisodeEdge: MediaEpisodeEdge;
   MediaExternalLink: MediaExternalLink;
   MediaSynonym: MediaSynonym;
   MediaTitle: MediaTitle;
@@ -774,7 +819,7 @@ export interface FuzzyDateIntScalarConfig extends GraphQLScalarTypeConfig<Resolv
 }
 
 export type HandleResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Handle'] = ResolversParentTypes['Handle']> = {
-  __resolveType: TypeResolveFn<'Media' | 'MediaAiringSchedule' | 'MediaExternalLink' | 'MediaTrailer' | 'Resource', ParentType, ContextType>;
+  __resolveType: TypeResolveFn<'Media' | 'MediaAiringSchedule' | 'MediaEpisode' | 'MediaExternalLink' | 'MediaTrailer' | 'Resource', ParentType, ContextType>;
   handler?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   handles?: Resolver<ResolversTypes['HandleConnection'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -801,12 +846,12 @@ export interface JsonScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes
 }
 
 export type MediaResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Media'] = ResolversParentTypes['Media']> = {
-  airingSchedule?: Resolver<Maybe<ResolversTypes['MediaAiringScheduleConnection']>, ParentType, ContextType, Partial<MediaAiringScheduleArgs>>;
   averageScore?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   bannerImage?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   coverImage?: Resolver<Maybe<Array<Maybe<ResolversTypes['MediaCoverImage']>>>, ParentType, ContextType>;
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, Partial<MediaDescriptionArgs>>;
   endDate?: Resolver<Maybe<ResolversTypes['FuzzyDate']>, ParentType, ContextType>;
+  episodes?: Resolver<Maybe<ResolversTypes['MediaEpisodeConnection']>, ParentType, ContextType, Partial<MediaEpisodesArgs>>;
   externalLinks?: Resolver<Maybe<Array<Maybe<ResolversTypes['MediaExternalLink']>>>, ParentType, ContextType>;
   format?: Resolver<Maybe<ResolversTypes['MediaFormat']>, ParentType, ContextType>;
   handler?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -832,7 +877,7 @@ export type MediaResolvers<ContextType = Context, ParentType extends ResolversPa
 export type MediaAiringScheduleResolvers<ContextType = Context, ParentType extends ResolversParentTypes['MediaAiringSchedule'] = ResolversParentTypes['MediaAiringSchedule']> = {
   airingAt?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  episode?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  episodeNumber?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   handler?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   handles?: Resolver<ResolversTypes['HandleConnection'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -880,6 +925,36 @@ export type MediaCoverImageResolvers<ContextType = Context, ParentType extends R
 export type MediaEdgeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['MediaEdge'] = ResolversParentTypes['MediaEdge']> = {
   handleRelationType?: Resolver<ResolversTypes['HandleRelation'], ParentType, ContextType>;
   node?: Resolver<ResolversTypes['Media'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type MediaEpisodeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['MediaEpisode'] = ResolversParentTypes['MediaEpisode']> = {
+  airingAt?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  handler?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  handles?: Resolver<ResolversTypes['HandleConnection'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  media?: Resolver<Maybe<ResolversTypes['Media']>, ParentType, ContextType>;
+  mediaUri?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  number?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  origin?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  thumbnail?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  timeUntilAiring?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  title?: Resolver<Maybe<ResolversTypes['MediaTitle']>, ParentType, ContextType>;
+  uri?: Resolver<ResolversTypes['Uri'], ParentType, ContextType>;
+  url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type MediaEpisodeConnectionResolvers<ContextType = Context, ParentType extends ResolversParentTypes['MediaEpisodeConnection'] = ResolversParentTypes['MediaEpisodeConnection']> = {
+  edges?: Resolver<Maybe<Array<Maybe<ResolversTypes['MediaEpisodeEdge']>>>, ParentType, ContextType>;
+  nodes?: Resolver<Maybe<Array<Maybe<ResolversTypes['MediaEpisode']>>>, ParentType, ContextType>;
+  pageInfo?: Resolver<Maybe<ResolversTypes['PageInfo']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type MediaEpisodeEdgeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['MediaEpisodeEdge'] = ResolversParentTypes['MediaEpisodeEdge']> = {
+  node?: Resolver<Maybe<ResolversTypes['MediaEpisode']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -1001,6 +1076,9 @@ export type Resolvers<ContextType = Context> = {
   MediaConnection?: MediaConnectionResolvers<ContextType>;
   MediaCoverImage?: MediaCoverImageResolvers<ContextType>;
   MediaEdge?: MediaEdgeResolvers<ContextType>;
+  MediaEpisode?: MediaEpisodeResolvers<ContextType>;
+  MediaEpisodeConnection?: MediaEpisodeConnectionResolvers<ContextType>;
+  MediaEpisodeEdge?: MediaEpisodeEdgeResolvers<ContextType>;
   MediaExternalLink?: MediaExternalLinkResolvers<ContextType>;
   MediaSynonym?: MediaSynonymResolvers<ContextType>;
   MediaTitle?: MediaTitleResolvers<ContextType>;

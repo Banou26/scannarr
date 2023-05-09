@@ -61,7 +61,7 @@ extend type Query {
 }
 
 """
-Media is a type of handle that represents a media file.
+Media is a type of handle that represents a media.
 It generally represents a Movie, TV Show, Game, Package, ect...
 """
 type Media implements Handle {
@@ -133,8 +133,7 @@ type Media implements Handle {
   """The last official release date of the media"""
   endDate: FuzzyDate
 
-  """The media's entire airing schedule"""
-  airingSchedule(
+  episodes(
     """Filter to episodes that have not yet aired"""
     notYetAired: Boolean
 
@@ -143,7 +142,67 @@ type Media implements Handle {
 
     """The amount of entries per page, max 25"""
     perPage: Int
-  ): MediaAiringScheduleConnection
+  ): MediaEpisodeConnection
+
+  # """The media's entire airing schedule"""
+  # airingSchedule(
+  #   """Filter to episodes that have not yet aired"""
+  #   notYetAired: Boolean
+
+  #   """The page"""
+  #   page: Int
+
+  #   """The amount of entries per page, max 25"""
+  #   perPage: Int
+  # ): MediaAiringScheduleConnection
+}
+
+type MediaEpisode implements Handle {
+  # Handle properties
+  handler: String!
+  origin: String!
+  id: String!
+  uri: Uri!
+  url: String
+  handles: HandleConnection!
+
+  # MediaEpisode properties
+  """The time the episode airs at"""
+  airingAt: Float!
+
+  """The episode number"""
+  number: Int!
+
+  """The title of the episode"""
+  title: MediaTitle
+
+  """The description of the episode"""
+  description: String
+
+  """The url for the thumbnail image of the video"""
+  thumbnail: String
+
+  """The associate media of the episode"""
+  media: Media
+
+  """The associate media uri of the episode"""
+  mediaUri: String!
+
+  """Seconds until episode starts airing"""
+  timeUntilAiring: Float!
+}
+
+type MediaEpisodeConnection {
+  edges: [MediaEpisodeEdge]
+  nodes: [MediaEpisode]
+
+  """The pagination information"""
+  pageInfo: PageInfo
+}
+
+"""MediaEpisode connection edge"""
+type MediaEpisodeEdge {
+  node: MediaEpisode
 }
 
 """
@@ -163,7 +222,7 @@ type MediaAiringSchedule implements Handle {
   airingAt: Float!
 
   """The airing episode number"""
-  episode: Int!
+  episodeNumber: Int!
 
   """The associate media of the airing episode"""
   media: Media

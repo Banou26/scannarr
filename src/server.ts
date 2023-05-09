@@ -174,7 +174,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
           shortDescription: getHandlesField('shortDescription', null),
           coverImage: deepMergeHandlesFields('coverImage', []),
           bannerImage: deepMergeHandlesFields('bannerImage', []),
-          airingSchedule: deepMergeHandlesFields('airingSchedule', { edges: [] }),
+          episodes: deepMergeHandlesFields('episodes', { edges: [] }),
           title: deepMergeHandlesFields('title', { romanized: null, native: null, english: null }),
           trailers: deepMergeUniqueHandlesFields('trailers', mediaTrailer => mediaTrailer.__ref, []),
           handles: {
@@ -198,12 +198,12 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
       MediaTitle: {
         merge: (existing, incoming) => ({ ...existing, ...incoming })
       },
-      MediaAiringScheduleConnection: {
+      MediaEpisodeConnection: {
         fields: {
           // todo: this needs refactor
           edges: (existing) =>
-            [...groupBy(existing, (edge) => edge.node.episode).entries()]
-              .map(([episode, edges]) =>
+            [...groupBy(existing, (edge) => edge.node.number).entries()]
+              .map(([number, edges]) =>
                 edges.reduce((acc, edge) => ({
                   node: {
                     ...deepmerge(acc.node ?? {}, edge.node) as any,
@@ -215,7 +215,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
                       url: null
                     },
                     mediaUri: toScannarrUri([...new Set(existing.map(edge => edge.node.mediaUri))].join(',') as Uris),
-                    uri: `${toScannarrUri([...new Set(existing.map(edge => edge.node.mediaUri))].join(',') as Uris)}-${edge.node.episode}`,
+                    uri: `${toScannarrUri([...new Set(existing.map(edge => edge.node.mediaUri))].join(',') as Uris)}-${edge.node.number}`,
                   },
                   uri: toScannarrUri([...new Set(existing.map(edge => edge.node.mediaUri))].join(',') as Uris),
                 }), {})
@@ -239,9 +239,9 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
       nodes: (mediaConnection) => mediaConnection.edges?.map(edge => edge.node) ?? [],
       ...resolvers.MediaConnection
     },
-    MediaAiringScheduleConnection: {
+    MediaEpisodeConnection: {
       nodes: (mediaConnection) => mediaConnection.edges?.map(edge => edge?.node) ?? [],
-      ...resolvers.MediaAiringScheduleConnection
+      ...resolvers.MediaEpisodeConnection
     }
   })
 
