@@ -325,11 +325,6 @@ import BigNumber from '../utils/uri'
           },
           {
             "kind": "OBJECT",
-            "name": "MediaEpisode",
-            "ofType": null
-          },
-          {
-            "kind": "OBJECT",
             "name": "MediaExternalLink",
             "ofType": null
           },
@@ -1515,8 +1510,8 @@ import BigNumber from '../utils/uri'
               "kind": "NON_NULL",
               "name": null,
               "ofType": {
-                "kind": "INTERFACE",
-                "name": "HandleConnection",
+                "kind": "OBJECT",
+                "name": "MediaEpisodeConnection",
                 "ofType": null
               }
             },
@@ -1669,13 +1664,7 @@ import BigNumber from '../utils/uri'
           }
         ],
         "inputFields": null,
-        "interfaces": [
-          {
-            "kind": "INTERFACE",
-            "name": "Handle",
-            "ofType": null
-          }
-        ],
+        "interfaces": [],
         "enumValues": null,
         "possibleTypes": null
       },
@@ -1746,6 +1735,18 @@ import BigNumber from '../utils/uri'
             "type": {
               "kind": "OBJECT",
               "name": "MediaEpisode",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "uri",
+            "description": "The uri of the connection",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "Int",
               "ofType": null
             },
             "isDeprecated": false,
@@ -3185,6 +3186,67 @@ import BigNumber from '../utils/uri'
         "name": "Query",
         "description": null,
         "fields": [
+          {
+            "name": "Episode",
+            "description": null,
+            "args": [
+              {
+                "name": "id",
+                "description": "Filter by the media id",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "origin",
+                "description": "Filter by the media origin",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "search",
+                "description": "Filter by search terms",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "uri",
+                "description": "Filter by the media uri",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              }
+            ],
+            "type": {
+              "kind": "OBJECT",
+              "name": "MediaEpisode",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
           {
             "name": "Media",
             "description": null,

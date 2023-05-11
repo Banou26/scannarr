@@ -49,6 +49,10 @@ export const populateUri = <T extends Partial<Pick<Handle, 'uri' | 'handler'>> &
   url: handle.url ? handle.url : undefined
 })
 
+const BASE64_REGEX = /(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?/
+
 export const toScannarrUri = (uris: Uris): Uri => `scannarr:${btoa(uris)}`
 export const toScannarrId = (uris: Uris): string => btoa(uris)
-export const fromScannarrUri = (uri: Uri): Uri[] => atob(uri.split(':')[1]!).split(',') as Uri[]
+export const fromScannarrUri = (uri: Uri): Uri[] => atob(uri.split(':')[1]!.match(BASE64_REGEX)![0]).split(',') as Uri[]
+export const getScannarrUriEpisodeNumber = (uri: Uri) => uri.split('-')[1]
+

@@ -128,6 +128,33 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
             ?? []
         }
       },
+      MediaEpisodeConnection: {
+        fields: {
+          edges: (existing) =>
+            [...groupBy(existing, (edge) => edge.node.number).entries()]
+              .map(([number, edges]) =>
+                edges.reduce((acc, edge) => ({
+                  node: {
+                    ...deepmerge(acc.node ?? {}, edge.node) as any,
+                    media: {
+                      ...populateUri({
+                        id: toScannarrId([...new Set(existing.filter(edge => edge.node.number === number).map(edge => edge.node.uri))].join(',') as Uris),
+                        origin: 'scannarr'
+                      }),
+                      url: null
+                    },
+                    uri: `${toScannarrUri([...new Set(existing.filter(edge => edge.node.number === number).map(edge => edge.node.uri))].join(',') as Uris)}-${edge.node.number}`,
+                  },
+                  uri: toScannarrUri([...new Set(existing.filter(edge => edge.node.number === number).map(edge => edge.node.uri))].join(',') as Uris),
+                }), {})
+              ),
+          nodes: (existing, { readField }: FieldFunctionOptions<Record<string, any>, Record<string, any>>) =>
+            readField('edges')
+              ?.map((edge: any) => edge.node)
+            ?? existing
+            ?? []
+        }
+      },
       Page: {
         fields: {
           media: {
@@ -195,33 +222,56 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
           }
         }
       },
+      Episode: {
+        keyFields: ['uri'],
+        fields: {
+          description: getHandlesField('description', null),
+          title: deepMergeHandlesFields('title', { romanized: null, native: null, english: null }),
+          handles: {
+            merge: (existing, incoming) => {
+              const edges = [
+                ...(existing?.edges?.filter(item => !incoming?.edges?.some(_item => _item.node.uri === item.node.uri)) ?? []),
+                ...(incoming?.edges?.map(item => {
+                  const _item = existing?.edges?.find(_item => _item.node.uri === item.node.uri)
+                  return _item ? deepmerge(_item, item) : item
+                }) ?? [])
+              ]
+              return {
+                ...existing,
+                edges,
+                nodes: edges.map((edge: any) => edge.node)
+              }
+            }
+          }
+        }
+      },
       MediaTitle: {
         merge: (existing, incoming) => ({ ...existing, ...incoming })
       },
-      MediaEpisodeConnection: {
-        fields: {
-          // todo: this needs refactor
-          edges: (existing) =>
-            [...groupBy(existing, (edge) => edge.node.number).entries()]
-              .map(([number, edges]) =>
-                edges.reduce((acc, edge) => ({
-                  node: {
-                    ...deepmerge(acc.node ?? {}, edge.node) as any,
-                    media: {
-                      ...populateUri({
-                        id: toScannarrId([...new Set(existing.map(edge => edge.node.mediaUri))].join(',') as Uris),
-                        origin: 'scannarr'
-                      }),
-                      url: null
-                    },
-                    mediaUri: toScannarrUri([...new Set(existing.map(edge => edge.node.mediaUri))].join(',') as Uris),
-                    uri: `${toScannarrUri([...new Set(existing.map(edge => edge.node.mediaUri))].join(',') as Uris)}-${edge.node.number}`,
-                  },
-                  uri: toScannarrUri([...new Set(existing.map(edge => edge.node.mediaUri))].join(',') as Uris),
-                }), {})
-              )
-        }
-      }
+    //   MediaEpisodeConnection: {
+    //     fields: {
+    //       // todo: this needs refactor
+    //       edges: (existing) =>
+    //         [...groupBy(existing, (edge) => edge.node.number).entries()]
+    //           .map(([number, edges]) =>
+    //             edges.reduce((acc, edge) => ({
+    //               node: {
+    //                 ...deepmerge(acc.node ?? {}, edge.node) as any,
+    //                 media: {
+    //                   ...populateUri({
+    //                     id: toScannarrId([...new Set(existing.map(edge => edge.node.mediaUri))].join(',') as Uris),
+    //                     origin: 'scannarr'
+    //                   }),
+    //                   url: null
+    //                 },
+    //                 mediaUri: toScannarrUri([...new Set(existing.map(edge => edge.node.mediaUri))].join(',') as Uris),
+    //                 uri: `${toScannarrUri([...new Set(existing.map(edge => edge.node.mediaUri))].join(',') as Uris)}-${edge.node.number}`,
+    //               },
+    //               uri: toScannarrUri([...new Set(existing.map(edge => edge.node.mediaUri))].join(',') as Uris),
+    //             }), {})
+    //           )
+    //     }
+    //   }
     }
   })
 
@@ -367,20 +417,55 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
           const [_, { uri, id = fromUri(uri).id, origin: _origin = fromUri(uri).origin }, { resolversResults }] = args
           const uris = fromScannarrUri(uri)
           const edges =
-            uris.map(uri => ({
-              node: {
-                ...populateUri({
-                  id: fromUri(uri).id,
-                  origin: fromUri(uri).origin,
-                  handles: {
-                    nodes: [],
-                    edges: []
-                  }
-                }),
-                ...resolversResults?.find(result => result?.data?.Media?.uri === uri)?.data?.Media
-              }
-            }))
+            uris
+              .filter(uri => resolversResults?.some(result => result?.data?.Media?.uri === uri))
+              .map(uri => ({
+                node: {
+                  ...populateUri({
+                    id: fromUri(uri).id,
+                    origin: fromUri(uri).origin,
+                    handles: {
+                      nodes: [],
+                      edges: []
+                    }
+                  }),
+                  ...resolversResults?.find(result => result?.data?.Media?.uri === uri)?.data?.Media
+                }
+              }))
 
+          return {
+            ...deepmerge.all(edges.map(edge => edge?.node)),
+            ...populateUri({
+              origin: _origin,
+              id: id!,
+              handles: {
+                edges,
+                nodes: edges?.map(edge => edge?.node) ?? []
+              }
+            })
+          }
+        },
+        Episode: async (...args) => {
+          const [_, { uri, id = fromUri(uri).id, origin: _origin = fromUri(uri).origin }, { resolversResults }] = args
+          console.log('uri', uri)
+          const uris = fromScannarrUri(uri)
+          const edges =
+            uris
+              .filter(uri => resolversResults?.some(result => result?.data?.Episode?.uri === uri))
+              .map(uri => ({
+                node: {
+                  ...populateUri({
+                    id: fromUri(uri).id,
+                    origin: fromUri(uri).origin,
+                    handles: {
+                      nodes: [],
+                      edges: []
+                    }
+                  }),
+                  ...resolversResults?.find(result => result?.data?.Episode?.uri === uri)?.data?.Episode
+                }
+              }))
+          console.log('edges', edges)
           return {
             ...deepmerge.all(edges.map(edge => edge?.node)),
             ...populateUri({

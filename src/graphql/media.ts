@@ -54,10 +54,22 @@ export const MediaParameters = `#graphql
     sort: [MediaSort]
 `
 
+export const MediaEpisodeParameters = `#graphql
+    """Filter by the media id"""
+    id: String
+    """Filter by the media origin"""
+    origin: String
+    """Filter by the media uri"""
+    uri: String
+    """Filter by search terms"""
+    search: String
+`
+
 export const schema = `#graphql
 
 extend type Query {
   Media(${MediaParameters}): Media
+  Episode(${MediaEpisodeParameters}): MediaEpisode
 }
 
 """
@@ -157,14 +169,14 @@ type Media implements Handle {
   # ): MediaAiringScheduleConnection
 }
 
-type MediaEpisode implements Handle {
+type MediaEpisode {
   # Handle properties
   handler: String!
   origin: String!
   id: String!
   uri: Uri!
   url: String
-  handles: HandleConnection!
+  handles: MediaEpisodeConnection!
 
   # MediaEpisode properties
   """The time the episode airs at"""
@@ -202,6 +214,8 @@ type MediaEpisodeConnection {
 
 """MediaEpisode connection edge"""
 type MediaEpisodeEdge {
+  """The uri of the connection"""
+  uri: Int
   node: MediaEpisode
 }
 

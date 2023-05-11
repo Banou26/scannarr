@@ -249,14 +249,14 @@ export type MediaEdge = HandleEdge & {
   node: Media;
 };
 
-export type MediaEpisode = Handle & {
+export type MediaEpisode = {
   __typename?: 'MediaEpisode';
   /** The time the episode airs at */
   airingAt: Scalars['Float'];
   /** The description of the episode */
   description?: Maybe<Scalars['String']>;
   handler: Scalars['String'];
-  handles: HandleConnection;
+  handles: MediaEpisodeConnection;
   id: Scalars['String'];
   /** The associate media of the episode */
   media?: Maybe<Media>;
@@ -287,6 +287,8 @@ export type MediaEpisodeConnection = {
 export type MediaEpisodeEdge = {
   __typename?: 'MediaEpisodeEdge';
   node?: Maybe<MediaEpisode>;
+  /** The uri of the connection */
+  uri?: Maybe<Scalars['Int']>;
 };
 
 /** An external link to another site related to the media or its properties */
@@ -582,9 +584,18 @@ export type PageInfo = {
 
 export type Query = {
   __typename?: 'Query';
+  Episode?: Maybe<MediaEpisode>;
   Media?: Maybe<Media>;
   Page?: Maybe<Page>;
   dummy?: Maybe<Scalars['String']>;
+};
+
+
+export type QueryEpisodeArgs = {
+  id?: InputMaybe<Scalars['String']>;
+  origin?: InputMaybe<Scalars['String']>;
+  search?: InputMaybe<Scalars['String']>;
+  uri?: InputMaybe<Scalars['String']>;
 };
 
 
@@ -723,7 +734,7 @@ export type ResolversTypes = {
   FuzzyDate: ResolverTypeWrapper<FuzzyDate>;
   FuzzyDateInput: FuzzyDateInput;
   FuzzyDateInt: ResolverTypeWrapper<Scalars['FuzzyDateInt']>;
-  Handle: ResolversTypes['Media'] | ResolversTypes['MediaAiringSchedule'] | ResolversTypes['MediaEpisode'] | ResolversTypes['MediaExternalLink'] | ResolversTypes['MediaTrailer'] | ResolversTypes['Resource'];
+  Handle: ResolversTypes['Media'] | ResolversTypes['MediaAiringSchedule'] | ResolversTypes['MediaExternalLink'] | ResolversTypes['MediaTrailer'] | ResolversTypes['Resource'];
   HandleConnection: ResolversTypes['MediaConnection'] | ResolversTypes['ResourceConnection'];
   HandleEdge: ResolversTypes['MediaEdge'] | ResolversTypes['ResourceEdge'];
   HandleRelation: HandleRelation;
@@ -769,7 +780,7 @@ export type ResolversParentTypes = {
   FuzzyDate: FuzzyDate;
   FuzzyDateInput: FuzzyDateInput;
   FuzzyDateInt: Scalars['FuzzyDateInt'];
-  Handle: ResolversParentTypes['Media'] | ResolversParentTypes['MediaAiringSchedule'] | ResolversParentTypes['MediaEpisode'] | ResolversParentTypes['MediaExternalLink'] | ResolversParentTypes['MediaTrailer'] | ResolversParentTypes['Resource'];
+  Handle: ResolversParentTypes['Media'] | ResolversParentTypes['MediaAiringSchedule'] | ResolversParentTypes['MediaExternalLink'] | ResolversParentTypes['MediaTrailer'] | ResolversParentTypes['Resource'];
   HandleConnection: ResolversParentTypes['MediaConnection'] | ResolversParentTypes['ResourceConnection'];
   HandleEdge: ResolversParentTypes['MediaEdge'] | ResolversParentTypes['ResourceEdge'];
   Int: Scalars['Int'];
@@ -819,7 +830,7 @@ export interface FuzzyDateIntScalarConfig extends GraphQLScalarTypeConfig<Resolv
 }
 
 export type HandleResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Handle'] = ResolversParentTypes['Handle']> = {
-  __resolveType: TypeResolveFn<'Media' | 'MediaAiringSchedule' | 'MediaEpisode' | 'MediaExternalLink' | 'MediaTrailer' | 'Resource', ParentType, ContextType>;
+  __resolveType: TypeResolveFn<'Media' | 'MediaAiringSchedule' | 'MediaExternalLink' | 'MediaTrailer' | 'Resource', ParentType, ContextType>;
   handler?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   handles?: Resolver<ResolversTypes['HandleConnection'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -932,7 +943,7 @@ export type MediaEpisodeResolvers<ContextType = Context, ParentType extends Reso
   airingAt?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   handler?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  handles?: Resolver<ResolversTypes['HandleConnection'], ParentType, ContextType>;
+  handles?: Resolver<ResolversTypes['MediaEpisodeConnection'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   media?: Resolver<Maybe<ResolversTypes['Media']>, ParentType, ContextType>;
   mediaUri?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -955,6 +966,7 @@ export type MediaEpisodeConnectionResolvers<ContextType = Context, ParentType ex
 
 export type MediaEpisodeEdgeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['MediaEpisodeEdge'] = ResolversParentTypes['MediaEpisodeEdge']> = {
   node?: Resolver<Maybe<ResolversTypes['MediaEpisode']>, ParentType, ContextType>;
+  uri?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -1026,6 +1038,7 @@ export type PageInfoResolvers<ContextType = Context, ParentType extends Resolver
 };
 
 export type QueryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
+  Episode?: Resolver<Maybe<ResolversTypes['MediaEpisode']>, ParentType, ContextType, Partial<QueryEpisodeArgs>>;
   Media?: Resolver<Maybe<ResolversTypes['Media']>, ParentType, ContextType, Partial<QueryMediaArgs>>;
   Page?: Resolver<Maybe<ResolversTypes['Page']>, ParentType, ContextType, Partial<QueryPageArgs>>;
   dummy?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
