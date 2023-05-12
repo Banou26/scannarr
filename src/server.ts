@@ -311,7 +311,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
       const link = makeLink({
         prefix: operationPrefix,
         server: resolverServer,
-        context: async () => ({ ...await context?.(), server, client })
+        context: async () => ({ ...await context?.(), server, client: finalClient })
       })
 
       return new ApolloClient({
@@ -335,7 +335,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
         media: async (...params) => {
           const [_, __, { resolversResults }] = params
           console.log('resolversResults', resolversResults)
-          const _results = resolversResults?.flatMap(results => results.data.Page.media) ?? []
+          const _results = resolversResults?.flatMap(results => results.data.Page.media ?? []) ?? []
 
           const typeName = 'Media'
           let results = [...new Map(_results.map(item => [item.uri, item])).values()]
@@ -612,8 +612,15 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
       )
     )
 
+  const finalClient = new ApolloClient({
+    cache: inMemoryCache,
+    // typeDefs,
+    link
+  })
+
   return {
     server,
-    link
+    link,
+    client: finalClient
   }
 }
