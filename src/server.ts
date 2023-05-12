@@ -138,7 +138,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
                     ...deepmerge(acc.node ?? {}, edge.node) as any,
                     media: {
                       ...populateUri({
-                        id: toScannarrId([...new Set(existing.filter(edge => edge.node.number === number).map(edge => edge.node.uri))].join(',') as Uris),
+                        id: toScannarrId([...new Set(existing.filter(edge => edge.node.number === number).map(edge => edge.node.uri.split('-')[0]))].join(',') as Uris),
                         origin: 'scannarr'
                       }),
                       url: null
@@ -297,7 +297,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
 
   const resolversClients =
     resolversList?.map(resolvers => {
-      const server = new ApolloServer<Context>({
+      const resolverServer = new ApolloServer<Context>({
         typeDefs:
           typeDefs
             ? `${schema}\n\n${typeDefs}`
@@ -306,12 +306,12 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
         includeStacktraceInErrorResponses: true
       })
 
-      server.start()
+      resolverServer.start()
     
       const link = makeLink({
         prefix: operationPrefix,
-        server,
-        context
+        server: resolverServer,
+        context: async () => ({ ...await context?.(), server, client })
       })
 
       return new ApolloClient({
@@ -334,7 +334,8 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
       Page: {
         media: async (...params) => {
           const [_, __, { resolversResults }] = params
-          const _results = resolversResults.flatMap(results => results.data.Page.media)
+          console.log('resolversResults', resolversResults)
+          const _results = resolversResults?.flatMap(results => results.data.Page.media) ?? []
 
           const typeName = 'Media'
           let results = [...new Map(_results.map(item => [item.uri, item])).values()]
@@ -552,7 +553,21 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
         method: init.method!,
         search: ''
       },
-      context: async () => ({ ...await context?.(), input, init, body, headers, method: init.method!, resolversResults })
+      context: async () => {
+        const ctx = await (async () => context?.())().catch(err => {
+          if (!silenceResolverErrors) console.error(err)
+          return {}
+        })
+        return ({
+          ...ctx,
+          input,
+          init,
+          body,
+          headers,
+          method: init.method!,
+          resolversResults
+        })
+      }
     })
 
     if (JSON.parse(res.body.string).errors) {

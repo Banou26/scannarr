@@ -29,7 +29,7 @@ const config: CodegenConfig = {
         'introspection',
         {
           add: {
-            content: `import BigNumber from '../utils/uri'`
+            content: `import { Uri } from '../utils/uri'`
           }
         }
       ],
