@@ -336,6 +336,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
           const [_, __, { resolversResults }] = params
           console.log('resolversResults', resolversResults)
           const _results = resolversResults?.flatMap(results => results.data.Page.media ?? []) ?? []
+          console.log('_results', _results)
 
           const typeName = 'Media'
           let results = [...new Map(_results.map(item => [item.uri, item])).values()]
@@ -374,6 +375,8 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
           for (const handle of _results) {
             addHandleRecursiveToIndex(handle)
           }
+
+          console.log('index', index)
 
           const groups =
           [
@@ -417,7 +420,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
         Media: async (...args) => {
           const [_, { uri, id = fromUri(uri).id, origin: _origin = fromUri(uri).origin }, { resolversResults }] = args
           const uris = fromScannarrUri(uri)
-          const edges =
+          const _edges =
             uris
               .filter(uri => resolversResults?.some(result => result?.data?.Media?.uri === uri))
               .map(uri => ({
@@ -434,13 +437,54 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
                 }
               }))
 
+          let results = [...new Map(_edges.map(item => [item.node.uri, item.node])).values()]
+          const index: { [key: string]: string[] } = {}
+          const alreadyRecursed = new Set()
+      
+          const addHandleRecursiveToIndex = (_handle: Handle) => {
+            if (alreadyRecursed.has(_handle.uri)) return
+            alreadyRecursed.add(_handle.uri)
+            
+            if (!results.some(handle => handle.uri === _handle.uri)) {
+              results = [...results, _handle]
+            }
+      
+            if (!index[_handle.uri]) index[_handle.uri] = [_handle.uri]
+            const identicalHandles =
+              _handle
+                .handles
+                ?.edges
+                ?? []
+            for (const handle of identicalHandles) {
+              if (!index[handle.node.uri]) index[handle.node.uri] = [handle.node.uri]
+      
+              if (!index[_handle.uri]?.includes(handle.node.uri)) index[_handle.uri]?.push(handle.node.uri)
+              if (!index[handle.node.uri]?.includes(handle.node.uri)) index[handle.node.uri]?.push(_handle.uri)
+              for (const uri of index[_handle.uri] ?? []) {
+                if (!index[uri]?.includes(handle.node.uri)) index[uri]?.push(handle.node.uri)
+              }
+              for (const uri of index[handle.node.uri] ?? []) {
+                if (!index[uri]?.includes(_handle.uri)) index[uri]?.push(_handle.uri)
+              }
+              addHandleRecursiveToIndex(handle.node)
+            }
+          }
+      
+          for (const handle of _edges) {
+            addHandleRecursiveToIndex(handle.node)
+          }
+
+          const edges = results.map(node => ({ node }))
+
+          // todo: try to fix `title` having undefined values when some handles do have non undefined values
+
           return {
             ...deepmerge.all(edges.map(edge => edge?.node)),
             ...populateUri({
               origin: _origin,
               id: id!,
               handles: {
-                edges,
+                edges: edges,
                 nodes: edges?.map(edge => edge?.node) ?? []
               }
             })
