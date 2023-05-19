@@ -84,7 +84,25 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
             ?.reduce((acc: any, edge: any) => {
               const field = readField(fieldName, edge.node)
               if (acc === undefined || acc === null) return field
-              return field ? deepmerge(acc, field) : acc
+              return (
+                field
+                  ? (
+                    deepmerge(
+                      // we keep the undefined and null values in the object otherwise graphql will not be happy that a field is missing
+                      Object
+                        .entries(readField(fieldName, edge.node))
+                        .filter(([key, value]) => value === undefined && value === null),
+                      acc,
+                      // we remove them from the object before merging to avoid overriding the existing values
+                      Object.fromEntries(
+                        Object
+                          .entries(readField(fieldName, edge.node))
+                          .filter(([key, value]) => value !== undefined && value !== null)
+                      )
+                    )
+                  )
+                  : acc
+              )
             }, existing)
           ) ?? existing
           : existing
@@ -334,9 +352,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
       Page: {
         media: async (...params) => {
           const [_, __, { resolversResults }] = params
-          console.log('resolversResults', resolversResults)
           const _results = resolversResults?.flatMap(results => results.data.Page.media ?? []) ?? []
-          console.log('_results', _results)
 
           const typeName = 'Media'
           let results = [...new Map(_results.map(item => [item.uri, item])).values()]
@@ -375,8 +391,6 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
           for (const handle of _results) {
             addHandleRecursiveToIndex(handle)
           }
-
-          console.log('index', index)
 
           const groups =
           [
@@ -492,7 +506,6 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
         },
         Episode: async (...args) => {
           const [_, { uri, id = fromUri(uri).id, origin: _origin = fromUri(uri).origin }, { resolversResults }] = args
-          console.log('uri', uri)
           const uris = fromScannarrUri(uri)
           const edges =
             uris
@@ -510,7 +523,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
                   ...resolversResults?.find(result => result?.data?.Episode?.uri === uri)?.data?.Episode
                 }
               }))
-          console.log('edges', edges)
+
           return {
             ...deepmerge.all(edges.map(edge => edge?.node)),
             ...populateUri({
