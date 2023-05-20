@@ -1463,13 +1463,9 @@ import { Uri } from '../utils/uri'
             "description": "The time the episode airs at",
             "args": [],
             "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": {
-                "kind": "SCALAR",
-                "name": "Float",
-                "ofType": null
-              }
+              "kind": "SCALAR",
+              "name": "Float",
+              "ofType": null
             },
             "isDeprecated": false,
             "deprecationReason": null
@@ -1611,13 +1607,9 @@ import { Uri } from '../utils/uri'
             "description": "Seconds until episode starts airing",
             "args": [],
             "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": {
-                "kind": "SCALAR",
-                "name": "Float",
-                "ofType": null
-              }
+              "kind": "SCALAR",
+              "name": "Float",
+              "ofType": null
             },
             "isDeprecated": false,
             "deprecationReason": null

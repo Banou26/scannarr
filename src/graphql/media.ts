@@ -180,7 +180,7 @@ type MediaEpisode {
 
   # MediaEpisode properties
   """The time the episode airs at"""
-  airingAt: Float!
+  airingAt: Float
 
   """The episode number"""
   number: Int!
@@ -201,7 +201,7 @@ type MediaEpisode {
   mediaUri: String!
 
   """Seconds until episode starts airing"""
-  timeUntilAiring: Float!
+  timeUntilAiring: Float
 }
 
 type MediaEpisodeConnection {

@@ -252,7 +252,7 @@ export type MediaEdge = HandleEdge & {
 export type MediaEpisode = {
   __typename?: 'MediaEpisode';
   /** The time the episode airs at */
-  airingAt: Scalars['Float'];
+  airingAt?: Maybe<Scalars['Float']>;
   /** The description of the episode */
   description?: Maybe<Scalars['String']>;
   handler: Scalars['String'];
@@ -268,7 +268,7 @@ export type MediaEpisode = {
   /** The url for the thumbnail image of the video */
   thumbnail?: Maybe<Scalars['String']>;
   /** Seconds until episode starts airing */
-  timeUntilAiring: Scalars['Float'];
+  timeUntilAiring?: Maybe<Scalars['Float']>;
   /** The title of the episode */
   title?: Maybe<MediaTitle>;
   uri: Scalars['Uri'];
@@ -940,7 +940,7 @@ export type MediaEdgeResolvers<ContextType = Context, ParentType extends Resolve
 };
 
 export type MediaEpisodeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['MediaEpisode'] = ResolversParentTypes['MediaEpisode']> = {
-  airingAt?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  airingAt?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   handler?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   handles?: Resolver<ResolversTypes['MediaEpisodeConnection'], ParentType, ContextType>;
@@ -950,7 +950,7 @@ export type MediaEpisodeResolvers<ContextType = Context, ParentType extends Reso
   number?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   origin?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   thumbnail?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  timeUntilAiring?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  timeUntilAiring?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   title?: Resolver<Maybe<ResolversTypes['MediaTitle']>, ParentType, ContextType>;
   uri?: Resolver<ResolversTypes['Uri'], ParentType, ContextType>;
   url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
