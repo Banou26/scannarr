@@ -148,22 +148,22 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
       },
       MediaEpisodeConnection: {
         fields: {
-          edges: (existing) =>
-            [...groupBy(existing, (edge) => edge.node.number).entries()]
+          edges: (existing, { readField }) =>
+            [...groupBy(existing, (edge) => readField('number', edge.node)).entries()]
               .map(([number, edges]) =>
                 edges.reduce((acc, edge) => ({
                   node: {
                     ...deepmerge(acc.node ?? {}, edge.node) as any,
                     media: {
                       ...populateUri({
-                        id: toScannarrId([...new Set(existing.filter(edge => edge.node.number === number).map(edge => edge.node.uri.split('-')[0]))].join(',') as Uris),
+                        id: toScannarrId([...new Set(existing.filter(edge => readField('number', edge.node) === number).map(edge => readField('uri', edge.node).split('-')[0]))].join(',') as Uris),
                         origin: 'scannarr'
                       }),
                       url: null
                     },
-                    uri: `${toScannarrUri([...new Set(existing.filter(edge => edge.node.number === number).map(edge => edge.node.uri))].join(',') as Uris)}-${edge.node.number}`,
+                    uri: `${toScannarrUri([...new Set(existing.filter(edge => readField('number', edge.node) === number).map(edge => readField('uri', edge.node)))].join(',') as Uris)}-${readField('number', edge.node)}`,
                   },
-                  uri: toScannarrUri([...new Set(existing.filter(edge => edge.node.number === number).map(edge => edge.node.uri))].join(',') as Uris),
+                  uri: toScannarrUri([...new Set(existing.filter(edge => readField('number', edge.node) === number).map(edge => readField('uri', edge.node)))].join(',') as Uris),
                 }), {})
               ),
           nodes: (existing, { readField }: FieldFunctionOptions<Record<string, any>, Record<string, any>>) =>
@@ -238,7 +238,8 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
           shortDescription: getHandlesField('shortDescription', null),
           coverImage: deepMergeHandlesFields('coverImage', []),
           bannerImage: deepMergeHandlesFields('bannerImage', []),
-          episodes: deepMergeHandlesFields('episodes', { edges: [] }),
+          // do not merge episodes here, this should be done in the MediaEpisodeConnection
+          // episodes: deepMergeHandlesFields('episodes', { edges: [] }),
           title: deepMergeHandlesFields('title', { romanized: null, native: null, english: null }),
           trailers: deepMergeUniqueHandlesFields('trailers', mediaTrailer => mediaTrailer.__ref, []),
           handles: {
@@ -259,31 +260,43 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
           }
         }
       },
-      // MediaEpisode: {
-      //   keyFields: ['uri'],
-      //   fields: {
-      //     description: getHandlesField('description', null),
-      //     title: deepMergeHandlesFields('title', { romanized: null, native: null, english: null }),
-      //     handles: {
-      //       merge: (existing, incoming) => {
-      //         const edges = [
-      //           ...(existing?.edges?.filter(item => !incoming?.edges?.some(_item => _item.node.uri === item.node.uri)) ?? []),
-      //           ...(incoming?.edges?.map(item => {
-      //             const _item = existing?.edges?.find(_item => _item.node.uri === item.node.uri)
-      //             return _item ? deepmerge(_item, item) : item
-      //           }) ?? [])
-      //         ]
-      //         return {
-      //           ...existing,
-      //           edges,
-      //           nodes: edges.map((edge: any) => edge.node)
-      //         }
-      //       }
-      //     }
-      //   }
-      // },
+      MediaEpisode: {
+        keyFields: ['uri'],
+        fields: {
+          description: getHandlesField('description', null),
+          title: deepMergeHandlesFields('title', { romanized: null, native: null, english: null }),
+          handles: {
+            merge: (existing, incoming) => {
+              const edges = [
+                ...(existing?.edges?.filter(item => !incoming?.edges?.some(_item => _item.node.uri === item.node.uri)) ?? []),
+                ...(incoming?.edges?.map(item => {
+                  const _item = existing?.edges?.find(_item => _item.node.uri === item.node.uri)
+                  return _item ? deepmerge(_item, item) : item
+                }) ?? [])
+              ]
+              return {
+                ...existing,
+                edges,
+                nodes: edges.map((edge: any) => edge.node)
+              }
+            }
+          }
+        }
+      },
       MediaTitle: {
-        merge: (existing, incoming) => ({ ...existing, ...incoming })
+        merge: (existing, incoming) => ({
+          ...Object.fromEntries(
+            Object
+              .entries(incoming ?? {})
+              .filter(([key, value]) => value === null || value === undefined)
+          ),
+          ...existing,
+          ...Object.fromEntries(
+            Object
+              .entries(incoming ?? {})
+              .filter(([key, value]) => value !== null && value !== undefined)
+          )
+        })
       },
     //   MediaEpisodeConnection: {
     //     fields: {
