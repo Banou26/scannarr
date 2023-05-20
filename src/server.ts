@@ -11,7 +11,7 @@ import { Sorts } from './sorts'
 import schema from './graphql'
 
 import { ApolloClient, FieldFunctionOptions, InMemoryCache, Reference, gql } from '@apollo/client/core'
-import { Uris, fromScannarrUri, fromUri, isUri, populateUri, toScannarrId, toScannarrUri } from './utils'
+import { Uris, fromScannarrUri, fromUri, fromUris, isUri, populateUri, toScannarrId, toScannarrUri } from './utils'
 import { makeLink } from './link'
 import { groupBy } from './utils/groupBy'
 
@@ -207,6 +207,25 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
       Media: {
         keyFields: ['uri'],
         fields: {
+          uri: {
+            read: (existingUri: string, { readField }) => {
+              if (!existingUri || (isUri(existingUri) && fromUri(existingUri).origin !== 'scannarr')) return existingUri
+              const uris =
+                (
+                  readField('handles')
+                    ?.edges
+                    .map(edge => readField('uri', edge.node))
+                    ?? []
+                )
+                  .sort((a, b) => a.localeCompare(b))
+              const existingUris = fromScannarrUri(existingUri)
+              const sortedUris =
+                [...new Set([...existingUris, ...uris])]
+                  .sort((a, b) => a.localeCompare(b))
+
+              return toScannarrUri(sortedUris)
+            }
+          },
           description: getHandlesField('description', null),
           popularity: (existing, { readField }: FieldFunctionOptions<Record<string, any>, Record<string, any>>) =>
             fromUri(readField('uri')).origin === 'scannarr'
