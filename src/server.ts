@@ -62,7 +62,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
       ?? defaultValue
 
   const deepMergeHandlesFields = <T>(fieldName: string, defaultValue?: T) =>
-    (existing: any, { readField }: FieldFunctionOptions<Record<string, any>, Record<string, any>>) =>
+    (existing: any, { readField, field }: FieldFunctionOptions<Record<string, any>, Record<string, any>>) =>
       (
         fromUri(readField('uri')).origin === 'scannarr'
           ? (
@@ -88,17 +88,17 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
                 field
                   ? (
                     deepmerge(
-                      // we keep the undefined and null values in the object otherwise graphql will not be happy that a field is missing
-                      Object
-                        .entries(readField(fieldName, edge.node))
-                        .filter(([key, value]) => value === undefined && value === null),
                       acc,
-                      // we remove them from the object before merging to avoid overriding the existing values
-                      Object.fromEntries(
-                        Object
-                          .entries(readField(fieldName, edge.node))
-                          .filter(([key, value]) => value !== undefined && value !== null)
-                      )
+                      // we remove undefined values from the object before merging to avoid overriding the existing values
+                      Array.isArray(readField(fieldName, edge.node))
+                        ? readField(fieldName, edge.node)
+                        : (
+                          Object.fromEntries(
+                            Object
+                              .entries(readField(fieldName, edge.node))
+                              .filter(([key, value]) => value !== undefined && value !== null)
+                          )
+                        )
                     )
                   )
                   : acc
@@ -240,29 +240,29 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
           }
         }
       },
-      Episode: {
-        keyFields: ['uri'],
-        fields: {
-          description: getHandlesField('description', null),
-          title: deepMergeHandlesFields('title', { romanized: null, native: null, english: null }),
-          handles: {
-            merge: (existing, incoming) => {
-              const edges = [
-                ...(existing?.edges?.filter(item => !incoming?.edges?.some(_item => _item.node.uri === item.node.uri)) ?? []),
-                ...(incoming?.edges?.map(item => {
-                  const _item = existing?.edges?.find(_item => _item.node.uri === item.node.uri)
-                  return _item ? deepmerge(_item, item) : item
-                }) ?? [])
-              ]
-              return {
-                ...existing,
-                edges,
-                nodes: edges.map((edge: any) => edge.node)
-              }
-            }
-          }
-        }
-      },
+      // MediaEpisode: {
+      //   keyFields: ['uri'],
+      //   fields: {
+      //     description: getHandlesField('description', null),
+      //     title: deepMergeHandlesFields('title', { romanized: null, native: null, english: null }),
+      //     handles: {
+      //       merge: (existing, incoming) => {
+      //         const edges = [
+      //           ...(existing?.edges?.filter(item => !incoming?.edges?.some(_item => _item.node.uri === item.node.uri)) ?? []),
+      //           ...(incoming?.edges?.map(item => {
+      //             const _item = existing?.edges?.find(_item => _item.node.uri === item.node.uri)
+      //             return _item ? deepmerge(_item, item) : item
+      //           }) ?? [])
+      //         ]
+      //         return {
+      //           ...existing,
+      //           edges,
+      //           nodes: edges.map((edge: any) => edge.node)
+      //         }
+      //       }
+      //     }
+      //   }
+      // },
       MediaTitle: {
         merge: (existing, incoming) => ({ ...existing, ...incoming })
       },
