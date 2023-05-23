@@ -34,7 +34,7 @@ export type MakeServerOptions<Context extends ApolloBaseContext> = {
   originPriority?: string[]
 }
 
-const sortHandles = (priorityList: string[], handles: Handle[], getHandle: (value: any) => Handle) =>
+const sortHandles = (priorityList: string[], handles: Handle[], getHandle: (value: any) => Handle = (value) => value) =>
   [...handles]
     .sort((a, b) => {
       const aPriority = priorityList.indexOf(getHandle(a)?.origin)
@@ -52,17 +52,17 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
     (existing: any, { readField }: FieldFunctionOptions<Record<string, any>, Record<string, any>>) =>
       (
         fromUri(readField('uri')).origin === 'scannarr'
-        ? (
-          readField('handles')?.edges?.[0]?.node
-            ? readField(fieldName, readField('handles')?.edges?.[0]?.node)
-            : (existing ?? null)
-        ) ?? existing
-        : existing
+          ? (
+            readField('handles')?.edges?.[0]?.node
+              ? readField(fieldName, readField('handles')?.edges?.[0]?.node)
+              : (existing ?? null)
+          ) ?? existing
+          : existing
       )
       ?? defaultValue
 
   const deepMergeHandlesFields = <T>(fieldName: string, defaultValue?: T) =>
-    (existing: any, { readField, field }: FieldFunctionOptions<Record<string, any>, Record<string, any>>) =>
+    (existing: any, { readField, field, mergeObjects }: FieldFunctionOptions<Record<string, any>, Record<string, any>>) =>
       (
         fromUri(readField('uri')).origin === 'scannarr'
           ? (
@@ -131,6 +131,65 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
         )
         : existing ?? defaultValue
 
+  const deepMergeUniquePerFieldArray = <T>(groupKeyGetter: (item: Reference) => string, defaultValue?: T) =>
+    (existing: any, { readField, mergeObjects, ...rest }: FieldFunctionOptions<Record<string, any>, Record<string, any>>) =>
+      fromUri(readField('uri')).origin === 'scannarr'
+        ? (
+          sortHandles(
+            originPriority,
+            readField('handles')?.edges ?? [],
+            (value: any) =>
+              fromUri(
+                JSON.parse(
+                  inMemoryCache
+
+                    .identify(readField('node', value))
+                    .split(':')
+                    .slice(1)
+                    .join(':')
+                )
+                .uri
+              )
+          )
+            .flatMap(edge => readField('node', edge.node))
+            .reduce((acc: any, node: any) => {
+              console.log('deepMerge', acc, node, acc?.__typename === 'MediaEpisodeConnection' && readField(acc.edges[0].acc))
+              const key = groupKeyGetter(node, { readField, mergeObjects, ...rest })
+              if (acc[key] === undefined || acc[key] === null) return node
+              return deepmerge(acc, node)
+            }, existing)
+        )
+        : existing ?? defaultValue
+
+  const deepMergeUniquePerField = <T>(groupKeyGetter: (item: Reference) => string, defaultValue?: T) =>
+    (existing: any, { readField, mergeObjects }: FieldFunctionOptions<Record<string, any>, Record<string, any>>) =>
+      fromUri(readField('uri')).origin === 'scannarr'
+        ? (
+          sortHandles(
+            originPriority,
+            readField('handles')?.edges ?? [],
+            (value: any) =>
+              fromUri(
+                JSON.parse(
+                  inMemoryCache
+
+                    .identify(readField('node', value))
+                    .split(':')
+                    .slice(1)
+                    .join(':')
+                )
+                .uri
+              )
+          )
+            .flatMap(edge => readField('node', edge.node))
+            .reduce((acc: any, node: any) => {
+              const key = groupKeyGetter(node)
+              if (acc[key] === undefined || acc[key] === null) return node
+              return deepmerge(acc, node)
+            }, existing)
+        )
+        : existing ?? defaultValue
+
   const inMemoryCache = new InMemoryCache({
     addTypename: false,
     typePolicies: {
@@ -146,33 +205,33 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
             ?? []
         }
       },
-      MediaEpisodeConnection: {
-        fields: {
-          edges: (existing, { readField }) =>
-            [...groupBy(existing, (edge) => readField('number', edge.node)).entries()]
-              .map(([number, edges]) =>
-                edges.reduce((acc, edge) => ({
-                  node: {
-                    ...deepmerge(acc.node ?? {}, edge.node) as any,
-                    media: {
-                      ...populateUri({
-                        id: toScannarrId([...new Set(existing.filter(edge => readField('number', edge.node) === number).map(edge => readField('uri', edge.node).split('-')[0]))].join(',') as Uris),
-                        origin: 'scannarr'
-                      }),
-                      url: null
-                    },
-                    uri: `${toScannarrUri([...new Set(existing.filter(edge => readField('number', edge.node) === number).map(edge => readField('uri', edge.node)))].join(',') as Uris)}-${readField('number', edge.node)}`,
-                  },
-                  uri: toScannarrUri([...new Set(existing.filter(edge => readField('number', edge.node) === number).map(edge => readField('uri', edge.node)))].join(',') as Uris),
-                }), {})
-              ),
-          nodes: (existing, { readField }: FieldFunctionOptions<Record<string, any>, Record<string, any>>) =>
-            readField('edges')
-              ?.map((edge: any) => edge.node)
-            ?? existing
-            ?? []
-        }
-      },
+      // MediaEpisodeConnection: {
+      //   fields: {
+      //     edges: (existing, { readField }) =>
+      //       [...groupBy(existing, (edge) => readField('number', edge.node)).entries()]
+      //         .map(([number, edges]) =>
+      //           edges.reduce((acc, edge) => ({
+      //             node: {
+      //               ...mergeObjects(acc.node ?? {}, edge.node) as any,
+      //               media: {
+      //                 ...populateUri({
+      //                   id: toScannarrId([...new Set(existing.filter(edge => readField('number', edge.node) === number).map(edge => readField('uri', edge.node).split('-')[0]))].join(',') as Uris),
+      //                   origin: 'scannarr'
+      //                 }),
+      //                 url: null
+      //               },
+      //               uri: `${toScannarrUri([...new Set(existing.filter(edge => readField('number', edge.node) === number).map(edge => readField('uri', edge.node)))].join(',') as Uris)}-${readField('number', edge.node)}`,
+      //             },
+      //             uri: toScannarrUri([...new Set(existing.filter(edge => readField('number', edge.node) === number).map(edge => readField('uri', edge.node)))].join(',') as Uris),
+      //           }), {})
+      //         ),
+      //     nodes: (existing, { readField }: FieldFunctionOptions<Record<string, any>, Record<string, any>>) =>
+      //       readField('edges')
+      //         ?.map((edge: any) => edge.node)
+      //       ?? existing
+      //       ?? []
+      //   }
+      // },
       Page: {
         fields: {
           media: {
@@ -194,11 +253,11 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
 
               return sortedResults
             },
-            merge: (existing, incoming) => [
+            merge: (existing, incoming, { mergeObjects }) => [
               ...(existing?.filter(item => !incoming.some(_item => _item.uri === item.uri)) ?? []),
               ...(incoming.map(item => {
                 const _item = existing?.find(_item => _item.uri === item.uri)
-                return _item ? deepmerge(_item, item) : item
+                return _item ? mergeObjects(_item, item) : item
               }) ?? [])
             ]
           }
@@ -240,15 +299,182 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
           bannerImage: deepMergeHandlesFields('bannerImage', []),
           // do not merge episodes here, this should be done in the MediaEpisodeConnection
           // episodes: deepMergeHandlesFields('episodes', { edges: [] }),
+          episodes: {
+            read: (existing, { readField, mergeObjects, cache }: FieldFunctionOptions<Record<string, any>, Record<string, any>>) => {
+              if (fromUri(readField('uri')).origin !== 'scannarr') return existing ?? { edges: [] }
+              const cacheRepresentation = cache.extract()
+              // console.log('episodes read cacheRepresentation', cacheRepresentation)
+              // console.log('episodes read existing', readField('uri'), existing)
+
+              const groupByNumber = (nodes: any[]) =>
+                [...groupBy(nodes, (node) => node.number).entries()]
+
+              console.log(
+                'groupByNumber',
+                groupByNumber(existing?.edges?.map(edge => cacheRepresentation[edge.node.__ref]) ?? [])
+              )
+
+              const groupedEpisodes =
+                groupByNumber(
+                  existing
+                    ?.edges
+                    ?.map(edge => cacheRepresentation[edge.node.__ref]) ?? []
+                )
+              
+              const sortedGroupedEpisodes =
+                groupedEpisodes
+                  .map(([number, nodes]) => [
+                    number,
+                    sortHandles(originPriority, nodes, (node) => node)
+                  ])
+
+              const mergedHandles =
+                sortedGroupedEpisodes
+                  .reduce((acc, [number, nodes]) => [
+                    ...acc,
+                    nodes.reduce((acc, node) => mergeObjects(acc, node), {})
+                  ], [])
+
+
+              console.log('episodes read mergedHandles', mergedHandles)
+
+              // const sortedHandles =
+              //   sortHandles(
+              //     originPriority,
+              //     readField('handles')?.edges ?? [],
+              //     (edge) => edge.node
+              //   ).map(edge => cacheRepresentation[readField('episodes', edge.node)?.__ref])
+
+
+              // console.log('episodes read sortedHandles', sortedHandles)
+
+              return {
+                edges: mergedHandles.map(node => ({ node }))
+                  // existing?.edges?.map((edge: any) => {
+                  //   // console.log('edge', edge)
+                  //   const res = cacheRepresentation[edge.node.__ref]
+                  //   // console.log('res', res)
+                  //   return {
+                  //     node: mergeObjects(edge.node, res)
+                  //   }
+                  // }) ?? []
+              }
+            },
+            // read: (existing, { readField }: FieldFunctionOptions<Record<string, any>, Record<string, any>>) => {
+            //   const episodes =
+            //     readField('handles')
+            //       ?.edges
+            //       .map(edge => readField('episodes', edge.node))
+            //       .reduce((acc, episodes) => [...acc, ...episodes], [])
+            //       ?? []
+            //   const existingEpisodes =
+            //     existing
+            //       ?.edges
+            //       ?.map((edge: any) => edge.node)
+            //       ?? []
+            //   const mergedEpisodes =
+            //     [...new Set([...existingEpisodes, ...episodes])]
+            //       .sort((a, b) => readField('number', a) - readField('number', b))
+            //   return mergedEpisodes
+            // },
+            // merge: (existing, incoming, { mergeObjects }) => {
+            //   const mergedEpisodes =
+            //     [...new Set([...existing, ...incoming])]
+            //       .sort((a, b) => a.number - b.number)
+            //   return mergedEpisodes
+            // }
+            // read: deepMergeUniquePerFieldArray((item) => 'number', []),
+            // read: (existing, { readField }: FieldFunctionOptions<Record<string, any>, Record<string, any>>) => {
+            //   console.log('existing', existing, readField('uri'))
+            //   return existing
+            // },
+            merge: (existing, incoming, { mergeObjects }) => {
+              console.log('existing', existing)
+              console.log('incoming', incoming)
+              console.log('merge', mergeObjects(existing ?? {}, incoming ?? {}))
+              return mergeObjects(existing ?? {}, incoming ?? {})
+            }
+            // read: (existing, { readField }: FieldFunctionOptions<Record<string, any>, Record<string, any>>) =>
+            //   fromUri(readField('uri')).origin === 'scannarr'
+            //     ? console.log('episodes', readField('uri'), [...groupBy(existing.edges, (edge) => readField('number', edge.node)).entries()]) || ({
+            //       edges:
+            //         [...groupBy(existing.edges, (edge) => readField('number', edge.node)).entries()]
+            //           .map(([number, edges]) =>
+            //             edges.reduce((acc, edge) => ({
+            //               node: {
+            //                 ...mergeObjects(acc.node ?? {}, edge.node ?? {}) as any,
+            //                 media: {
+            //                   ...populateUri({
+            //                     id: toScannarrId([...new Set(existing.edges.filter(edge => readField('number', edge.node) === number).map(edge => readField('uri', edge.node).split('-')[0]))].join(',') as Uris),
+            //                     origin: 'scannarr'
+            //                   }),
+            //                   url: null
+            //                 },
+            //                 uri: `${toScannarrUri([...new Set(existing.edges.filter(edge => readField('number', edge.node) === number).map(edge => readField('uri', edge.node)))].join(',') as Uris)}-${readField('number', edge.node)}`,
+            //               },
+            //               uri: toScannarrUri([...new Set(existing.edges.filter(edge => readField('number', edge.node) === number).map(edge => readField('uri', edge.node)))].join(',') as Uris),
+            //             }), {})
+            //           )
+            //     })
+            //     : existing,
+            // merge: (existing, incoming, { readField, ...rest }: FieldFunctionOptions<Record<string, any>, Record<string, any>>) =>
+            //   void console.log('episodes merge', existing, incoming, readField('uri'), rest) ||
+            //   incoming && fromUri(readField('uri')).origin === 'scannarr'
+            //     ? console.log(
+            //         'episodes',
+            //         readField('uri'),
+            //         [...groupBy(existing.edges, (edge) => readField('number', edge.node)).entries()], 
+            //         ({
+            //           edges:
+            //             [...groupBy(existing.edges, (edge) => readField('number', edge.node)).entries()]
+            //               .map(([number, edges]) =>
+            //                 edges.reduce((acc, edge) => ({
+            //                   node: {
+            //                     ...mergeObjects(acc.node ?? {}, edge.node ?? {}) as any,
+            //                     media: {
+            //                       ...populateUri({
+            //                         id: toScannarrId([...new Set(existing.edges.filter(edge => readField('number', edge.node) === number).map(edge => readField('uri', edge.node).split('-')[0]))].join(',') as Uris),
+            //                         origin: 'scannarr'
+            //                       }),
+            //                       url: null
+            //                     },
+            //                     uri: `${toScannarrUri([...new Set(existing.edges.filter(edge => readField('number', edge.node) === number).map(edge => readField('uri', edge.node)))].join(',') as Uris)}-${readField('number', edge.node)}`,
+            //                   },
+            //                   uri: toScannarrUri([...new Set(existing.edges.filter(edge => readField('number', edge.node) === number).map(edge => readField('uri', edge.node)))].join(',') as Uris),
+            //                 }), {})
+            //               )
+            //         })
+            //       ) || ({
+            //       edges:
+            //         [...groupBy(existing.edges, (edge) => readField('number', edge.node)).entries()]
+            //           .map(([number, edges]) =>
+            //             edges.reduce((acc, edge) => ({
+            //               node: {
+            //                 ...mergeObjects(acc.node ?? {}, edge.node ?? {}) as any,
+            //                 media: {
+            //                   ...populateUri({
+            //                     id: toScannarrId([...new Set(existing.edges.filter(edge => readField('number', edge.node) === number).map(edge => readField('uri', edge.node).split('-')[0]))].join(',') as Uris),
+            //                     origin: 'scannarr'
+            //                   }),
+            //                   url: null
+            //                 },
+            //                 uri: `${toScannarrUri([...new Set(existing.edges.filter(edge => readField('number', edge.node) === number).map(edge => readField('uri', edge.node)))].join(',') as Uris)}-${readField('number', edge.node)}`,
+            //               },
+            //               uri: toScannarrUri([...new Set(existing.edges.filter(edge => readField('number', edge.node) === number).map(edge => readField('uri', edge.node)))].join(',') as Uris),
+            //             }), {})
+            //           )
+            //     })
+            //     : existing ?? null
+          },
           title: deepMergeHandlesFields('title', { romanized: null, native: null, english: null }),
           trailers: deepMergeUniqueHandlesFields('trailers', mediaTrailer => mediaTrailer.__ref, []),
           handles: {
-            merge: (existing, incoming) => {
+            merge: (existing, incoming, { mergeObjects }) => {
               const edges = [
                 ...(existing?.edges?.filter(item => !incoming?.edges?.some(_item => _item.node.uri === item.node.uri)) ?? []),
                 ...(incoming?.edges?.map(item => {
                   const _item = existing?.edges?.find(_item => _item.node.uri === item.node.uri)
-                  return _item ? deepmerge(_item, item) : item
+                  return _item ? mergeObjects(_item, item) : item
                 }) ?? [])
               ]
               return {
@@ -266,12 +492,12 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
           description: getHandlesField('description', null),
           title: deepMergeHandlesFields('title', { romanized: null, native: null, english: null }),
           handles: {
-            merge: (existing, incoming) => {
+            merge: (existing, incoming, { mergeObjects }) => {
               const edges = [
                 ...(existing?.edges?.filter(item => !incoming?.edges?.some(_item => _item.node.uri === item.node.uri)) ?? []),
                 ...(incoming?.edges?.map(item => {
                   const _item = existing?.edges?.find(_item => _item.node.uri === item.node.uri)
-                  return _item ? deepmerge(_item, item) : item
+                  return _item ? mergeObjects(_item, item) : item
                 }) ?? [])
               ]
               return {
@@ -306,7 +532,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
     //           .map(([number, edges]) =>
     //             edges.reduce((acc, edge) => ({
     //               node: {
-    //                 ...deepmerge(acc.node ?? {}, edge.node) as any,
+    //                 ...mergeObjects(acc.node ?? {}, edge.node) as any,
     //                 media: {
     //                   ...populateUri({
     //                     id: toScannarrId([...new Set(existing.map(edge => edge.node.mediaUri))].join(',') as Uris),
