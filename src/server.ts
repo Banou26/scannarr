@@ -242,20 +242,24 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
                 sortedGroupedEpisodes
                   .reduce((acc, [number, nodes]) => [
                     ...acc,
-                    nodes.reduce((acc, node) =>
-                      deepmerge(
-                        acc,
-                        // we remove undefined values from the object before merging to avoid overriding the existing values
-                        Object.fromEntries(
-                          Object
-                            .entries(node)
-                            .filter(([key, value]) => value !== undefined && value !== null)
-                        )
+                    {
+                      ...nodes.reduce((acc, node) =>
+                        deepmerge(
+                          acc,
+                          // we remove undefined values from the object before merging to avoid overriding the existing values
+                          Object.fromEntries(
+                            Object
+                              .entries(node)
+                              .filter(([key, value]) => value !== undefined && value !== null)
+                          )
+                        ),
+                        {
+                          thumbnail: null
+                        }
                       ),
-                      {
-                        thumbnail: null
-                      }
-                    )
+                      number,
+                      uri: toScannarrUri(nodes.map(node => node.uri))
+                    }
                   ], [])
 
               return {
