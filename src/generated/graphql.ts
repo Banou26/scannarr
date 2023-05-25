@@ -265,6 +265,8 @@ export type MediaEpisode = {
   /** The episode number */
   number: Scalars['Int'];
   origin: Scalars['String'];
+  /** The playback information for the episode */
+  playback?: Maybe<MediaEpisodePlayback>;
   /** The url for the thumbnail image of the video */
   thumbnail?: Maybe<Scalars['String']>;
   /** Seconds until episode starts airing */
@@ -290,6 +292,27 @@ export type MediaEpisodeEdge = {
   /** The uri of the connection */
   uri?: Maybe<Scalars['Int']>;
 };
+
+export type MediaEpisodePlayback = {
+  __typename?: 'MediaEpisodePlayback';
+  /** Stringified json data for the playback, useful for custom players */
+  data?: Maybe<Scalars['String']>;
+  /** The origin for the playback, can be used to determine libraries that can handle that playback */
+  origin?: Maybe<Scalars['String']>;
+  /** The type of playback */
+  type?: Maybe<MediaEpisodePlaybackType>;
+  /** The uri for the playback, could be a torrent magnet uri */
+  uri?: Maybe<Scalars['String']>;
+  /** The url for the playback, can be a html embed url */
+  url?: Maybe<Scalars['String']>;
+};
+
+export enum MediaEpisodePlaybackType {
+  Custom = 'CUSTOM',
+  Iframe = 'IFRAME',
+  Other = 'OTHER',
+  Torrent = 'TORRENT'
+}
 
 /** An external link to another site related to the media or its properties */
 export type MediaExternalLink = Handle & {
@@ -750,6 +773,8 @@ export type ResolversTypes = {
   MediaEpisode: ResolverTypeWrapper<MediaEpisode>;
   MediaEpisodeConnection: ResolverTypeWrapper<MediaEpisodeConnection>;
   MediaEpisodeEdge: ResolverTypeWrapper<MediaEpisodeEdge>;
+  MediaEpisodePlayback: ResolverTypeWrapper<MediaEpisodePlayback>;
+  MediaEpisodePlaybackType: MediaEpisodePlaybackType;
   MediaExternalLink: ResolverTypeWrapper<MediaExternalLink>;
   MediaFormat: MediaFormat;
   MediaSeason: MediaSeason;
@@ -795,6 +820,7 @@ export type ResolversParentTypes = {
   MediaEpisode: MediaEpisode;
   MediaEpisodeConnection: MediaEpisodeConnection;
   MediaEpisodeEdge: MediaEpisodeEdge;
+  MediaEpisodePlayback: MediaEpisodePlayback;
   MediaExternalLink: MediaExternalLink;
   MediaSynonym: MediaSynonym;
   MediaTitle: MediaTitle;
@@ -949,6 +975,7 @@ export type MediaEpisodeResolvers<ContextType = Context, ParentType extends Reso
   mediaUri?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   number?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   origin?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  playback?: Resolver<Maybe<ResolversTypes['MediaEpisodePlayback']>, ParentType, ContextType>;
   thumbnail?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   timeUntilAiring?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   title?: Resolver<Maybe<ResolversTypes['MediaTitle']>, ParentType, ContextType>;
@@ -967,6 +994,15 @@ export type MediaEpisodeConnectionResolvers<ContextType = Context, ParentType ex
 export type MediaEpisodeEdgeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['MediaEpisodeEdge'] = ResolversParentTypes['MediaEpisodeEdge']> = {
   node?: Resolver<Maybe<ResolversTypes['MediaEpisode']>, ParentType, ContextType>;
   uri?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type MediaEpisodePlaybackResolvers<ContextType = Context, ParentType extends ResolversParentTypes['MediaEpisodePlayback'] = ResolversParentTypes['MediaEpisodePlayback']> = {
+  data?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  origin?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  type?: Resolver<Maybe<ResolversTypes['MediaEpisodePlaybackType']>, ParentType, ContextType>;
+  uri?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -1092,6 +1128,7 @@ export type Resolvers<ContextType = Context> = {
   MediaEpisode?: MediaEpisodeResolvers<ContextType>;
   MediaEpisodeConnection?: MediaEpisodeConnectionResolvers<ContextType>;
   MediaEpisodeEdge?: MediaEpisodeEdgeResolvers<ContextType>;
+  MediaEpisodePlayback?: MediaEpisodePlaybackResolvers<ContextType>;
   MediaExternalLink?: MediaExternalLinkResolvers<ContextType>;
   MediaSynonym?: MediaSynonymResolvers<ContextType>;
   MediaTitle?: MediaTitleResolvers<ContextType>;

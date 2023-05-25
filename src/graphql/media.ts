@@ -202,6 +202,33 @@ type MediaEpisode {
 
   """Seconds until episode starts airing"""
   timeUntilAiring: Float
+
+  """The playback information for the episode"""
+  playback: MediaEpisodePlayback
+}
+
+enum MediaEpisodePlaybackType {
+  IFRAME
+  TORRENT
+  CUSTOM
+  OTHER
+}
+
+type MediaEpisodePlayback {
+  """The type of playback"""
+  type: MediaEpisodePlaybackType
+
+  """The url for the playback, can be a html embed url"""
+  url: String
+
+  """The uri for the playback, could be a torrent magnet uri"""
+  uri: String
+
+  """The origin for the playback, can be used to determine libraries that can handle that playback"""
+  origin: String
+
+  """Stringified json data for the playback, useful for custom players"""
+  data: String
 }
 
 type MediaEpisodeConnection {

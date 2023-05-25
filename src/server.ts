@@ -543,7 +543,8 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
         Episode: async (...args) => {
           const [_, { uri, id = fromUri(uri).id, origin: _origin = fromUri(uri).origin }, { resolversResults }] = args
           const uris = fromScannarrUri(uri)
-          const edges =
+
+          const _edges =
             uris
               .filter(uri => resolversResults?.some(result => result?.data?.Episode?.uri === uri))
               .map(uri => ({
@@ -559,6 +560,45 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
                   ...resolversResults?.find(result => result?.data?.Episode?.uri === uri)?.data?.Episode
                 }
               }))
+
+          let results = [...new Map(_edges.map(item => [item.node.uri, item.node])).values()]
+          const index: { [key: string]: string[] } = {}
+          const alreadyRecursed = new Set()
+      
+          const addHandleRecursiveToIndex = (_handle: Handle) => {
+            if (alreadyRecursed.has(_handle.uri)) return
+            alreadyRecursed.add(_handle.uri)
+            
+            if (!results.some(handle => handle.uri === _handle.uri)) {
+              results = [...results, _handle]
+            }
+      
+            if (!index[_handle.uri]) index[_handle.uri] = [_handle.uri]
+            const identicalHandles =
+              _handle
+                .handles
+                ?.edges
+                ?? []
+            for (const handle of identicalHandles) {
+              if (!index[handle.node.uri]) index[handle.node.uri] = [handle.node.uri]
+      
+              if (!index[_handle.uri]?.includes(handle.node.uri)) index[_handle.uri]?.push(handle.node.uri)
+              if (!index[handle.node.uri]?.includes(handle.node.uri)) index[handle.node.uri]?.push(_handle.uri)
+              for (const uri of index[_handle.uri] ?? []) {
+                if (!index[uri]?.includes(handle.node.uri)) index[uri]?.push(handle.node.uri)
+              }
+              for (const uri of index[handle.node.uri] ?? []) {
+                if (!index[uri]?.includes(_handle.uri)) index[uri]?.push(_handle.uri)
+              }
+              addHandleRecursiveToIndex(handle.node)
+            }
+          }
+      
+          for (const handle of _edges) {
+            addHandleRecursiveToIndex(handle.node)
+          }
+
+          const edges = results.map(node => ({ node }))
 
           return {
             ...deepmerge.all(edges.map(edge => edge?.node)),
