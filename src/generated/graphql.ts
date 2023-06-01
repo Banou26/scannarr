@@ -554,9 +554,32 @@ export type Mutation = {
   dummy?: Maybe<Scalars['String']>;
 };
 
+/**
+ * Media is a type of handle that represents a media.
+ * It generally represents a Movie, TV Show, Game, Package, ect...
+ */
+export type Origin = {
+  __typename?: 'Origin';
+  /** The media types of the target */
+  categories: Array<MediaType>;
+  /** The icon URL */
+  icon?: Maybe<Scalars['String']>;
+  /** Origin ID, e.g: "nflx" for Netflix */
+  id: Scalars['String'];
+  /** If the origin returns metadata only, e.g no playback or download data */
+  metadataOnly?: Maybe<Scalars['Boolean']>;
+  /** Origin full name, e.g: "Netflix"  */
+  name: Scalars['String'];
+  /** If the origin is official, e.g a legal redistributor or platform */
+  official?: Maybe<Scalars['Boolean']>;
+  /** The origin's URL, e.g "https://www.netflix.com/""  */
+  url?: Maybe<Scalars['String']>;
+};
+
 export type Page = {
   __typename?: 'Page';
   media?: Maybe<Array<Media>>;
+  origin?: Maybe<Array<Origin>>;
   pageInfo?: Maybe<PageInfo>;
 };
 
@@ -581,6 +604,15 @@ export type PageMediaArgs = {
   status_not?: InputMaybe<MediaStatus>;
   status_not_in?: InputMaybe<Array<InputMaybe<MediaStatus>>>;
   uri?: InputMaybe<Scalars['String']>;
+};
+
+
+export type PageOriginArgs = {
+  categories?: InputMaybe<Array<MediaType>>;
+  ids?: InputMaybe<Array<Scalars['String']>>;
+  metadataOnly?: InputMaybe<Scalars['Boolean']>;
+  names?: InputMaybe<Array<Scalars['String']>>;
+  official?: InputMaybe<Scalars['Boolean']>;
 };
 
 export type PageInfo = {
@@ -609,6 +641,7 @@ export type Query = {
   __typename?: 'Query';
   Episode?: Maybe<MediaEpisode>;
   Media?: Maybe<Media>;
+  Origin?: Maybe<Origin>;
   Page?: Maybe<Page>;
   dummy?: Maybe<Scalars['String']>;
 };
@@ -642,6 +675,15 @@ export type QueryMediaArgs = {
   status_not?: InputMaybe<MediaStatus>;
   status_not_in?: InputMaybe<Array<InputMaybe<MediaStatus>>>;
   uri?: InputMaybe<Scalars['String']>;
+};
+
+
+export type QueryOriginArgs = {
+  categories?: InputMaybe<Array<MediaType>>;
+  id?: InputMaybe<Scalars['String']>;
+  metadataOnly?: InputMaybe<Scalars['Boolean']>;
+  name?: InputMaybe<Scalars['String']>;
+  official?: InputMaybe<Scalars['Boolean']>;
 };
 
 
@@ -786,6 +828,7 @@ export type ResolversTypes = {
   MediaTrailer: ResolverTypeWrapper<MediaTrailer>;
   MediaType: MediaType;
   Mutation: ResolverTypeWrapper<{}>;
+  Origin: ResolverTypeWrapper<Origin>;
   Page: ResolverTypeWrapper<Page>;
   PageInfo: ResolverTypeWrapper<PageInfo>;
   Query: ResolverTypeWrapper<{}>;
@@ -826,6 +869,7 @@ export type ResolversParentTypes = {
   MediaTitle: MediaTitle;
   MediaTrailer: MediaTrailer;
   Mutation: {};
+  Origin: Origin;
   Page: Page;
   PageInfo: PageInfo;
   Query: {};
@@ -1054,8 +1098,20 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   dummy?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
+export type OriginResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Origin'] = ResolversParentTypes['Origin']> = {
+  categories?: Resolver<Array<ResolversTypes['MediaType']>, ParentType, ContextType>;
+  icon?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  metadataOnly?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  official?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type PageResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Page'] = ResolversParentTypes['Page']> = {
   media?: Resolver<Maybe<Array<ResolversTypes['Media']>>, ParentType, ContextType, Partial<PageMediaArgs>>;
+  origin?: Resolver<Maybe<Array<ResolversTypes['Origin']>>, ParentType, ContextType, Partial<PageOriginArgs>>;
   pageInfo?: Resolver<Maybe<ResolversTypes['PageInfo']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
@@ -1076,6 +1132,7 @@ export type PageInfoResolvers<ContextType = Context, ParentType extends Resolver
 export type QueryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   Episode?: Resolver<Maybe<ResolversTypes['MediaEpisode']>, ParentType, ContextType, Partial<QueryEpisodeArgs>>;
   Media?: Resolver<Maybe<ResolversTypes['Media']>, ParentType, ContextType, Partial<QueryMediaArgs>>;
+  Origin?: Resolver<Maybe<ResolversTypes['Origin']>, ParentType, ContextType, Partial<QueryOriginArgs>>;
   Page?: Resolver<Maybe<ResolversTypes['Page']>, ParentType, ContextType, Partial<QueryPageArgs>>;
   dummy?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
@@ -1134,6 +1191,7 @@ export type Resolvers<ContextType = Context> = {
   MediaTitle?: MediaTitleResolvers<ContextType>;
   MediaTrailer?: MediaTrailerResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
+  Origin?: OriginResolvers<ContextType>;
   Page?: PageResolvers<ContextType>;
   PageInfo?: PageInfoResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;

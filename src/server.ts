@@ -1,5 +1,7 @@
 import type { BaseContext as ApolloBaseContext, ContextThunk } from '@apollo/server'
-import { Handle, HandleRelation, MediaTrailer, Resolvers } from './generated/graphql'
+import type { ApolloQueryResult, FieldFunctionOptions, Reference } from '@apollo/client/core'
+
+import { Handle, HandleRelation, MediaTrailer, Origin, Resolvers } from './generated/graphql'
 import { split } from '@apollo/client/link/core'
 import { HttpLink } from '@apollo/client/link/http'
 import { getMainDefinition } from '@apollo/client/utilities'
@@ -10,7 +12,7 @@ import { Sorts } from './sorts'
 
 import schema from './graphql'
 
-import { ApolloClient, FieldFunctionOptions, InMemoryCache, Reference, gql } from '@apollo/client/core'
+import { ApolloClient, InMemoryCache, gql } from '@apollo/client/core'
 import { Uris, fromScannarrUri, fromUri, fromUris, isUri, populateUri, toScannarrId, toScannarrUri } from './utils'
 import { makeLink } from './link'
 import { groupBy } from './utils/groupBy'
@@ -19,15 +21,23 @@ export type BaseContext = ApolloBaseContext & {
   fetch: typeof fetch
   input: RequestInfo | URL
   init?: RequestInit
+  originResults: ApolloQueryResult<any> & {
+    origin: OriginWithResolvers
+  }[]
 }
 
 export {
   BaseContext as Context
 }
 
+export type OriginWithResolvers = Origin & {
+  resolvers: Resolvers
+}
+
 export type MakeServerOptions<Context extends ApolloBaseContext> = {
   typeDefs?: string
-  resolversList?: Resolvers[]
+  // resolversList?: Resolvers[]
+  origins: OriginWithResolvers[]
   operationPrefix?: string
   silenceResolverErrors?: boolean
   context: ContextThunk<Context>,
@@ -46,7 +56,7 @@ const sortHandles = (priorityList: string[], handles: Handle[], getHandle: (valu
     })
 
 
-export default <Context extends BaseContext, T extends MakeServerOptions<Context>>({ operationPrefix, typeDefs, resolversList, silenceResolverErrors, context, originPriority = [] }: T) => {
+export default <Context extends BaseContext, T extends MakeServerOptions<Context>>({ operationPrefix, typeDefs, origins, silenceResolverErrors, context, originPriority = [] }: T) => {
   
   const getHandlesField = <T>(fieldName: string, defaultValue?: T) =>
     (existing: any, { readField }: FieldFunctionOptions<Record<string, any>, Record<string, any>>) =>
@@ -350,13 +360,13 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
   })
 
   const resolversClients =
-    resolversList?.map(resolvers => {
+    origins?.map(origin => {
       const resolverServer = new ApolloServer<Context>({
         typeDefs:
           typeDefs
             ? `${schema}\n\n${typeDefs}`
             : schema,
-        resolvers: defaultResolvers(resolvers),
+        resolvers: defaultResolvers(origin.resolvers),
         includeStacktraceInErrorResponses: true
       })
 
@@ -368,13 +378,16 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
         context: async () => ({ ...await context?.(), server, client: finalClient })
       })
 
-      return new ApolloClient({
-        cache: inMemoryCache,
-        link,
-        defaultOptions: {
-          query: { fetchPolicy: 'network-only' }
-        }
-      })
+      return {
+        client: new ApolloClient({
+          cache: inMemoryCache,
+          link,
+          defaultOptions: {
+            query: { fetchPolicy: 'network-only' }
+          }
+        }),
+        origin
+      }
     })
     ?? []
 
@@ -387,8 +400,8 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
     resolvers: defaultResolvers({
       Page: {
         media: async (...params) => {
-          const [_, __, { resolversResults }] = params
-          const _results = resolversResults?.flatMap(results => results.data.Page.media ?? []) ?? []
+          const [_, __, { originResults }] = params
+          const _results = originResults?.flatMap(results => results.data.Page.media ?? []) ?? []
 
           const typeName = 'Media'
           let results = [...new Map(_results.map(item => [item.uri, item])).values()]
@@ -463,16 +476,37 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
             }))
         
           return scannarrHandles
+        },
+        origin: async (_, { ids }, { originResults }) => {
+          return (
+            originResults
+              .map(result => ({
+                ...result.origin,
+                id: result.origin.origin,
+              }))
+              .filter(origin => ids ? ids.includes(origin.id) : true)
+          )
         }
       },
       Query: {
         Page: () => ({}),
+        Origin: async (_, { id }, { originResults }) => {
+          return (
+            originResults
+              .map(result => ({
+                ...result.origin,
+                id: result.origin.origin,
+              }))
+              .filter(origin => id ? id === origin.id : true)
+              .at(0)
+          )
+        },
         Media: async (...args) => {
-          const [_, { uri, id = fromUri(uri).id, origin: _origin = fromUri(uri).origin }, { resolversResults }] = args
+          const [_, { uri, id = fromUri(uri).id, origin: _origin = fromUri(uri).origin }, { originResults }] = args
           const uris = fromScannarrUri(uri)
           const _edges =
             uris
-              .filter(uri => resolversResults?.some(result => result?.data?.Media?.uri === uri))
+              .filter(uri => originResults?.some(result => result?.data?.Media?.uri === uri))
               .map(uri => ({
                 node: {
                   ...populateUri({
@@ -483,7 +517,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
                       edges: []
                     }
                   }),
-                  ...resolversResults?.find(result => result?.data?.Media?.uri === uri)?.data?.Media
+                  ...originResults?.find(result => result?.data?.Media?.uri === uri)?.data?.Media
                 }
               }))
 
@@ -541,12 +575,12 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
           }
         },
         Episode: async (...args) => {
-          const [_, { uri, id = fromUri(uri).id, origin: _origin = fromUri(uri).origin }, { resolversResults }] = args
+          const [_, { uri, id = fromUri(uri).id, origin: _origin = fromUri(uri).origin }, { originResults }] = args
           const uris = fromScannarrUri(uri)
 
           const _edges =
             uris
-              .filter(uri => resolversResults?.some(result => result?.data?.Episode?.uri === uri))
+              .filter(uri => originResults?.some(result => result?.data?.Episode?.uri === uri))
               .map(uri => ({
                 node: {
                   ...populateUri({
@@ -557,7 +591,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
                       edges: []
                     }
                   }),
-                  ...resolversResults?.find(result => result?.data?.Episode?.uri === uri)?.data?.Episode
+                  ...originResults?.find(result => result?.data?.Episode?.uri === uri)?.data?.Episode
                 }
               }))
 
@@ -643,12 +677,12 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
         ? fromScannarrUri(rootUri)
         : undefined
 
-    const resolversResults =
+    const originResults =
       await Promise.all(
         (await Promise.allSettled(
           (uris ?? [undefined])
             .flatMap(uri =>
-              resolversClients?.map(client =>
+              resolversClients?.map(({ origin, client }) =>
                 client
                   .query({
                     query: gql(body.query),
@@ -662,6 +696,10 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
                         })
                         : body.variables
                   })
+                  .then(result => ({
+                    ...result,
+                    origin,
+                  }))
                   .catch(err => {
                     // if (!silenceResolverErrors) console.error(err)
                     throw err
@@ -698,7 +736,8 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
           body,
           headers,
           method: init.method!,
-          resolversResults
+          // resolversResults
+          originResults
         })
       }
     })

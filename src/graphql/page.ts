@@ -1,4 +1,5 @@
 import * as Media from './media'
+import * as Origin from './origin'
 
 export const schema = `#graphql
 
@@ -19,6 +20,7 @@ type Page {
   pageInfo: PageInfo
 
   media(${Media.MediaParameters}): [Media!]
+  origin(${Origin.OriginsParameters}): [Origin!]
 }
 
 type PageInfo {
