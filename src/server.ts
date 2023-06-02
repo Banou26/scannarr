@@ -409,13 +409,12 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
           const alreadyRecursed = new Set()
       
           const addHandleRecursiveToIndex = (_handle: Handle) => {
-            if (alreadyRecursed.has(_handle.uri)) return
-            alreadyRecursed.add(_handle.uri)
-            
+            if (!alreadyRecursed.has(_handle.uri)) alreadyRecursed.add(_handle.uri)
+
             if (!results.some(handle => handle.uri === _handle.uri)) {
               results = [...results, _handle]
             }
-      
+
             if (!index[_handle.uri]) index[_handle.uri] = [_handle.uri]
             const identicalHandles =
               _handle
@@ -433,7 +432,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
               for (const uri of index[handle.node.uri] ?? []) {
                 if (!index[uri]?.includes(_handle.uri)) index[uri]?.push(_handle.uri)
               }
-              addHandleRecursiveToIndex(handle.node)
+              if (!alreadyRecursed.has(handle.node.uri)) addHandleRecursiveToIndex(handle.node)
             }
           }
       
@@ -526,13 +525,12 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
           const alreadyRecursed = new Set()
       
           const addHandleRecursiveToIndex = (_handle: Handle) => {
-            if (alreadyRecursed.has(_handle.uri)) return
-            alreadyRecursed.add(_handle.uri)
-            
+            if (!alreadyRecursed.has(_handle.uri)) alreadyRecursed.add(_handle.uri)
+
             if (!results.some(handle => handle.uri === _handle.uri)) {
               results = [...results, _handle]
             }
-      
+
             if (!index[_handle.uri]) index[_handle.uri] = [_handle.uri]
             const identicalHandles =
               _handle
@@ -550,7 +548,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
               for (const uri of index[handle.node.uri] ?? []) {
                 if (!index[uri]?.includes(_handle.uri)) index[uri]?.push(_handle.uri)
               }
-              addHandleRecursiveToIndex(handle.node)
+              if (!alreadyRecursed.has(handle.node.uri)) addHandleRecursiveToIndex(handle.node)
             }
           }
       
