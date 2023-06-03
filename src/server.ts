@@ -144,6 +144,17 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
   const inMemoryCache = new InMemoryCache({
     addTypename: false,
     typePolicies: {
+      Query: {
+        fields: {
+          Page: {
+            merge: (existing, incoming, { args, toReference }: FieldFunctionOptions<Record<string, any>, Record<string, any>>) =>
+              incoming ?? existing
+          }
+        }
+      },
+      Origin: {
+        keyFields: ['id']
+      },
       MediaConnection: {
         fields: {
           edges: (existing) =>
