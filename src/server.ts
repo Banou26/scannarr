@@ -229,10 +229,10 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
               const groupByNumber = (nodes: any[]) =>
                 [...groupBy(nodes, (node) => node.number).entries()]
 
-              console.log(
-                'groupByNumber',
-                groupByNumber(existing?.edges?.map(edge => cacheRepresentation[edge.node.__ref]) ?? [])
-              )
+              // console.log(
+              //   'groupByNumber',
+              //   groupByNumber(existing?.edges?.map(edge => cacheRepresentation[edge.node.__ref]) ?? [])
+              // )
 
               const groupedEpisodes =
                 groupByNumber(
