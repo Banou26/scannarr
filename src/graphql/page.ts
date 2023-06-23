@@ -13,14 +13,14 @@ extend type Query {
 
     """How many pages after the cursor to return"""
     after: Int
-  ): Page
+  ): Page!
 }
 
 type Page {
-  pageInfo: PageInfo
+  pageInfo: PageInfo!
 
-  media(${Media.MediaParameters}): [Media!]
-  origin(${Origin.OriginsParameters}): [Origin!]
+  media(${Media.MediaParameters}): [Media!]!
+  origin(${Origin.OriginsParameters}): [Origin!]!
 }
 
 type PageInfo {

@@ -155,6 +155,9 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
       Origin: {
         keyFields: ['id']
       },
+      Page: {
+        keyFields: [],
+      },
       MediaConnection: {
         fields: {
           edges: (existing) =>
@@ -352,6 +355,10 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
 
   const defaultResolvers = (resolvers: Resolvers) => ({
     ...resolvers,
+    Page: {
+      origin: () => [],
+      ...resolvers.Page,
+    },
     MediaCoverImage: {
       default: (mediaCoverImage) =>
         mediaCoverImage.extraLarge

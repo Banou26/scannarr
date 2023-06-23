@@ -7,13 +7,18 @@ type Separated<S extends string> = `${S}${''|`,${S}`}`
 export type Uris = Separated<Separated<Uri>>
 
 export type UriValues = {
-  id: string
+  handler?: string
   origin: string
+  id: string
 }
 
 export const fromUri = (uri: Uri): UriValues => {
-  const [origin, id] = uri.split(':') as [string, string]
-  return { origin: origin, id: id }
+  const splits = uri.split(':') as [string, string, string] | [string, string]
+  const [handler, origin, id] =
+    splits.length <= 2
+      ? [undefined, ...splits]
+      : splits as [string, string, string]
+  return { handler, origin, id }
 }
 
 export const fromUris = <T extends string | undefined = undefined>(uriString: Uris, schemeSearch?: T): T extends string ? UriValues : UriValues[] => {
