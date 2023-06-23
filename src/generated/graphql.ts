@@ -578,9 +578,9 @@ export type Origin = {
 
 export type Page = {
   __typename?: 'Page';
-  media?: Maybe<Array<Media>>;
-  origin?: Maybe<Array<Origin>>;
-  pageInfo?: Maybe<PageInfo>;
+  media: Array<Media>;
+  origin: Array<Origin>;
+  pageInfo: PageInfo;
 };
 
 
@@ -642,7 +642,7 @@ export type Query = {
   Episode?: Maybe<MediaEpisode>;
   Media?: Maybe<Media>;
   Origin?: Maybe<Origin>;
-  Page?: Maybe<Page>;
+  Page: Page;
   dummy?: Maybe<Scalars['String']>;
 };
 
@@ -1110,9 +1110,9 @@ export type OriginResolvers<ContextType = Context, ParentType extends ResolversP
 };
 
 export type PageResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Page'] = ResolversParentTypes['Page']> = {
-  media?: Resolver<Maybe<Array<ResolversTypes['Media']>>, ParentType, ContextType, Partial<PageMediaArgs>>;
-  origin?: Resolver<Maybe<Array<ResolversTypes['Origin']>>, ParentType, ContextType, Partial<PageOriginArgs>>;
-  pageInfo?: Resolver<Maybe<ResolversTypes['PageInfo']>, ParentType, ContextType>;
+  media?: Resolver<Array<ResolversTypes['Media']>, ParentType, ContextType, Partial<PageMediaArgs>>;
+  origin?: Resolver<Array<ResolversTypes['Origin']>, ParentType, ContextType, Partial<PageOriginArgs>>;
+  pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -1133,7 +1133,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   Episode?: Resolver<Maybe<ResolversTypes['MediaEpisode']>, ParentType, ContextType, Partial<QueryEpisodeArgs>>;
   Media?: Resolver<Maybe<ResolversTypes['Media']>, ParentType, ContextType, Partial<QueryMediaArgs>>;
   Origin?: Resolver<Maybe<ResolversTypes['Origin']>, ParentType, ContextType, Partial<QueryOriginArgs>>;
-  Page?: Resolver<Maybe<ResolversTypes['Page']>, ParentType, ContextType, Partial<QueryPageArgs>>;
+  Page?: Resolver<ResolversTypes['Page'], ParentType, ContextType, Partial<QueryPageArgs>>;
   dummy?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 

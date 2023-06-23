@@ -3254,15 +3254,19 @@ import { Uri } from '../utils/uri'
               }
             ],
             "type": {
-              "kind": "LIST",
+              "kind": "NON_NULL",
               "name": null,
               "ofType": {
-                "kind": "NON_NULL",
+                "kind": "LIST",
                 "name": null,
                 "ofType": {
-                  "kind": "OBJECT",
-                  "name": "Media",
-                  "ofType": null
+                  "kind": "NON_NULL",
+                  "name": null,
+                  "ofType": {
+                    "kind": "OBJECT",
+                    "name": "Media",
+                    "ofType": null
+                  }
                 }
               }
             },
@@ -3359,15 +3363,19 @@ import { Uri } from '../utils/uri'
               }
             ],
             "type": {
-              "kind": "LIST",
+              "kind": "NON_NULL",
               "name": null,
               "ofType": {
-                "kind": "NON_NULL",
+                "kind": "LIST",
                 "name": null,
                 "ofType": {
-                  "kind": "OBJECT",
-                  "name": "Origin",
-                  "ofType": null
+                  "kind": "NON_NULL",
+                  "name": null,
+                  "ofType": {
+                    "kind": "OBJECT",
+                    "name": "Origin",
+                    "ofType": null
+                  }
                 }
               }
             },
@@ -3379,9 +3387,13 @@ import { Uri } from '../utils/uri'
             "description": null,
             "args": [],
             "type": {
-              "kind": "OBJECT",
-              "name": "PageInfo",
-              "ofType": null
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "OBJECT",
+                "name": "PageInfo",
+                "ofType": null
+              }
             },
             "isDeprecated": false,
             "deprecationReason": null
@@ -3953,9 +3965,13 @@ import { Uri } from '../utils/uri'
               }
             ],
             "type": {
-              "kind": "OBJECT",
-              "name": "Page",
-              "ofType": null
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "OBJECT",
+                "name": "Page",
+                "ofType": null
+              }
             },
             "isDeprecated": false,
             "deprecationReason": null
