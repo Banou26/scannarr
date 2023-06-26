@@ -1,18 +1,16 @@
 import type { ApolloServer, ContextThunk } from '@apollo/server'
+import type { BaseContext as ApolloBaseContext, ContextThunk } from '@apollo/server'
 
 import { split } from '@apollo/client/link/core'
 import { HttpLink } from '@apollo/client/link/http'
 import { getMainDefinition } from '@apollo/client/utilities'
 import { onError } from '@apollo/client/link/error'
 
-import { BaseContext } from './server'
+import { BaseContext } from './apollo-aggregator'
 
-export const makeLink = <
-  Context extends BaseContext, 
-  T extends ApolloServer<Context>
->(
+export const makeLink = <Context extends BaseContext>(
   { prefix, server, context }:
-  { prefix?: string, server: T, context: ContextThunk<Context> }
+  { prefix?: string, server: ApolloServer<Context>, context: ContextThunk<Context> }
 ) => {
   const fetch: (input: RequestInfo | URL, init: RequestInit) => Promise<Response> = async (input, init) => {
     const body = JSON.parse(init.body!.toString())
