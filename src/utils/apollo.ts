@@ -1,12 +1,18 @@
 import { ApolloQueryResult } from '@apollo/client/core'
-import { Handle, Resolvers } from '../generated/graphql'
+import { Handle, HandleRelation, Resolvers } from '../generated/graphql'
 import { BaseContext, OriginWithResolvers } from '../apollo-aggregator'
+import { Uris, populateUri, toScannarrId } from './uri'
 
 export const defaultResolvers = (resolvers: Resolvers) => ({
   ...resolvers,
   Page: {
     origin: () => [],
+    media: () => [],
     ...resolvers.Page,
+  },
+  Query: {
+    Page: () => ({}),
+    ...resolvers.Query
   },
   MediaCoverImage: {
     default: (mediaCoverImage) =>
@@ -64,13 +70,16 @@ export const indexHandles = <T extends Handle[]>({ results: _results }: { result
     addHandleRecursiveToIndex(handle)
   }
 
+
+  console.log('index', index)
+  console.log('results', results)
   return {
     results,
     index
   }
 }
 
-export const groupRelatedHandles = <T extends Handle[]>({ results: _results }: { results: T }) => {
+export const groupRelatedHandles = <T extends Handle>({ typename, results: _results }: { typename: string, results: T[] }) => {
   const { results, index } = indexHandles({ results: _results })
   const groups =
     [
@@ -83,27 +92,37 @@ export const groupRelatedHandles = <T extends Handle[]>({ results: _results }: {
     ].map((uris) => uris.split(' '))
 
   const handleGroups = groups.map((uris) => results.filter((handle) => uris.includes(handle.uri)))
-  // const scannarrHandles =
-  //   handleGroups
-  //     .map((handles) => populateUri({
-  //       __typename: typeName,
-  //       origin: 'scannarr',
-  //       id: toScannarrId(handles.map(handle => handle.uri).join(',') as Uris),
-  //       handles: {
-  //         __typename: `${typeName}Connection`,
-  //         edges: handles.map((handle) => ({
-  //           __typename: `${typeName}Edge`,
-  //           handleRelationType: HandleRelation.Identical,
-  //           node: {
-  //             __typename: typeName,
-  //             ...handle
-  //           }
-  //         })),
-  //         nodes: handles.map((handle) => ({
-  //           __typename: typeName,
-  //           ...handle
-  //         }))
-  //       }
-  //     }))
 
+
+  return {
+    groups,
+    handleGroups,
+    scannarrHandles:
+      handleGroups
+        .map((handles) =>
+          makeScannarrHandle({ typename: 'Media', handles })
+        )
+  }
 }
+
+export const makeScannarrHandle = ({ typename, handles }: { typename: string, handles: Handle[] }) =>
+  populateUri({
+    __typename: typename,
+    origin: 'scannarr',
+    id: toScannarrId(handles.map(handle => handle.uri).join(',') as Uris),
+    handles: {
+      __typename: `${typename}Connection`,
+      edges: handles.map((handle) => ({
+        __typename: `${typename}Edge`,
+        handleRelationType: HandleRelation.Identical,
+        node: {
+          __typename: typename,
+          ...handle
+        }
+      })),
+      nodes: handles.map((handle) => ({
+        __typename: typename,
+        ...handle
+      }))
+    }
+  })

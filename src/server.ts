@@ -22,9 +22,9 @@ export type BaseContext = ApolloBaseContext & {
   fetch: typeof fetch
   input: RequestInfo | URL
   init?: RequestInit
-  originResults: ApolloQueryResult<any> & {
+  originResults: (ApolloQueryResult<any> & {
     origin: OriginWithResolvers
-  }[]
+  })[]
 }
 
 export {

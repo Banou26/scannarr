@@ -79,6 +79,8 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
     resolvers
   })
 
+  server.start()
+
   const clientLink = makeLink({
     prefix: operationPrefix,
     server,
