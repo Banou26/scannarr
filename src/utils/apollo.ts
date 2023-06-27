@@ -1,6 +1,4 @@
-import { ApolloQueryResult } from '@apollo/client/core'
 import { Handle, HandleRelation, Resolvers } from '../generated/graphql'
-import { BaseContext, OriginWithResolvers } from '../apollo-aggregator'
 import { Uris, populateUri, toScannarrId } from './uri'
 
 export const defaultResolvers = (resolvers: Resolvers) => ({
@@ -70,9 +68,6 @@ export const indexHandles = <T extends Handle[]>({ results: _results }: { result
     addHandleRecursiveToIndex(handle)
   }
 
-
-  console.log('index', index)
-  console.log('results', results)
   return {
     results,
     index
@@ -93,14 +88,13 @@ export const groupRelatedHandles = <T extends Handle>({ typename, results: _resu
 
   const handleGroups = groups.map((uris) => results.filter((handle) => uris.includes(handle.uri)))
 
-
   return {
     groups,
     handleGroups,
     scannarrHandles:
       handleGroups
         .map((handles) =>
-          makeScannarrHandle({ typename: 'Media', handles })
+          makeScannarrHandle({ typename, handles })
         )
   }
 }
