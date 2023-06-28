@@ -4,12 +4,29 @@ import { InMemoryCache } from '@apollo/client/core'
 import { ContextThunk } from '@apollo/server'
 
 import makeApolloAggregator, { OriginWithResolvers } from './apollo-aggregator'
-import { defaultResolvers, groupRelatedHandles } from './utils/apollo'
+import { defaultResolvers, groupRelatedHandles, makeTypePolicies } from './utils/apollo'
 import { Media } from './generated/graphql'
 
 import schema from './graphql'
 
-export default <T extends ContextThunk>({ context, origins }: { typeDefs: TypeSource, context: T, origins: OriginWithResolvers[] }) => {
+export type Policies = {
+  [key: string]: {
+    [key: string]: {
+      originPriority?: string[],
+      merge?: (existing: any, incoming: any) => any
+    }
+  }
+}
+
+const makeScannarr = <T extends ContextThunk>({
+  context,
+  origins,
+  policies
+}: {
+  typeDefs: TypeSource
+  context: T, origins: OriginWithResolvers[]
+  policies: Policies
+}) => {
   const cache = new InMemoryCache({
     typePolicies: {
       Page: {
@@ -23,7 +40,16 @@ export default <T extends ContextThunk>({ context, origins }: { typeDefs: TypeSo
       Media: {
         keyFields: ['uri'],
         fields: {
-
+          ...makeTypePolicies({
+            rootTypename: 'Media',
+            policies,
+            fields: [
+              'description',
+              'shortDescription',
+              'popularity',
+              'averageScore'
+            ]
+          })
         }
       }
     }
@@ -44,6 +70,7 @@ export default <T extends ContextThunk>({ context, origins }: { typeDefs: TypeSo
             typename: 'media',
             results: (originResults?.flatMap(results => results.data.Page.media ?? []) ?? []) as Media[]
           })
+          console.log('scannarrHandles', scannarrHandles)
           return scannarrHandles
         }
       }
@@ -57,3 +84,5 @@ export default <T extends ContextThunk>({ context, origins }: { typeDefs: TypeSo
     link
   }
 }
+
+export default makeScannarr

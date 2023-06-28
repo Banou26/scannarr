@@ -1,3 +1,4 @@
+import { Policies } from '../apollo'
 import { Handle, HandleRelation, Resolvers } from '../generated/graphql'
 import { Uris, populateUri, toScannarrId } from './uri'
 
@@ -120,3 +121,56 @@ export const makeScannarrHandle = ({ typename, handles }: { typename: string, ha
       }))
     }
   })
+
+const sortHandlePerOrigin = (originPriorityList: string[], handles: Handle[], getHandle: (value: any) => Handle = (value) => value) =>
+  [...handles]
+    .sort((a, b) => {
+      const aPriority = originPriorityList.indexOf(getHandle(a)?.origin)
+      const bPriority = originPriorityList.indexOf(getHandle(b)?.origin)
+      if (aPriority === -1 && bPriority === -1) return 0
+      if (aPriority === -1) return 1
+      if (bPriority === -1) return -1
+      return aPriority - bPriority
+    })
+
+export const makeTypePolicy = (
+  { rootTypename, field, policies }:
+  { rootTypename: string, field: string, policies: Policies }
+) => {
+
+  return ({
+    // merge: (existing, incoming) => incoming
+    read: (existing, { args, toReference, readField }) => {
+      if (readField('origin') !== 'scannarr') return existing
+      const handlesOriginValues =
+        readField('handles')
+          .edges
+          .map((edge: any) => [
+            readField(edge.node, 'origin'),
+            readField(field, edge.node)
+          ])
+
+      const sortedHandlesOriginValues =
+        sortHandlePerOrigin(
+          policies?.[rootTypename]?.[field]?.originPriority ?? [],
+          handlesOriginValues,
+          (value) => value[1]
+        )
+      console.log(rootTypename, field, 'existing', existing, 'sortedHandlesOriginValues', sortedHandlesOriginValues)
+      return sortedHandlesOriginValues.at(-1)[1]
+    }
+  })
+}
+
+export const makeTypePolicies = (
+  { rootTypename, policies, fields }:
+  { rootTypename: string, policies: Policies, fields: string[] }
+) =>
+  Object
+    .fromEntries(
+      fields
+        .map((field) => [
+          field,
+          makeTypePolicy({ rootTypename, field, policies })
+        ])
+    )
