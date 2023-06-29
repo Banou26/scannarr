@@ -37,26 +37,16 @@ const makeScannarr = <T extends ContextThunk>({
       Media: {
         keyFields: ['uri'],
         fields: {
-          title: makeObjectTypePolicy({
-            fieldName: 'title',
-            policy: policies.Media?.title
-          }),
-          trailers: makeArrayTypePolicy({
-            fieldName: 'trailers',
-            policy: policies.Media?.trailers
-          }),
-          coverImage: makeArrayTypePolicy({
-            fieldName: 'coverImage',
-            policy: policies.Media?.coverImage
-          }),
-          externalLinks: makeArrayTypePolicy({
-            fieldName: 'externalLinks',
-            policy: policies.Media?.externalLinks
-          }),
-          bannerImage: makeArrayTypePolicy({
-            fieldName: 'bannerImage',
-            policy: policies.Media?.bannerImage
-          }),
+          title: makeObjectTypePolicy({ fieldName: 'title', policy: policies.Media?.title }),
+          ...Object.fromEntries([
+            'trailers',
+            'coverImage',
+            'externalLinks',
+            'bannerImage'
+          ].map(fieldName => [
+            fieldName,
+            makeArrayTypePolicy({ fieldName, policy: policies.Media?.[fieldName] })
+          ])),
           ...Object.fromEntries([
             'description',
             'shortDescription',
@@ -83,11 +73,21 @@ const makeScannarr = <T extends ContextThunk>({
       Page: {
         media: (_, __, { originResults }) => {
           const { scannarrHandles } = groupRelatedHandles({
-            typename: 'media',
+            typename: 'Media',
             results: (originResults?.flatMap(results => results.data.Page.media ?? []) ?? []) as Media[]
           })
-          console.log('scannarrHandles', scannarrHandles)
+          console.log('Page.media scannarrHandles', scannarrHandles)
           return scannarrHandles
+        }
+      },
+      Query: {
+        Media: (_, { id }, { originResults }) => {
+          const { scannarrHandles } = groupRelatedHandles({
+            typename: 'Media',
+            results: (originResults?.flatMap(results => results.data.Media ?? []) ?? []) as Media[]
+          })
+          console.log('Query.Media scannarrHandles', scannarrHandles)
+          return scannarrHandles.at(0)
         }
       }
     })
