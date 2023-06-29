@@ -133,10 +133,7 @@ const sortHandlePerOrigin = (originPriorityList: string[], handles: Handle[], ge
       return aPriority - bPriority
     })
 
-export const makePrimitiveTypePolicy = (
-  { rootTypename, field, policies }:
-  { rootTypename: string, field: string, policies: Policies }
-) => ({
+export const makePrimitiveTypePolicy = ({ fieldName, policy }: { fieldName: string, policy: Policies[string][string] }) => ({
   read: (existing, { args, toReference, readField }) => {
     if (readField('origin') !== 'scannarr') return existing
     const handlesOriginValues =
@@ -144,37 +141,24 @@ export const makePrimitiveTypePolicy = (
         .edges
         .map((edge: any) => [
           readField(edge.node, 'origin'),
-          readField(field, edge.node)
+          readField(fieldName, edge.node)
         ])
 
     const sortedHandlesOriginValues =
       sortHandlePerOrigin(
-        policies?.[rootTypename]?.[field]?.originPriority ?? [],
+        policy?.originPriority ?? [],
         handlesOriginValues,
         (value) => value[1]
       )
     return (
       sortedHandlesOriginValues
-      .reduce(
-        (acc, [origin, value]) => value ?? acc,
-        sortedHandlesOriginValues.at(0)?.[1]
-      )
+        .reduce(
+          (acc, [origin, value]) => value ?? acc,
+          sortedHandlesOriginValues.at(0)?.[1]
+        )
     )
   }
 })
-
-export const makePrimitiveTypePolicies = (
-  { rootTypename, policies, fields }:
-  { rootTypename: string, policies: Policies, fields: string[] }
-) =>
-  Object
-    .fromEntries(
-      fields
-        .map((field) => [
-          field,
-          makePrimitiveTypePolicy({ rootTypename, field, policies })
-        ])
-    )
 
 export const makeObjectTypePolicy = ({ fieldName, policy }: { fieldName: string, policy?: Policies[string][string] }) => ({
   read: (existing, { args, toReference, readField }) => {
