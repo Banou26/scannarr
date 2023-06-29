@@ -4,7 +4,7 @@ import { InMemoryCache } from '@apollo/client/core'
 import { ContextThunk } from '@apollo/server'
 
 import makeApolloAggregator, { OriginWithResolvers } from './apollo-aggregator'
-import { defaultResolvers, groupRelatedHandles, makeTypePolicies } from './utils/apollo'
+import { defaultResolvers, groupRelatedHandles, makePrimitiveTypePolicies } from './utils/apollo'
 import { Media } from './generated/graphql'
 
 import schema from './graphql'
@@ -23,7 +23,7 @@ const makeScannarr = <T extends ContextThunk>({
   origins,
   policies
 }: {
-  typeDefs: TypeSource
+  // typeDefs: TypeSource
   context: T, origins: OriginWithResolvers[]
   policies: Policies
 }) => {
@@ -40,7 +40,7 @@ const makeScannarr = <T extends ContextThunk>({
       Media: {
         keyFields: ['uri'],
         fields: {
-          ...makeTypePolicies({
+          ...makePrimitiveTypePolicies({
             rootTypename: 'Media',
             policies,
             fields: [

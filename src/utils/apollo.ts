@@ -133,36 +133,31 @@ const sortHandlePerOrigin = (originPriorityList: string[], handles: Handle[], ge
       return aPriority - bPriority
     })
 
-export const makeTypePolicy = (
+export const makePrimitiveTypePolicy = (
   { rootTypename, field, policies }:
   { rootTypename: string, field: string, policies: Policies }
-) => {
+) => ({
+  read: (existing, { args, toReference, readField }) => {
+    if (readField('origin') !== 'scannarr') return existing
+    const handlesOriginValues =
+      readField('handles')
+        .edges
+        .map((edge: any) => [
+          readField(edge.node, 'origin'),
+          readField(field, edge.node)
+        ])
 
-  return ({
-    // merge: (existing, incoming) => incoming
-    read: (existing, { args, toReference, readField }) => {
-      if (readField('origin') !== 'scannarr') return existing
-      const handlesOriginValues =
-        readField('handles')
-          .edges
-          .map((edge: any) => [
-            readField(edge.node, 'origin'),
-            readField(field, edge.node)
-          ])
+    const sortedHandlesOriginValues =
+      sortHandlePerOrigin(
+        policies?.[rootTypename]?.[field]?.originPriority ?? [],
+        handlesOriginValues,
+        (value) => value[1]
+      )
+    return sortedHandlesOriginValues.at(-1)?.[1]
+  }
+})
 
-      const sortedHandlesOriginValues =
-        sortHandlePerOrigin(
-          policies?.[rootTypename]?.[field]?.originPriority ?? [],
-          handlesOriginValues,
-          (value) => value[1]
-        )
-      console.log(rootTypename, field, 'existing', existing, 'sortedHandlesOriginValues', sortedHandlesOriginValues)
-      return sortedHandlesOriginValues.at(-1)[1]
-    }
-  })
-}
-
-export const makeTypePolicies = (
+export const makePrimitiveTypePolicies = (
   { rootTypename, policies, fields }:
   { rootTypename: string, policies: Policies, fields: string[] }
 ) =>
@@ -171,6 +166,6 @@ export const makeTypePolicies = (
       fields
         .map((field) => [
           field,
-          makeTypePolicy({ rootTypename, field, policies })
+          makePrimitiveTypePolicy({ rootTypename, field, policies })
         ])
     )
