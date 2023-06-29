@@ -153,7 +153,13 @@ export const makePrimitiveTypePolicy = (
         handlesOriginValues,
         (value) => value[1]
       )
-    return sortedHandlesOriginValues.at(-1)?.[1]
+    return (
+      sortedHandlesOriginValues
+      .reduce(
+        (acc, [origin, value]) => value ?? acc,
+        sortedHandlesOriginValues.at(0)?.[1]
+      )
+    )
   }
 })
 
