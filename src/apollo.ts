@@ -4,7 +4,7 @@ import { InMemoryCache } from '@apollo/client/core'
 import { ContextThunk } from '@apollo/server'
 
 import makeApolloAggregator, { OriginWithResolvers } from './apollo-aggregator'
-import { defaultResolvers, groupRelatedHandles, makePrimitiveTypePolicies } from './utils/apollo'
+import { defaultResolvers, groupRelatedHandles, makeObjectTypePolicy, makePrimitiveTypePolicies } from './utils/apollo'
 import { Media } from './generated/graphql'
 
 import schema from './graphql'
@@ -49,6 +49,10 @@ const makeScannarr = <T extends ContextThunk>({
               'popularity',
               'averageScore'
             ]
+          }),
+          title: makeObjectTypePolicy({
+            fieldName: 'title',
+            policy: policies.Media?.title
           })
         }
       }
