@@ -183,7 +183,7 @@ export const makeObjectTypePolicy = ({ fieldName, policy }: { fieldName: string,
       sortedHandlesOriginValues
         .reduce((acc, [origin, value]) => ({
           ...acc,
-          ...Object.fromEntries(
+          ...value && Object.fromEntries(
             Object
               .entries(value)
               .filter(([key, val]) => val !== null && val !== undefined)

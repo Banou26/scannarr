@@ -2,7 +2,7 @@ import { InMemoryCache } from '@apollo/client/core'
 import { ContextThunk } from '@apollo/server'
 
 import makeApolloAggregator, { OriginWithResolvers } from './apollo-aggregator'
-import { defaultResolvers, groupRelatedHandles, makeObjectTypePolicy, makePrimitiveTypePolicy } from './utils/apollo'
+import { defaultResolvers, groupRelatedHandles, makeArrayTypePolicy, makeObjectTypePolicy, makePrimitiveTypePolicy } from './utils/apollo'
 import { Media } from './generated/graphql'
 
 import schema from './graphql'
@@ -37,6 +37,26 @@ const makeScannarr = <T extends ContextThunk>({
       Media: {
         keyFields: ['uri'],
         fields: {
+          title: makeObjectTypePolicy({
+            fieldName: 'title',
+            policy: policies.Media?.title
+          }),
+          trailers: makeArrayTypePolicy({
+            fieldName: 'trailers',
+            policy: policies.Media?.trailers
+          }),
+          coverImage: makeArrayTypePolicy({
+            fieldName: 'coverImage',
+            policy: policies.Media?.coverImage
+          }),
+          externalLinks: makeArrayTypePolicy({
+            fieldName: 'externalLinks',
+            policy: policies.Media?.externalLinks
+          }),
+          bannerImage: makeArrayTypePolicy({
+            fieldName: 'bannerImage',
+            policy: policies.Media?.bannerImage
+          }),
           ...Object.fromEntries([
             'description',
             'shortDescription',
@@ -45,11 +65,7 @@ const makeScannarr = <T extends ContextThunk>({
           ].map(fieldName => [
             fieldName,
             makePrimitiveTypePolicy({ fieldName, policy: policies.Media?.[fieldName] })
-          ])),
-          title: makeObjectTypePolicy({
-            fieldName: 'title',
-            policy: policies.Media?.title
-          })
+          ]))
         }
       }
     }
