@@ -134,7 +134,7 @@ const sortHandlePerOrigin = (originPriorityList: string[], handles: Handle[], ge
     })
 
 export const makePrimitiveTypePolicy = ({ fieldName, policy }: { fieldName: string, policy: Policies[string][string] }) => ({
-  read: (existing, { args, toReference, readField }) => {
+  read: (existing, { readField }) => {
     if (readField('origin') !== 'scannarr') return existing
     const handlesOriginValues =
       readField('handles')
@@ -150,6 +150,7 @@ export const makePrimitiveTypePolicy = ({ fieldName, policy }: { fieldName: stri
         handlesOriginValues,
         (value) => value[1]
       )
+
     return (
       sortedHandlesOriginValues
         .reduce(
@@ -161,7 +162,7 @@ export const makePrimitiveTypePolicy = ({ fieldName, policy }: { fieldName: stri
 })
 
 export const makeObjectTypePolicy = ({ fieldName, policy }: { fieldName: string, policy?: Policies[string][string] }) => ({
-  read: (existing, { args, toReference, readField }) => {
+  read: (existing, { readField }) => {
     if (readField('origin') !== 'scannarr') return existing
     const handlesOriginValues =
       readField('handles')
@@ -177,6 +178,7 @@ export const makeObjectTypePolicy = ({ fieldName, policy }: { fieldName: string,
         handlesOriginValues,
         (value) => value[1]
       )
+  
     return (
       sortedHandlesOriginValues
         .reduce((acc, [origin, value]) => ({
@@ -187,6 +189,36 @@ export const makeObjectTypePolicy = ({ fieldName, policy }: { fieldName: string,
               .filter(([key, val]) => val !== null && val !== undefined)
           )
         }), sortedHandlesOriginValues.at(0)?.[1])
+    )
+  }
+})
+
+export const makeArrayTypePolicy = ({ fieldName, policy }: { fieldName: string, policy?: Policies[string][string] }) => ({
+  read: (existing, { readField }) => {
+    if (readField('origin') !== 'scannarr') return existing
+    const handlesOriginValues =
+      readField('handles')
+        .edges
+        .map((edge: any) => [
+          readField(edge.node, 'origin'),
+          readField(fieldName, edge.node)
+        ])
+
+    const sortedHandlesOriginValues =
+      sortHandlePerOrigin(
+        policy?.originPriority ?? [],
+        handlesOriginValues,
+        (value) => value[1]
+      )
+
+    return (
+      sortedHandlesOriginValues
+        .flatMap(([origin, value]) => value ?? [])
+        .filter((value, i, items) =>
+          value.__ref
+            ? items.findIndex((item) => item.__ref === value.__ref) === i
+            : true
+        )
     )
   }
 })
