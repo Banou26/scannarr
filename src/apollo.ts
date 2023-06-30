@@ -38,6 +38,9 @@ const makeScannarr = <T extends ContextThunk>({
       Media: {
         keyFields: ['uri'],
         fields: {
+          handles: {
+            merge: (existing, incoming) => incoming
+          },
           title: makeObjectTypePolicy({ fieldName: 'title', policy: policies.Media?.title }),
           ...Object.fromEntries([
             'trailers',
@@ -130,7 +133,6 @@ const makeScannarr = <T extends ContextThunk>({
             typename: 'Media',
             results: (originResults?.flatMap(results => results.data.Page.media ?? []) ?? []) as Media[]
           })
-          console.log('Page.media scannarrHandles', scannarrHandles, originResults)
           return scannarrHandles
         }
       },
@@ -140,7 +142,6 @@ const makeScannarr = <T extends ContextThunk>({
             typename: 'Media',
             results: (originResults?.flatMap(results => results.data.Media ?? []) ?? []) as Media[]
           })
-          console.log('Query.Media scannarrHandles', scannarrHandles, originResults)
           return scannarrHandles.at(0)
         }
       }
