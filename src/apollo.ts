@@ -76,15 +76,6 @@ const makeScannarr = <T extends ContextThunk>({
                 ).entries()
               ]
 
-              console.log('groupedByNumber', groupedByNumber)
-
-              console.log(
-                'scannarrHandles',
-                groupedByNumber.map(([number, nodes]) =>
-                  makeScannarrHandle({ typename: 'MediaEpisode', handles: nodes, readField })
-                )
-              )
-
               const nodes =
                 groupedByNumber
                   .map(([number, nodes]) => ({
@@ -92,11 +83,6 @@ const makeScannarr = <T extends ContextThunk>({
                     media: toReference(`Media:{"uri":"${readField('uri')}"}`),
                     mediaUri: readField('uri')
                   }))
-
-              console.log(
-                'nodes',
-                nodes
-              )
 
               return {
                 edges: nodes.map((node) => ({ node })),
@@ -109,7 +95,11 @@ const makeScannarr = <T extends ContextThunk>({
       MediaEpisode: {
         keyFields: ['uri'],
         fields: {
-          title: makeObjectTypePolicy({ fieldName: 'title', policy: policies.MediaEpisode?.title }),
+          title: makeObjectTypePolicy({
+            fieldName: 'title',
+            policy: policies.MediaEpisode?.title,
+            defaultValue: { romanized: null, native: null, english: null }
+          }),
           ...Object.fromEntries([
             'airingAt',
             'number',

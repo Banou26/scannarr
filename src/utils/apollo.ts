@@ -165,7 +165,7 @@ export const makePrimitiveTypePolicy = ({ fieldName, policy }: { fieldName: stri
   }
 })
 
-export const makeObjectTypePolicy = ({ fieldName, policy }: { fieldName: string, policy?: Policies[string][string] }) => ({
+export const makeObjectTypePolicy = ({ fieldName, policy, defaultValue }: { fieldName: string, policy?: Policies[string][string], defaultValue?: any }) => ({
   read: (existing, { readField }) => {
     if (readField('origin') !== 'scannarr') return existing
     const handlesOriginValues =
@@ -182,7 +182,7 @@ export const makeObjectTypePolicy = ({ fieldName, policy }: { fieldName: string,
         handlesOriginValues,
         (value) => value[1]
       )
-  
+
     return (
       sortedHandlesOriginValues
         .reduce((acc, [origin, value]) => ({
@@ -192,7 +192,7 @@ export const makeObjectTypePolicy = ({ fieldName, policy }: { fieldName: string,
               .entries(value)
               .filter(([key, val]) => val !== null && val !== undefined)
           )
-        }), sortedHandlesOriginValues.at(0)?.[1])
+        }), defaultValue ?? sortedHandlesOriginValues.at(0)?.[1])
     )
   }
 })
