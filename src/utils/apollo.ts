@@ -1,3 +1,4 @@
+import { ReadFieldFunction } from '@apollo/client/cache/core/types/common'
 import { Policies } from '../apollo'
 import { Handle, HandleRelation, Resolvers } from '../generated/graphql'
 import { Uris, populateUri, toScannarrId } from './uri'
@@ -100,11 +101,12 @@ export const groupRelatedHandles = <T extends Handle>({ typename, results: _resu
   }
 }
 
-export const makeScannarrHandle = ({ typename, handles }: { typename: string, handles: Handle[] }) =>
+export const makeScannarrHandle = ({ typename, handles, readField }: { typename: string, handles: Handle[], readField?: ReadFieldFunction }) =>
   populateUri({
     __typename: typename,
     origin: 'scannarr',
-    id: toScannarrId(handles.map(handle => handle.uri).join(',') as Uris),
+    id: toScannarrId(handles.map(handle => readField ? readField('uri', handle) : handle.uri).join(',') as Uris),
+    url: '',
     handles: {
       __typename: `${typename}Connection`,
       edges: handles.map((handle) => ({
@@ -112,12 +114,14 @@ export const makeScannarrHandle = ({ typename, handles }: { typename: string, ha
         handleRelationType: HandleRelation.Identical,
         node: {
           __typename: typename,
-          ...handle
+          ...handle,
+          uri: readField ? readField('uri', handle) : handle.uri
         }
       })),
       nodes: handles.map((handle) => ({
         __typename: typename,
-        ...handle
+        ...handle,
+        uri: readField ? readField('uri', handle) : handle.uri
       }))
     }
   })
@@ -140,7 +144,7 @@ export const makePrimitiveTypePolicy = ({ fieldName, policy }: { fieldName: stri
       readField('handles')
         .edges
         .map((edge: any) => [
-          readField(edge.node, 'origin'),
+          readField('origin', edge.node),
           readField(fieldName, edge.node)
         ])
 
@@ -168,7 +172,7 @@ export const makeObjectTypePolicy = ({ fieldName, policy }: { fieldName: string,
       readField('handles')
         .edges
         .map((edge: any) => [
-          readField(edge.node, 'origin'),
+          readField('origin', edge.node),
           readField(fieldName, edge.node)
         ])
 
@@ -200,7 +204,7 @@ export const makeArrayTypePolicy = ({ fieldName, policy }: { fieldName: string, 
       readField('handles')
         .edges
         .map((edge: any) => [
-          readField(edge.node, 'origin'),
+          readField('origin', edge.node),
           readField(fieldName, edge.node)
         ])
 
