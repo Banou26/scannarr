@@ -3,11 +3,10 @@ import { ContextThunk } from '@apollo/server'
 
 import makeApolloAggregator, { OriginWithResolvers } from './apollo-aggregator'
 import { defaultResolvers, groupRelatedHandles, makeArrayTypePolicy, makeObjectTypePolicy, makePrimitiveTypePolicy, makeScannarrHandle } from './utils/apollo'
-import { Handle, Media, MediaEpisode } from './generated/graphql'
+import { Media, MediaEpisode } from './generated/graphql'
 
 import schema from './graphql'
 import { groupBy } from './utils/groupBy'
-import { Uri, toScannarrUri } from './utils'
 import { getEdges } from './utils/handle'
 
 export type Policies = {
@@ -67,70 +66,16 @@ const makeScannarr = <T extends ContextThunk>({
             read: (existing, { readField }) => {
               if (readField('origin') !== 'scannarr') return existing
               if (!existing) return existing
-
-              const res =
-                getEdges(existing)
-                  ?.flatMap(edge =>
-                    readField('handles', edge.node)
-                      ? getEdges(readField('handles', edge.node), readField)
-                      : []
-                  )
-
-              // if (readField('uri') === 'scannarr:bWFsOjUyMjExLGFuaWxpc3Q6MTUxODAx') {
-              //   console.log(
-              //     'READ HANDLES',
-              //     existing,
-              //     existing
-              //       ?.edges
-              //       ?.flatMap((edge: any) =>
-              //         readField('handles', edge.node)?.edges ?? []
-              //       ),
-
-              //       // (
-              //       //   existing
-              //       //     ? getEdges({ handles: existing } as Handle)
-              //       //       ?.flatMap(edge =>
-              //       //         getEdges(edge.node, readField) ?? []
-              //       //       )
-              //       //     : undefined
-              //       // ) ?? [],
-
-              //     // (
-              //     //   existing
-              //     //     ? getEdges(existing)
-              //     //       ?.flatMap(edge =>
-              //     //         readField('handles', edge.node)
-              //     //           ? getEdges(readField('handles', edge.node), readField)
-              //     //           : []
-              //     //       )
-              //     //     : undefined
-              //     // ) ?? []
-
-              //     res
-                  
-              //   )
-              // }
               const items = [
                 ...getEdges(existing) ?? [],
-                ...res
-                // ...(
-                //   getEdges({ handles: existing } as Handle)
-                //     ?.flatMap(edge =>
-                //       readField('handles', edge.node)
-                //         ? getEdges(readField('handles', edge.node), readField)
-                //         : []
-                //     )
-                //   ?? []
-                // )
-                // ...existing.edges ?? [],
-                // ...existing
-                //   ?.edges
-                //   ?.flatMap((edge: any) =>
-                //     readField('handles', edge.node)?.edges ?? []
-                //     // ?? readField('handles', edge.node)?.nodes?.map((node: any) => ({ node }))
-                //     // ?? []
-                //   )
-                //   ?? []
+                ...(
+                  getEdges(existing)
+                    ?.flatMap(edge =>
+                      readField('handles', edge.node)
+                        ? getEdges(readField('handles', edge.node), readField)
+                        : []
+                    )
+                )
               ]
               return {
                 __typename: 'MediaConnection',
@@ -138,7 +83,6 @@ const makeScannarr = <T extends ContextThunk>({
                 nodes: items.map((edge: any) => edge.node)
               }
             }
-            // merge: (existing, incoming) => incoming
           },
           title: makeObjectTypePolicy({ fieldName: 'title', policy: policies.Media?.title }),
           ...Object.fromEntries([
@@ -163,21 +107,13 @@ const makeScannarr = <T extends ContextThunk>({
             read: (existing, { readField, toReference }) => {
               if (readField('origin') !== 'scannarr') return existing
 
-              // const handlesOriginValues =
-              //   getEdges({ handles: readField('handles') } as Handle)
-              //     .flatMap((edge) =>
-              //       getEdges({ handles: readField('episodes', edge.node) } as Handle)
-              //         ?.map((edge) => edge.node)
-              //     )
               const handlesOriginValues =
-                readField('handles')
-                  .edges
-                  .flatMap((edge: any) =>
-                    readField('episodes', edge.node)
-                      ?.edges
-                      ?.map((edge: any) => edge.node)
-                    ?? []
+                getEdges(readField('handles'))
+                  .flatMap((edge) =>
+                    getEdges(readField('episodes', edge.node))
+                      ?.map((edge) => edge.node)
                   )
+
               const groupedByNumber = [
                 ...groupBy(
                   handlesOriginValues,
