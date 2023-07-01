@@ -38,8 +38,8 @@ export const indexHandles = <T extends Handle[]>({ results: _results }: { result
   const index: { [key: string]: string[] } = {}
   const alreadyRecursed = new Set()
 
-  const addHandleRecursiveToIndex = (parentHandle: Handle) => {
-    if (alreadyRecursed.has(parentHandle.uri)) return
+  const addHandleRecursiveToIndex = (parentHandle: Handle, force = false) => {
+    if (alreadyRecursed.has(parentHandle.uri) && !force) return
     alreadyRecursed.add(parentHandle.uri)
     
     if (!results.some(handle => handle.uri === handle.uri)) {
@@ -64,7 +64,7 @@ export const indexHandles = <T extends Handle[]>({ results: _results }: { result
   }
 
   for (const handle of _results) {
-    addHandleRecursiveToIndex(handle)
+    addHandleRecursiveToIndex(handle, true)
   }
 
   return {
