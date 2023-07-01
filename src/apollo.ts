@@ -8,6 +8,7 @@ import { Media, MediaEpisode } from './generated/graphql'
 import schema from './graphql'
 import { groupBy } from './utils/groupBy'
 import { getEdges } from './utils/handle'
+import { toScannarrUri } from './utils'
 
 export type Policies = {
   [key: string]: {
@@ -39,29 +40,23 @@ const makeScannarr = <T extends ContextThunk>({
       Media: {
         keyFields: ['uri'],
         fields: {
-          // uri: {
-          //   read: (existing, { readField }) => {
-          //     if (readField('origin') !== 'scannarr') return existing
-          //     if (!readField('handles')?.edges?.length) return existing
+          uri: {
+            read: (existing, { readField }) => {
+              if (readField('origin') !== 'scannarr') return existing
+              if (!getEdges(readField('handles'))?.length) return existing
 
-          //     // console.log(
-          //     //   'TO SCANNARR URI',
-          //     //   existing,
-          //     //   toScannarrUri(
-          //     //     readField('handles')
-          //     //       .edges
-          //     //       .map((edge: any) => readField('uri', edge.node))
-          //     //   )
-          //     // )
-          //     return (
-          //       toScannarrUri(
-          //         readField('handles')
-          //           .edges
-          //           .map((edge: any) => readField('uri', edge.node))
-          //       )
-          //     )
-          //   }
-          // },
+              return (
+                toScannarrUri(
+                  [
+                    ...new Set(
+                      getEdges(readField('handles'))
+                        .map((edge: any) => readField('uri', edge.node))
+                    )
+                  ]
+                )
+              )
+            }
+          },
           handles: {
             read: (existing, { readField }) => {
               if (readField('origin') !== 'scannarr') return existing
