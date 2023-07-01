@@ -72,10 +72,20 @@ const makeScannarr = <T extends ContextThunk>({
                     )
                 )
               ]
+
+              const itemsSet = new Set(items.map((edge: any) => readField('uri', edge.node)))
+
+              const uniqueItems =
+                [...itemsSet].map(uri =>
+                  items.find((edge: any) =>
+                    readField('uri', edge.node) === uri
+                  )
+                )
+
               return {
                 __typename: 'MediaConnection',
-                edges: items,
-                nodes: items.map((edge: any) => edge.node)
+                edges: uniqueItems,
+                nodes: uniqueItems.map((edge: any) => edge.node)
               }
             }
           },
