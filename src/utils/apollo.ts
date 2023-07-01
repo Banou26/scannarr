@@ -2,6 +2,7 @@ import { ReadFieldFunction } from '@apollo/client/cache/core/types/common'
 import { Policies } from '../apollo'
 import { Handle, HandleRelation, Resolvers } from '../generated/graphql'
 import { Uris, populateUri, toScannarrId } from './uri'
+import { getEdges } from './handle'
 
 export const defaultResolvers = (resolvers: Resolvers) => ({
   ...resolvers,
@@ -46,10 +47,13 @@ export const indexHandles = <T extends Handle[]>({ results: _results }: { result
     }
 
     if (!index[parentHandle.uri]) index[parentHandle.uri] = [parentHandle.uri]
+    // console.log('BBBBBBBBBBBBBBBBB', parentHandle, parentHandle.handles?.edges)
+    // console.log('BBBBBBBBBBBBBBBBB2', getEdges(parentHandle.handles))
     const identicalHandles =
-      parentHandle
-        .handles
-        ?.edges
+      // parentHandle
+      //   .handles
+      //   ?.edges
+      getEdges(parentHandle.handles)
         ?? []
     for (const handle of identicalHandles) {
       if (!index[handle.node.uri]) index[handle.node.uri] = [handle.node.uri]
@@ -140,9 +144,11 @@ const sortHandlePerOrigin = (originPriorityList: string[], handles: Handle[], ge
 export const makePrimitiveTypePolicy = ({ fieldName, policy }: { fieldName: string, policy: Policies[string][string] }) => ({
   read: (existing, { readField }) => {
     if (readField('origin') !== 'scannarr') return existing
+    // console.log('AAAAAAAAAAAAAAAA', readField('handles').edges, getEdges(readField('handles')))
     const handlesOriginValues =
-      readField('handles')
-        .edges
+      // readField('handles')
+      //   .edges
+      getEdges(readField('handles'))
         .map((edge: any) => [
           readField('origin', edge.node),
           readField(fieldName, edge.node)
@@ -168,9 +174,11 @@ export const makePrimitiveTypePolicy = ({ fieldName, policy }: { fieldName: stri
 export const makeObjectTypePolicy = ({ fieldName, policy, defaultValue }: { fieldName: string, policy?: Policies[string][string], defaultValue?: any }) => ({
   read: (existing, { readField }) => {
     if (readField('origin') !== 'scannarr') return existing
+    // console.log('AAAAAAAAAAAAAAAA', readField('handles').edges, getEdges(readField('handles')))
     const handlesOriginValues =
-      readField('handles')
-        .edges
+      // readField('handles')
+      //   .edges
+      getEdges(readField('handles'))
         .map((edge: any) => [
           readField('origin', edge.node),
           readField(fieldName, edge.node)
@@ -200,9 +208,11 @@ export const makeObjectTypePolicy = ({ fieldName, policy, defaultValue }: { fiel
 export const makeArrayTypePolicy = ({ fieldName, policy }: { fieldName: string, policy?: Policies[string][string] }) => ({
   read: (existing, { readField }) => {
     if (readField('origin') !== 'scannarr') return existing
+    // console.log('AAAAAAAAAAAAAAAA', readField('handles').edges, getEdges(readField('handles')))
     const handlesOriginValues =
-      readField('handles')
-        .edges
+      // readField('handles')
+      //   .edges
+      getEdges(readField('handles'))
         .map((edge: any) => [
           readField('origin', edge.node),
           readField(fieldName, edge.node)

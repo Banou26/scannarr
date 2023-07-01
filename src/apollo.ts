@@ -3,10 +3,12 @@ import { ContextThunk } from '@apollo/server'
 
 import makeApolloAggregator, { OriginWithResolvers } from './apollo-aggregator'
 import { defaultResolvers, groupRelatedHandles, makeArrayTypePolicy, makeObjectTypePolicy, makePrimitiveTypePolicy, makeScannarrHandle } from './utils/apollo'
-import { Media } from './generated/graphql'
+import { Handle, Media, MediaEpisode } from './generated/graphql'
 
 import schema from './graphql'
 import { groupBy } from './utils/groupBy'
+import { Uri, toScannarrUri } from './utils'
+import { getEdges } from './utils/handle'
 
 export type Policies = {
   [key: string]: {
@@ -38,8 +40,105 @@ const makeScannarr = <T extends ContextThunk>({
       Media: {
         keyFields: ['uri'],
         fields: {
+          // uri: {
+          //   read: (existing, { readField }) => {
+          //     if (readField('origin') !== 'scannarr') return existing
+          //     if (!readField('handles')?.edges?.length) return existing
+
+          //     // console.log(
+          //     //   'TO SCANNARR URI',
+          //     //   existing,
+          //     //   toScannarrUri(
+          //     //     readField('handles')
+          //     //       .edges
+          //     //       .map((edge: any) => readField('uri', edge.node))
+          //     //   )
+          //     // )
+          //     return (
+          //       toScannarrUri(
+          //         readField('handles')
+          //           .edges
+          //           .map((edge: any) => readField('uri', edge.node))
+          //       )
+          //     )
+          //   }
+          // },
           handles: {
-            merge: (existing, incoming) => incoming
+            read: (existing, { readField }) => {
+              if (readField('origin') !== 'scannarr') return existing
+              if (!existing) return existing
+
+              const res =
+                getEdges(existing)
+                  ?.flatMap(edge =>
+                    readField('handles', edge.node)
+                      ? getEdges(readField('handles', edge.node), readField)
+                      : []
+                  )
+
+              // if (readField('uri') === 'scannarr:bWFsOjUyMjExLGFuaWxpc3Q6MTUxODAx') {
+              //   console.log(
+              //     'READ HANDLES',
+              //     existing,
+              //     existing
+              //       ?.edges
+              //       ?.flatMap((edge: any) =>
+              //         readField('handles', edge.node)?.edges ?? []
+              //       ),
+
+              //       // (
+              //       //   existing
+              //       //     ? getEdges({ handles: existing } as Handle)
+              //       //       ?.flatMap(edge =>
+              //       //         getEdges(edge.node, readField) ?? []
+              //       //       )
+              //       //     : undefined
+              //       // ) ?? [],
+
+              //     // (
+              //     //   existing
+              //     //     ? getEdges(existing)
+              //     //       ?.flatMap(edge =>
+              //     //         readField('handles', edge.node)
+              //     //           ? getEdges(readField('handles', edge.node), readField)
+              //     //           : []
+              //     //       )
+              //     //     : undefined
+              //     // ) ?? []
+
+              //     res
+                  
+              //   )
+              // }
+              const items = [
+                ...getEdges(existing) ?? [],
+                ...res
+                // ...(
+                //   getEdges({ handles: existing } as Handle)
+                //     ?.flatMap(edge =>
+                //       readField('handles', edge.node)
+                //         ? getEdges(readField('handles', edge.node), readField)
+                //         : []
+                //     )
+                //   ?? []
+                // )
+                // ...existing.edges ?? [],
+                // ...existing
+                //   ?.edges
+                //   ?.flatMap((edge: any) =>
+                //     readField('handles', edge.node)?.edges ?? []
+                //     // ?? readField('handles', edge.node)?.nodes?.map((node: any) => ({ node }))
+                //     // ?? []
+                //   )
+                //   ?? []
+              ]
+              return {
+                __typename: 'MediaConnection',
+                edges: items,
+                nodes: items.map((edge: any) => edge.node)
+              }
+            }
+            // merge: (existing, incoming) => incoming
           },
           title: makeObjectTypePolicy({ fieldName: 'title', policy: policies.Media?.title }),
           ...Object.fromEntries([
@@ -64,6 +163,12 @@ const makeScannarr = <T extends ContextThunk>({
             read: (existing, { readField, toReference }) => {
               if (readField('origin') !== 'scannarr') return existing
 
+              // const handlesOriginValues =
+              //   getEdges({ handles: readField('handles') } as Handle)
+              //     .flatMap((edge) =>
+              //       getEdges({ handles: readField('episodes', edge.node) } as Handle)
+              //         ?.map((edge) => edge.node)
+              //     )
               const handlesOriginValues =
                 readField('handles')
                   .edges
@@ -71,6 +176,7 @@ const makeScannarr = <T extends ContextThunk>({
                     readField('episodes', edge.node)
                       ?.edges
                       ?.map((edge: any) => edge.node)
+                    ?? []
                   )
               const groupedByNumber = [
                 ...groupBy(
@@ -141,6 +247,13 @@ const makeScannarr = <T extends ContextThunk>({
           const { scannarrHandles } = groupRelatedHandles({
             typename: 'Media',
             results: (originResults?.flatMap(results => results.data.Media ?? []) ?? []) as Media[]
+          })
+          return scannarrHandles.at(0)
+        },
+        Episode: (_, { id }, { originResults }) => {
+          const { scannarrHandles } = groupRelatedHandles({
+            typename: 'MediaEpisode',
+            results: (originResults?.flatMap(results => results.data.Episode ?? []) ?? []) as MediaEpisode[]
           })
           return scannarrHandles.at(0)
         }
