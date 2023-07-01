@@ -123,11 +123,11 @@ export const makeScannarrHandle = ({ typename, handles, readField }: { typename:
     }
   })
 
-const sortHandlePerOrigin = (originPriorityList: string[], handles: Handle[], getHandle: (value: any) => Handle = (value) => value) =>
+const sortHandlePerOrigin = (originPriorityList: string[], handles: Handle[], getOrigin: (value: any) => string = (value) => value) =>
   [...handles]
     .sort((a, b) => {
-      const aPriority = originPriorityList.indexOf(getHandle(a)?.origin)
-      const bPriority = originPriorityList.indexOf(getHandle(b)?.origin)
+      const aPriority = originPriorityList.indexOf(getOrigin(a))
+      const bPriority = originPriorityList.indexOf(getOrigin(b))
       if (aPriority === -1 && bPriority === -1) return 0
       if (aPriority === -1) return 1
       if (bPriority === -1) return -1
@@ -148,7 +148,7 @@ export const makePrimitiveTypePolicy = ({ fieldName, policy }: { fieldName: stri
       sortHandlePerOrigin(
         policy?.originPriority ?? [],
         handlesOriginValues,
-        (value) => value[1]
+        (value) => value[0]
       )
 
     return (
@@ -175,7 +175,7 @@ export const makeObjectTypePolicy = ({ fieldName, policy, defaultValue }: { fiel
       sortHandlePerOrigin(
         policy?.originPriority ?? [],
         handlesOriginValues,
-        (value) => value[1]
+        (value) => value[0]
       )
 
     return (
@@ -206,7 +206,7 @@ export const makeArrayTypePolicy = ({ fieldName, policy }: { fieldName: string, 
       sortHandlePerOrigin(
         policy?.originPriority ?? [],
         handlesOriginValues,
-        (value) => value[1]
+        (value) => value[0]
       )
 
     return (
