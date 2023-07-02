@@ -1,4 +1,5 @@
 import { Handle } from '../generated/graphql'
+import { groupBy } from './groupBy'
 
 export type Uri = `${`${string}:` | ''}${string}:${string}`
 
@@ -59,5 +60,26 @@ const BASE64_REGEX = /(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3
 export const toScannarrUri = (uris: Uris): Uri => `scannarr:${btoa(uris)}`
 export const toScannarrId = (uris: Uris): string => btoa(uris)
 export const fromScannarrUri = (uri: Uri): Uri[] => atob(uri.split(':')[1]!.match(BASE64_REGEX)![0]).split(',') as Uri[]
-export const getScannarrUriEpisodeNumber = (uri: Uri) => uri.split('-')[1]
+export const toUriEpisodeId = (uri: Uri, episodeId: string) => `${uri}-${episodeId}`
+export const fromUriEpisodeId = (uri: Uri) => ({
+  uri: uri.split('-')[0] as Uri,
+  episodeId: uri.split('-')[1] as string
+})
 
+export const mergeScannarrUris = (uris: Uri[]) =>
+  toScannarrUri(
+    [
+      ...groupBy(
+        uris
+          .flatMap(uri => fromScannarrUri(uri ?? ''))
+          .map(uri => fromUri(uri)),
+        uri => uri.origin
+      )
+    ].map(([origin, uris]) =>
+      toUri(
+        uris
+          .sort((a, b) => b.id - a.id)
+          .at(-1)
+      )
+    ) as unknown as Uris
+  )
