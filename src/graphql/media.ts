@@ -65,6 +65,31 @@ export const MediaEpisodeParameters = `#graphql
     search: String
 `
 
+export const MediaEpisodePlaybackParameters = `#graphql
+    """Filter by the media id"""
+    id: String
+    """Filter by the media origin"""
+    origin: String
+    """Filter by the media uri"""
+    uri: String
+    """Filter by search terms"""
+    search: String
+
+    name: String
+
+    names: [String!]
+
+    season: Int
+
+    number: Int
+
+    resolution: String
+
+    quality: String
+
+    trusted: Boolean
+`
+
 export const schema = `#graphql
 
 extend type Query {
@@ -183,7 +208,7 @@ type MediaEpisode {
   airingAt: Float
 
   """The episode number"""
-  number: Int!
+  number: Float!
 
   """The title of the episode"""
   title: MediaTitle

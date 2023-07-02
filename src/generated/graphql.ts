@@ -263,7 +263,7 @@ export type MediaEpisode = {
   /** The associate media uri of the episode */
   mediaUri: Scalars['String'];
   /** The episode number */
-  number: Scalars['Int'];
+  number: Scalars['Float'];
   origin: Scalars['String'];
   /** The playback information for the episode */
   playback?: Maybe<MediaEpisodePlayback>;
@@ -578,9 +578,25 @@ export type Origin = {
 
 export type Page = {
   __typename?: 'Page';
+  episodePlayback: Array<MediaEpisodePlayback>;
   media: Array<Media>;
   origin: Array<Origin>;
   pageInfo: PageInfo;
+};
+
+
+export type PageEpisodePlaybackArgs = {
+  id?: InputMaybe<Scalars['String']>;
+  name?: InputMaybe<Scalars['String']>;
+  names?: InputMaybe<Array<Scalars['String']>>;
+  number?: InputMaybe<Scalars['Int']>;
+  origin?: InputMaybe<Scalars['String']>;
+  quality?: InputMaybe<Scalars['String']>;
+  resolution?: InputMaybe<Scalars['String']>;
+  search?: InputMaybe<Scalars['String']>;
+  season?: InputMaybe<Scalars['Int']>;
+  trusted?: InputMaybe<Scalars['Boolean']>;
+  uri?: InputMaybe<Scalars['String']>;
 };
 
 
@@ -1017,7 +1033,7 @@ export type MediaEpisodeResolvers<ContextType = Context, ParentType extends Reso
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   media?: Resolver<Maybe<ResolversTypes['Media']>, ParentType, ContextType>;
   mediaUri?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  number?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  number?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   origin?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   playback?: Resolver<Maybe<ResolversTypes['MediaEpisodePlayback']>, ParentType, ContextType>;
   thumbnail?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -1110,6 +1126,7 @@ export type OriginResolvers<ContextType = Context, ParentType extends ResolversP
 };
 
 export type PageResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Page'] = ResolversParentTypes['Page']> = {
+  episodePlayback?: Resolver<Array<ResolversTypes['MediaEpisodePlayback']>, ParentType, ContextType, Partial<PageEpisodePlaybackArgs>>;
   media?: Resolver<Array<ResolversTypes['Media']>, ParentType, ContextType, Partial<PageMediaArgs>>;
   origin?: Resolver<Array<ResolversTypes['Origin']>, ParentType, ContextType, Partial<PageOriginArgs>>;
   pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
