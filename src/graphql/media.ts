@@ -229,7 +229,23 @@ type MediaEpisode {
   timeUntilAiring: Float
 
   """The playback information for the episode"""
-  playback: MediaEpisodePlayback
+  playback: MediaEpisodePlaybackConnection
+}
+
+"""Media connection edge"""
+type MediaEpisodePlaybackConnection {
+  edges: [MediaEpisodePlaybackEdge]
+  nodes: [MediaEpisodePlayback]
+
+  """The pagination information"""
+  pageInfo: PageInfo
+}
+
+"""MediaEpisodePlayback connection edge"""
+type MediaEpisodePlaybackEdge {
+  """The uri of the connection"""
+  uri: Int
+  node: MediaEpisodePlayback
 }
 
 enum MediaEpisodePlaybackType {
@@ -239,20 +255,62 @@ enum MediaEpisodePlaybackType {
   OTHER
 }
 
-type MediaEpisodePlayback {
+enum MediaEpisodePlaybackFileStructure {
+  SINGLE
+  MULTI
+}
+
+
+# todo: add a system to allow subtitles as episode playback type of thing
+
+type MediaEpisodePlayback implements Handle {
+  # Handle properties
+  handler: String!
+  origin: String!
+  id: String!
+  uri: Uri!
+  url: String
+  handles: HandleConnection!
+
+  # MediaEpisodePlayback properties
+
+  media: Media
+  
+  mediaEpisode: MediaEpisode
+
   """The type of playback"""
   type: MediaEpisodePlaybackType
 
-  """The url for the playback, can be a html embed url"""
-  url: String
+  filename: String
 
-  """The uri for the playback, could be a torrent magnet uri"""
-  uri: String
+  title: MediaTitle
 
-  """The origin for the playback, can be used to determine libraries that can handle that playback"""
-  origin: String
+  structure: MediaEpisodePlaybackFileStructure
 
-  """Stringified json data for the playback, useful for custom players"""
+  filesCount: Int
+
+  bytes: Int
+  
+  uploadDate: Int
+
+  thumbnails: [String]
+
+  # SubsPlease
+  team: String
+
+  # 1080p, 720p, ect...
+  resolution: String
+
+  # 5FD2DD5D
+  hash: String
+
+  # mkv, mp4, ect...
+  format: String
+
+  # 1-12, 2, ect...
+  episodeRange: String
+
+  """Stringified (json?) data for the playback, useful for custom players"""
   data: String
 }
 

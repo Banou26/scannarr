@@ -20,7 +20,7 @@ type Page {
   pageInfo: PageInfo!
 
   media(${Media.MediaParameters}): [Media!]!
-  episodePlayback(${Media.MediaEpisodePlaybackParameters}): [MediaEpisodePlayback!]!
+  episode(${Media.MediaEpisodeParameters}): [MediaEpisode!]!
   origin(${Origin.OriginsParameters}): [Origin!]!
 }
 
