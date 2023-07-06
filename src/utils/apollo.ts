@@ -27,9 +27,9 @@ export const defaultResolvers = (resolvers: Resolvers) => ({
     nodes: (mediaConnection) => mediaConnection.edges?.map(edge => edge.node) ?? [],
     ...resolvers.MediaConnection
   },
-  MediaEpisodeConnection: {
+  EpisodeConnection: {
     nodes: (mediaConnection) => mediaConnection.edges?.map(edge => edge?.node) ?? [],
-    ...resolvers.MediaEpisodeConnection
+    ...resolvers.EpisodeConnection
   }
 })
 

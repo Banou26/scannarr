@@ -313,7 +313,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
           }
         }
       },
-      MediaEpisode: {
+      Episode: {
         keyFields: ['uri'],
         fields: {
           description: getHandlesField('description', null),

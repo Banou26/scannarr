@@ -54,7 +54,7 @@ export const MediaParameters = `#graphql
     sort: [MediaSort]
 `
 
-export const MediaEpisodeParameters = `#graphql
+export const EpisodeParameters = `#graphql
     """Filter by the media id"""
     id: String
     """Filter by the media origin"""
@@ -65,7 +65,7 @@ export const MediaEpisodeParameters = `#graphql
     search: String
 `
 
-export const MediaEpisodePlaybackParameters = `#graphql
+export const PlaybackSourceParameters = `#graphql
     """Filter by the media id"""
     id: String
     """Filter by the media origin"""
@@ -94,7 +94,7 @@ export const schema = `#graphql
 
 extend type Query {
   Media(${MediaParameters}): Media
-  Episode(${MediaEpisodeParameters}): MediaEpisode
+  Episode(${EpisodeParameters}): Episode
 }
 
 """
@@ -179,7 +179,7 @@ type Media implements Handle {
 
     """The amount of entries per page, max 25"""
     perPage: Int
-  ): MediaEpisodeConnection
+  ): EpisodeConnection
 
   # """The media's entire airing schedule"""
   # airingSchedule(
@@ -194,16 +194,16 @@ type Media implements Handle {
   # ): MediaAiringScheduleConnection
 }
 
-type MediaEpisode {
+type Episode {
   # Handle properties
   handler: String!
   origin: String!
   id: String!
   uri: Uri!
   url: String
-  handles: MediaEpisodeConnection!
+  handles: EpisodeConnection!
 
-  # MediaEpisode properties
+  # Episode properties
   """The time the episode airs at"""
   airingAt: Float
 
@@ -229,33 +229,33 @@ type MediaEpisode {
   timeUntilAiring: Float
 
   """The playback information for the episode"""
-  playback: MediaEpisodePlaybackConnection
+  playback: PlaybackSourceConnection
 }
 
 """Media connection edge"""
-type MediaEpisodePlaybackConnection {
-  edges: [MediaEpisodePlaybackEdge]
-  nodes: [MediaEpisodePlayback]
+type PlaybackSourceConnection {
+  edges: [PlaybackSourceEdge]
+  nodes: [PlaybackSource]
 
   """The pagination information"""
   pageInfo: PageInfo
 }
 
-"""MediaEpisodePlayback connection edge"""
-type MediaEpisodePlaybackEdge {
+"""PlaybackSource connection edge"""
+type PlaybackSourceEdge {
   """The uri of the connection"""
   uri: Int
-  node: MediaEpisodePlayback
+  node: PlaybackSource
 }
 
-enum MediaEpisodePlaybackType {
+enum PlaybackSourceType {
   IFRAME
   TORRENT
   CUSTOM
   OTHER
 }
 
-enum MediaEpisodePlaybackFileStructure {
+enum PlaybackSourceFileStructure {
   SINGLE
   MULTI
 }
@@ -263,7 +263,7 @@ enum MediaEpisodePlaybackFileStructure {
 
 # todo: add a system to allow subtitles as episode playback type of thing
 
-type MediaEpisodePlayback implements Handle {
+type PlaybackSource implements Handle {
   # Handle properties
   handler: String!
   origin: String!
@@ -272,20 +272,20 @@ type MediaEpisodePlayback implements Handle {
   url: String
   handles: HandleConnection!
 
-  # MediaEpisodePlayback properties
+  # PlaybackSource properties
 
   media: Media
   
-  mediaEpisode: MediaEpisode
+  Episode: Episode
 
   """The type of playback"""
-  type: MediaEpisodePlaybackType
+  type: PlaybackSourceType
 
   filename: String
 
   title: MediaTitle
 
-  structure: MediaEpisodePlaybackFileStructure
+  structure: PlaybackSourceFileStructure
 
   filesCount: Int
 
@@ -314,19 +314,19 @@ type MediaEpisodePlayback implements Handle {
   data: String
 }
 
-type MediaEpisodeConnection {
-  edges: [MediaEpisodeEdge]
-  nodes: [MediaEpisode]
+type EpisodeConnection {
+  edges: [EpisodeEdge]
+  nodes: [Episode]
 
   """The pagination information"""
   pageInfo: PageInfo
 }
 
-"""MediaEpisode connection edge"""
-type MediaEpisodeEdge {
+"""Episode connection edge"""
+type EpisodeEdge {
   """The uri of the connection"""
   uri: Int
-  node: MediaEpisode
+  node: Episode
 }
 
 """

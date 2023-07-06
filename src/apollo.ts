@@ -3,7 +3,7 @@ import { ContextThunk } from '@apollo/server'
 
 import makeApolloAggregator, { OriginWithResolvers } from './apollo-aggregator'
 import { defaultResolvers, groupRelatedHandles, makeArrayTypePolicy, makeObjectTypePolicy, makePrimitiveTypePolicy, makeScannarrHandle } from './utils/apollo'
-import { Media, MediaEpisode } from './generated/graphql'
+import { Media, Episode } from './generated/graphql'
 
 import schema from './graphql'
 import { groupBy } from './utils/groupBy'
@@ -129,7 +129,7 @@ const makeScannarr = <T extends ContextThunk>({
               const nodes =
                 groupedByNumber
                   .map(([number, nodes]) => ({
-                    ...makeScannarrHandle({ typename: 'MediaEpisode', handles: nodes, readField }),
+                    ...makeScannarrHandle({ typename: 'Episode', handles: nodes, readField }),
                     media: toReference(`Media:{"uri":"${readField('uri')}"}`),
                     mediaUri: readField('uri')
                   }))
@@ -142,12 +142,12 @@ const makeScannarr = <T extends ContextThunk>({
           }
         }
       },
-      MediaEpisode: {
+      Episode: {
         keyFields: ['uri'],
         fields: {
           title: makeObjectTypePolicy({
             fieldName: 'title',
-            policy: policies.MediaEpisode?.title,
+            policy: policies.Episode?.title,
             defaultValue: { romanized: null, native: null, english: null }
           }),
           ...Object.fromEntries([
@@ -158,7 +158,7 @@ const makeScannarr = <T extends ContextThunk>({
             'timeUntilAiring'
           ].map(fieldName => [
             fieldName,
-            makePrimitiveTypePolicy({ fieldName, policy: policies.MediaEpisode?.[fieldName] })
+            makePrimitiveTypePolicy({ fieldName, policy: policies.Episode?.[fieldName] })
           ]))
         }
       }
@@ -193,8 +193,8 @@ const makeScannarr = <T extends ContextThunk>({
         },
         Episode: (_, { id }, { originResults }) => {
           const { scannarrHandles } = groupRelatedHandles({
-            typename: 'MediaEpisode',
-            results: (originResults?.flatMap(results => results.data.Episode ?? []) ?? []) as MediaEpisode[]
+            typename: 'Episode',
+            results: (originResults?.flatMap(results => results.data.Episode ?? []) ?? []) as Episode[]
           })
           return scannarrHandles.at(0)
         }
