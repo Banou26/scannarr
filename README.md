@@ -7,3 +7,4 @@ Scannar is a media aggregation & search library taking simple user related behav
 TODO: 
 support https://github.com/erengy/anime-relations
 make use of the https://trash-guides.info/Sonarr/Sonarr-Release-Profile-RegEx-Anime/#must-not-contain ?
+https://newznab.readthedocs.io/en/latest/misc/api/#list-of-attributes
