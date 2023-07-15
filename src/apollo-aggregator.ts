@@ -132,7 +132,11 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
                     origin,
                   }))
                   .catch(err => {
-                    if (!silenceResolverErrors) console.error(err)
+                    if (!silenceResolverErrors) {
+                      const error = new Error(`Error in origin for ${origin.name}:\n${err.message}`)
+                      error.stack = `Error in origin for ${origin.name}:\n${err.stack}`
+                      console.error(error)
+                    }
                     throw err
                   })
               )
