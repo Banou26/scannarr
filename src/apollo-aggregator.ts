@@ -122,6 +122,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
                         ? ({
                           ...body.variables,
                           uri,
+                          handler: fromUri(uri).handler,
                           id: fromUri(uri).id,
                           origin: fromUri(uri).origin
                         })

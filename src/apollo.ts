@@ -3,7 +3,7 @@ import { ContextThunk } from '@apollo/server'
 
 import makeApolloAggregator, { OriginWithResolvers } from './apollo-aggregator'
 import { defaultResolvers, groupRelatedHandles, makeArrayTypePolicy, makeObjectTypePolicy, makePrimitiveTypePolicy, makeScannarrHandle } from './utils/apollo'
-import { Media, Episode } from './generated/graphql'
+import { Media, Episode, PlaybackSource } from './generated/graphql'
 
 import schema from './graphql'
 import { groupBy } from './utils/groupBy'
@@ -161,6 +161,11 @@ const makeScannarr = <T extends ContextThunk>({
             makePrimitiveTypePolicy({ fieldName, policy: policies.Episode?.[fieldName] })
           ]))
         }
+      },
+      PlaybackSource: {
+        keyFields: ['uri'],
+        fields: {
+        }
       }
     }
   })
@@ -181,23 +186,28 @@ const makeScannarr = <T extends ContextThunk>({
             results: (originResults?.flatMap(results => results.data.Page.media ?? []) ?? []) as Media[]
           })
           return scannarrHandles
-        }
+        },
+        playbackSource: (_, __, { originResults }) =>
+          (originResults?.flatMap(results => results.data.PlaybackSource ?? []) ?? []) as PlaybackSource[]
       },
       Query: {
-        Media: (_, { id }, { originResults }) => {
+        Media: (_, __, { originResults }) => {
           const { scannarrHandles } = groupRelatedHandles({
             typename: 'Media',
             results: (originResults?.flatMap(results => results.data.Media ?? []) ?? []) as Media[]
           })
           return scannarrHandles.at(0)
         },
-        Episode: (_, { id }, { originResults }) => {
+        Episode: (_, __, { originResults }) => {
           const { scannarrHandles } = groupRelatedHandles({
             typename: 'Episode',
             results: (originResults?.flatMap(results => results.data.Episode ?? []) ?? []) as Episode[]
           })
           return scannarrHandles.at(0)
-        }
+        },
+        PlaybackSource: (_, __, { originResults }) =>
+          ((originResults?.flatMap(results => results.data.PlaybackSource ?? []) ?? []) as PlaybackSource[])
+            .at(0)
       }
     })
   })

@@ -9,6 +9,8 @@ export const defaultResolvers = (resolvers: Resolvers) => ({
   Page: {
     origin: () => [],
     media: () => [],
+    episode: () => [],
+    playbackSource: () => [],
     ...resolvers.Page,
   },
   Query: {
