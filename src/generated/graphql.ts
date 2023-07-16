@@ -609,7 +609,7 @@ export type PagePlaybackSourceArgs = {
   id?: InputMaybe<Scalars['String']>;
   name?: InputMaybe<Scalars['String']>;
   names?: InputMaybe<Array<Scalars['String']>>;
-  number?: InputMaybe<Scalars['Int']>;
+  number?: InputMaybe<Scalars['Float']>;
   origin?: InputMaybe<Scalars['String']>;
   quality?: InputMaybe<Scalars['String']>;
   resolution?: InputMaybe<Scalars['String']>;
@@ -644,7 +644,7 @@ export type PageInfo = {
 export type PlaybackSource = Handle & {
   __typename?: 'PlaybackSource';
   Episode?: Maybe<Episode>;
-  bytes?: Maybe<Scalars['Int']>;
+  bytes?: Maybe<Scalars['Float']>;
   /** Stringified (json?) data for the playback, useful for custom players */
   data?: Maybe<Scalars['String']>;
   episodeRange?: Maybe<Scalars['String']>;
@@ -664,7 +664,7 @@ export type PlaybackSource = Handle & {
   title?: Maybe<MediaTitle>;
   /** The type of playback */
   type?: Maybe<PlaybackSourceType>;
-  uploadDate?: Maybe<Scalars['Int']>;
+  uploadDate?: Maybe<Scalars['Float']>;
   uri: Scalars['Uri'];
   url?: Maybe<Scalars['String']>;
 };
@@ -704,6 +704,7 @@ export type Query = {
   Media?: Maybe<Media>;
   Origin?: Maybe<Origin>;
   Page: Page;
+  PlaybackSource?: Maybe<PlaybackSource>;
   dummy?: Maybe<Scalars['String']>;
 };
 
@@ -752,6 +753,21 @@ export type QueryPageArgs = {
   after?: InputMaybe<Scalars['Int']>;
   at?: InputMaybe<Scalars['String']>;
   before?: InputMaybe<Scalars['Int']>;
+};
+
+
+export type QueryPlaybackSourceArgs = {
+  id?: InputMaybe<Scalars['String']>;
+  name?: InputMaybe<Scalars['String']>;
+  names?: InputMaybe<Array<Scalars['String']>>;
+  number?: InputMaybe<Scalars['Float']>;
+  origin?: InputMaybe<Scalars['String']>;
+  quality?: InputMaybe<Scalars['String']>;
+  resolution?: InputMaybe<Scalars['String']>;
+  search?: InputMaybe<Scalars['String']>;
+  season?: InputMaybe<Scalars['Int']>;
+  trusted?: InputMaybe<Scalars['Boolean']>;
+  uri?: InputMaybe<Scalars['String']>;
 };
 
 export type Resource = Handle & {
@@ -1190,7 +1206,7 @@ export type PageInfoResolvers<ContextType = Context, ParentType extends Resolver
 
 export type PlaybackSourceResolvers<ContextType = Context, ParentType extends ResolversParentTypes['PlaybackSource'] = ResolversParentTypes['PlaybackSource']> = {
   Episode?: Resolver<Maybe<ResolversTypes['Episode']>, ParentType, ContextType>;
-  bytes?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  bytes?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   data?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   episodeRange?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   filename?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -1208,7 +1224,7 @@ export type PlaybackSourceResolvers<ContextType = Context, ParentType extends Re
   thumbnails?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   title?: Resolver<Maybe<ResolversTypes['MediaTitle']>, ParentType, ContextType>;
   type?: Resolver<Maybe<ResolversTypes['PlaybackSourceType']>, ParentType, ContextType>;
-  uploadDate?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  uploadDate?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   uri?: Resolver<ResolversTypes['Uri'], ParentType, ContextType>;
   url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
@@ -1232,6 +1248,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   Media?: Resolver<Maybe<ResolversTypes['Media']>, ParentType, ContextType, Partial<QueryMediaArgs>>;
   Origin?: Resolver<Maybe<ResolversTypes['Origin']>, ParentType, ContextType, Partial<QueryOriginArgs>>;
   Page?: Resolver<ResolversTypes['Page'], ParentType, ContextType, Partial<QueryPageArgs>>;
+  PlaybackSource?: Resolver<Maybe<ResolversTypes['PlaybackSource']>, ParentType, ContextType, Partial<QueryPlaybackSourceArgs>>;
   dummy?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 

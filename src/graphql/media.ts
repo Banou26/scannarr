@@ -81,7 +81,7 @@ export const PlaybackSourceParameters = `#graphql
 
     season: Int
 
-    number: Int
+    number: Float
 
     resolution: String
 
@@ -95,6 +95,7 @@ export const schema = `#graphql
 extend type Query {
   Media(${MediaParameters}): Media
   Episode(${EpisodeParameters}): Episode
+  PlaybackSource(${PlaybackSourceParameters}): PlaybackSource
 }
 
 """
@@ -289,9 +290,9 @@ type PlaybackSource implements Handle {
 
   filesCount: Int
 
-  bytes: Int
+  bytes: Float
   
-  uploadDate: Int
+  uploadDate: Float
 
   thumbnails: [String]
 
