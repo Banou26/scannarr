@@ -1,9 +1,10 @@
 import { InMemoryCache } from '@apollo/client/core'
 import { ContextThunk } from '@apollo/server'
 
+import type { Media, Episode, PlaybackSource } from './generated/graphql'
+
 import makeApolloAggregator, { OriginWithResolvers } from './apollo-aggregator'
 import { defaultResolvers, groupRelatedHandles, makeArrayTypePolicy, makeObjectTypePolicy, makePrimitiveTypePolicy, makeScannarrHandle } from './utils/apollo'
-import { Media, Episode, PlaybackSource } from './generated/graphql'
 
 import schema from './graphql'
 import { groupBy } from './utils/groupBy'
@@ -33,6 +34,9 @@ const makeScannarr = <T extends ContextThunk>({
         keyFields: [],
         fields: {
           media: {
+            merge: (existing, incoming) => incoming
+          },
+          playbackSource: {
             merge: (existing, incoming) => incoming
           }
         }
@@ -188,7 +192,7 @@ const makeScannarr = <T extends ContextThunk>({
           return scannarrHandles
         },
         playbackSource: (_, __, { originResults }) =>
-          (originResults?.flatMap(results => results.data.PlaybackSource ?? []) ?? []) as PlaybackSource[]
+          (originResults?.flatMap(results => results.data.Page.playbackSource ?? []) ?? []) as PlaybackSource[]
       },
       Query: {
         Media: (_, __, { originResults }) => {

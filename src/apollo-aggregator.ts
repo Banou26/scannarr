@@ -1,7 +1,8 @@
 import type { BaseContext as ApolloBaseContext, ContextThunk } from '@apollo/server'
 import type { ApolloQueryResult } from '@apollo/client/core'
 
-import { Origin, Resolvers } from './generated/graphql'
+import type { Origin, Resolvers } from './generated/graphql'
+
 import { split } from '@apollo/client/link/core'
 import { ApolloClient, InMemoryCache, gql } from '@apollo/client/core'
 import { HttpLink } from '@apollo/client/link/http'
