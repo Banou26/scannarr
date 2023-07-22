@@ -233,21 +233,21 @@ type Episode {
   playback: PlaybackSourceConnection
 }
 
-"""Media connection edge"""
-type PlaybackSourceConnection {
-  edges: [PlaybackSourceEdge]
-  nodes: [PlaybackSource]
+# """Media connection edge"""
+# type PlaybackSourceConnection {
+#   edges: [PlaybackSourceEdge]
+#   nodes: [PlaybackSource]
 
-  """The pagination information"""
-  pageInfo: PageInfo
-}
+#   """The pagination information"""
+#   pageInfo: PageInfo
+# }
 
-"""PlaybackSource connection edge"""
-type PlaybackSourceEdge {
-  """The uri of the connection"""
-  uri: Int
-  node: PlaybackSource
-}
+# """PlaybackSource connection edge"""
+# type PlaybackSourceEdge {
+#   """The uri of the connection"""
+#   uri: Int
+#   node: PlaybackSource
+# }
 
 enum PlaybackSourceType {
   IFRAME
@@ -261,6 +261,19 @@ enum PlaybackSourceFileStructure {
   MULTI
 }
 
+type Team implements Handle {
+  # Handle properties
+  handler: String!
+  origin: String!
+  id: String!
+  uri: Uri!
+  url: String
+  handles: HandleConnection!
+
+  # Team properties
+  name: String
+}
+
 
 # todo: add a system to allow subtitles as episode playback type of thing
 
@@ -271,7 +284,7 @@ type PlaybackSource implements Handle {
   id: String!
   uri: Uri!
   url: String
-  handles: HandleConnection!
+  handles: PlaybackSourceConnection!
 
   # PlaybackSource properties
 
@@ -297,7 +310,8 @@ type PlaybackSource implements Handle {
   thumbnails: [String]
 
   # SubsPlease
-  team: String
+  # team: String
+  team: Team
 
   # 1080p, 720p, ect...
   resolution: String
@@ -313,6 +327,28 @@ type PlaybackSource implements Handle {
 
   """Stringified (json?) data for the playback, useful for custom players"""
   data: String
+}
+
+"""PlaybackSource connection edge"""
+type PlaybackSourceEdge {
+  """The uri of the connection"""
+  uri: Int
+  node: PlaybackSource
+}
+
+type PlaybackSourceEdge implements HandleEdge {
+  node: PlaybackSource!
+
+  """The relation between the two handles"""
+  handleRelationType: HandleRelation!
+}
+
+type PlaybackSourceConnection implements HandleConnection {
+  edges: [PlaybackSourceEdge!]!
+  nodes: [PlaybackSource!]!
+
+  """The pagination information"""
+  pageInfo: PageInfo
 }
 
 type EpisodeConnection {
