@@ -94,6 +94,8 @@ const makeScannarr = <T extends ContextThunk>({
             }
           },
           title: makeObjectTypePolicy({ fieldName: 'title', policy: policies.Media?.title }),
+          startDate: makeObjectTypePolicy({ fieldName: 'startDate', policy: policies.Media?.startDate }),
+          endDate: makeObjectTypePolicy({ fieldName: 'endDate', policy: policies.Media?.endDate }),
           ...Object.fromEntries([
             'trailers',
             'coverImage',
@@ -107,7 +109,8 @@ const makeScannarr = <T extends ContextThunk>({
             'description',
             'shortDescription',
             'popularity',
-            'averageScore'
+            'averageScore',
+            'episodeCount'
           ].map(fieldName => [
             fieldName,
             makePrimitiveTypePolicy({ fieldName, policy: policies.Media?.[fieldName] })

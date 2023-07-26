@@ -155,6 +155,7 @@ export type Media = Handle & {
   description?: Maybe<Scalars['String']>;
   /** The last official release date of the media */
   endDate?: Maybe<FuzzyDate>;
+  episodeCount?: Maybe<Scalars['Int']>;
   episodes?: Maybe<EpisodeConnection>;
   /** External links to another site related to the media */
   externalLinks?: Maybe<Array<Maybe<MediaExternalLink>>>;
@@ -1060,6 +1061,7 @@ export type MediaResolvers<ContextType = Context, ParentType extends ResolversPa
   coverImage?: Resolver<Maybe<Array<Maybe<ResolversTypes['MediaCoverImage']>>>, ParentType, ContextType>;
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, Partial<MediaDescriptionArgs>>;
   endDate?: Resolver<Maybe<ResolversTypes['FuzzyDate']>, ParentType, ContextType>;
+  episodeCount?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   episodes?: Resolver<Maybe<ResolversTypes['EpisodeConnection']>, ParentType, ContextType, Partial<MediaEpisodesArgs>>;
   externalLinks?: Resolver<Maybe<Array<Maybe<ResolversTypes['MediaExternalLink']>>>, ParentType, ContextType>;
   format?: Resolver<Maybe<ResolversTypes['MediaFormat']>, ParentType, ContextType>;

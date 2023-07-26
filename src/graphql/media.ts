@@ -171,6 +171,8 @@ type Media implements Handle {
   """The last official release date of the media"""
   endDate: FuzzyDate
 
+  episodeCount: Int
+
   episodes(
     """Filter to episodes that have not yet aired"""
     notYetAired: Boolean
