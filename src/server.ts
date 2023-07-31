@@ -156,9 +156,6 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
       Origin: {
         keyFields: ['id']
       },
-      Page: {
-        keyFields: [],
-      },
       MediaConnection: {
         fields: {
           edges: (existing) =>
