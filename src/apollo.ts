@@ -33,6 +33,9 @@ const makeScannarr = <T extends ContextThunk>({
       Page: {
         keyFields: [],
         fields: {
+          episode: {
+            merge: (existing, incoming) => incoming
+          },
           media: {
             merge: (existing, incoming) => incoming
           },
@@ -187,6 +190,13 @@ const makeScannarr = <T extends ContextThunk>({
     context: async () => ({ ...await context?.(), server, client }),
     resolvers: defaultResolvers({
       Page: {
+        episode: (_, __, { originResults }, info) => {
+          const { scannarrHandles } = groupRelatedHandles({
+            typename: 'Episode',
+            results: (originResults?.flatMap(results => results.data.Page.episode ?? []) ?? []) as Episode[]
+          })
+          return scannarrHandles
+        },
         media: (_, __, { originResults }) => {
           const { scannarrHandles } = groupRelatedHandles({
             typename: 'Media',
