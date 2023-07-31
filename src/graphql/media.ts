@@ -63,6 +63,9 @@ export const EpisodeParameters = `#graphql
     uri: String
     """Filter by search terms"""
     search: String
+
+    """The order the results will be returned in"""
+    sort: [EpisodeSort]
 `
 
 export const PlaybackSourceParameters = `#graphql
@@ -197,7 +200,7 @@ type Media implements Handle {
   # ): MediaAiringScheduleConnection
 }
 
-type Episode {
+type Episode implements Handle  {
   # Handle properties
   handler: String!
   origin: String!
@@ -211,7 +214,7 @@ type Episode {
   airingAt: Float
 
   """The episode number"""
-  number: Float!
+  number: Float
 
   """The title of the episode"""
   title: MediaTitle
@@ -226,7 +229,7 @@ type Episode {
   media: Media
 
   """The associate media uri of the episode"""
-  mediaUri: String!
+  mediaUri: String
 
   """Seconds until episode starts airing"""
   timeUntilAiring: Float
@@ -353,19 +356,22 @@ type PlaybackSourceConnection implements HandleConnection {
   pageInfo: PageInfo
 }
 
-type EpisodeConnection {
-  edges: [EpisodeEdge]
-  nodes: [Episode]
+type EpisodeConnection implements HandleConnection {
+  edges: [EpisodeEdge!]!
+  nodes: [Episode!]!
 
   """The pagination information"""
   pageInfo: PageInfo
 }
 
 """Episode connection edge"""
-type EpisodeEdge {
+type EpisodeEdge implements HandleEdge {
   """The uri of the connection"""
   uri: Int
-  node: Episode
+  node: Episode!
+
+  """The relation between the two handles"""
+  handleRelationType: HandleRelation!
 }
 
 """
@@ -732,6 +738,34 @@ type MediaSynonym {
 
   """The score of the title based on searchability"""
   score: Float
+}
+
+enum EpisodeSort {
+  LATEST
+  OLDEST
+  ID
+  ID_DESC
+  TITLE_ROMANIZED
+  TITLE_ROMANIZED_DESC
+  TITLE_ENGLISH
+  TITLE_ENGLISH_DESC
+  TITLE_NATIVE
+  TITLE_NATIVE_DESC
+  TYPE
+  TYPE_DESC
+  FORMAT
+  FORMAT_DESC
+  START_DATE
+  START_DATE_DESC
+  END_DATE
+  END_DATE_DESC
+  SCORE
+  SCORE_DESC
+  POPULARITY
+  POPULARITY_DESC
+  STATUS
+  STATUS_DESC
+  SEARCH_MATCH
 }
 
 enum MediaSort {
