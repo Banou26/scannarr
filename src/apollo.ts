@@ -9,7 +9,7 @@ import { defaultResolvers, groupRelatedHandles, makeArrayTypePolicy, makeObjectT
 import schema from './graphql'
 import { groupBy } from './utils/groupBy'
 import { getEdges } from './utils/handle'
-import { toScannarrUri } from './utils'
+import { populateUri, toScannarrUri } from './utils'
 
 export type Policies = {
   [key: string]: {
@@ -169,6 +169,45 @@ const makeScannarr = <T extends ContextThunk>({
             policy: policies.Episode?.title,
             defaultValue: { romanized: null, native: null, english: null }
           }),
+          media: {
+            read: (existing, { readField }) => {
+              if (readField('origin') !== 'scannarr') return existing
+
+              return makeScannarrHandle({
+                readField,
+                typename: 'Media',
+                handles:
+                  getEdges(readField('handles'))
+                    .map((edge) => populateUri({
+                      origin: readField('origin', readField('media', edge.node)),
+                      id: readField('id', readField('media', edge.node)),
+                      uri: readField('uri', readField('media', edge.node)),
+                      url: readField('url', readField('media', edge.node)),
+                      handles: readField('handles', readField('media', edge.node)),
+                      title: readField('title', readField('media', edge.node)),
+                      synonyms: readField('synonyms', readField('media', edge.node)),
+                      type: readField('type', readField('media', edge.node)),
+                      status: readField('status', readField('media', edge.node)),
+                      externalLinks: readField('externalLinks', readField('media', edge.node)),
+                      trailers: readField('trailers', readField('media', edge.node)),
+                      coverImage: readField('coverImage', readField('media', edge.node)),
+                      bannerImage: readField('bannerImage', readField('media', edge.node)),
+                      averageScore: readField('averageScore', readField('media', edge.node)),
+                      popularity: readField('popularity', readField('media', edge.node)),
+                      shortDescription: readField('shortDescription', readField('media', edge.node)),
+                      description: readField('description', readField('media', edge.node)),
+                      format: readField('format', readField('media', edge.node)),
+                      season: readField('season', readField('media', edge.node)),
+                      seasonYear: readField('seasonYear', readField('media', edge.node)),
+                      isAdult: readField('isAdult', readField('media', edge.node)),
+                      startDate: readField('startDate', readField('media', edge.node)),
+                      endDate: readField('endDate', readField('media', edge.node)),
+                      episodeCount: readField('episodeCount', readField('media', edge.node)),
+                      episodes: readField('episodes', readField('media', edge.node)),
+                    }))
+              })
+            }
+          },
           ...Object.fromEntries([
             'airingAt',
             'number',
