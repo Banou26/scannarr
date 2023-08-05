@@ -44,6 +44,15 @@ const makeScannarr = <T extends ContextThunk>({
           }
         }
       },
+      MediaCoverImage: {
+        fields: {
+          default: (existing, { readField }) => {
+            if (readField('origin') !== 'scannarr') return existing
+            if (existing) return existing
+            return readField('extraLarge') ?? readField('large') ?? readField('medium') ?? readField('small')
+          }
+        }
+      },
       Media: {
         keyFields: ['uri'],
         fields: {
