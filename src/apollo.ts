@@ -164,6 +164,38 @@ const makeScannarr = <T extends ContextThunk>({
       Episode: {
         keyFields: ['uri'],
         fields: {
+          handles: {
+            read: (existing, { readField }) => {
+              if (readField('origin') !== 'scannarr') return existing
+              if (!existing) return existing
+              const items = [
+                ...getEdges(existing) ?? [],
+                ...(
+                  getEdges(existing)
+                    ?.flatMap(edge =>
+                      readField('handles', edge.node)
+                        ? getEdges(readField('handles', edge.node), readField)
+                        : []
+                    )
+                )
+              ]
+
+              const itemsSet = new Set(items.map((edge: any) => readField('uri', edge.node)))
+
+              const uniqueItems =
+                [...itemsSet].map(uri =>
+                  items.find((edge: any) =>
+                    readField('uri', edge.node) === uri
+                  )
+                )
+
+              return {
+                __typename: 'EpisodeConnection',
+                edges: uniqueItems,
+                nodes: uniqueItems.map((edge: any) => edge.node)
+              }
+            }
+          },
           title: makeObjectTypePolicy({
             fieldName: 'title',
             policy: policies.Episode?.title,
@@ -223,6 +255,61 @@ const makeScannarr = <T extends ContextThunk>({
       PlaybackSource: {
         keyFields: ['uri'],
         fields: {
+          title: makeObjectTypePolicy({ fieldName: 'title', policy: policies.PlaybackSource?.title }),
+          handles: {
+            read: (existing, { readField }) => {
+              if (readField('origin') !== 'scannarr') return existing
+              if (!existing) return existing
+              const items = [
+                ...getEdges(existing) ?? [],
+                ...(
+                  getEdges(existing)
+                    ?.flatMap(edge =>
+                      readField('handles', edge.node)
+                        ? getEdges(readField('handles', edge.node), readField)
+                        : []
+                    )
+                )
+              ]
+
+              const itemsSet = new Set(items.map((edge: any) => readField('uri', edge.node)))
+
+              const uniqueItems =
+                [...itemsSet].map(uri =>
+                  items.find((edge: any) =>
+                    readField('uri', edge.node) === uri
+                  )
+                )
+
+              return {
+                __typename: 'PlaybackSourceConnection',
+                edges: uniqueItems,
+                nodes: uniqueItems.map((edge: any) => edge.node)
+              }
+            }
+          },
+          structure: makeObjectTypePolicy({ fieldName: 'structure', policy: policies.PlaybackSource?.structure }),
+          ...Object.fromEntries([
+            'thumbnails'
+          ].map(fieldName => [
+            fieldName,
+            makeArrayTypePolicy({ fieldName, policy: policies.PlaybackSource?.[fieldName] })
+          ])),
+          ...Object.fromEntries([
+            'type',
+            'filename',
+            'filesCount',
+            'bytes',
+            'uploadDate',
+            'resolution',
+            'hash',
+            'format',
+            'episodeRange',
+            'data'
+          ].map(fieldName => [
+            fieldName,
+            makePrimitiveTypePolicy({ fieldName, policy: policies.PlaybackSource?.[fieldName] })
+          ]))
         }
       }
     }
@@ -252,8 +339,13 @@ const makeScannarr = <T extends ContextThunk>({
           })
           return scannarrHandles
         },
-        playbackSource: (_, __, { originResults }) =>
-          (originResults?.flatMap(results => results.data.Page.playbackSource ?? []) ?? []) as PlaybackSource[]
+        playbackSource: (_, __, { originResults }) => {
+          const { scannarrHandles } = groupRelatedHandles({
+            typename: 'PlaybackSource',
+            results: (originResults?.flatMap(results => results.data.Page.playbackSource ?? []) ?? []) as PlaybackSource[]
+          })
+          return scannarrHandles
+        }
       },
       Query: {
         Media: (_, __, { originResults }) => {
@@ -270,9 +362,13 @@ const makeScannarr = <T extends ContextThunk>({
           })
           return scannarrHandles.at(0)
         },
-        PlaybackSource: (_, __, { originResults }) =>
-          ((originResults?.flatMap(results => results.data.PlaybackSource ?? []) ?? []) as PlaybackSource[])
-            .at(0)
+        PlaybackSource: (_, __, { originResults }) => {
+          const { scannarrHandles } = groupRelatedHandles({
+            typename: 'PlaybackSource',
+            results: (originResults?.flatMap(results => results.data.PlaybackSource ?? []) ?? []) as PlaybackSource[]
+          })
+          return scannarrHandles.at(0)
+        }
       }
     })
   })
