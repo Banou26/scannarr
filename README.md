@@ -8,6 +8,10 @@ TODO:
 Move to URQL to reduce CPU usage issues:
 - https://formidable.com/open-source/urql/
 - https://formidable.com/open-source/urql/docs/comparison/
+Rework the URI system, to allow for nesting, and instead of base64 encoding the scannarr id, escape it
+
+Potentially make a simple graphql db
+
 support https://github.com/erengy/anime-relations
 make use of the https://trash-guides.info/Sonarr/Sonarr-Release-Profile-RegEx-Anime/#must-not-contain ?
 https://newznab.readthedocs.io/en/latest/misc/api/#list-of-attributes
