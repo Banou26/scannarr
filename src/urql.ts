@@ -4,7 +4,8 @@ import { createYoga, createSchema } from 'graphql-yoga'
 import { useDeferStream } from '@graphql-yoga/plugin-defer-stream'
 
 const typeDefs = /* GraphQL */ `
-  type Query {
+  type Test {
+    uri: String!
     alphabet: [String!]!
     """
     A field that resolves fast.
@@ -17,33 +18,57 @@ const typeDefs = /* GraphQL */ `
     """
     slowField(waitFor: Int! = 5000): String
   }
+  type Query {
+    test: Test
+  }
 `
 
 const wait = (time: number) => new Promise(resolve => setTimeout(resolve, time))
 
 const resolvers = {
   Query: {
-    async *alphabet() {
-      for (const character of ['a', 'b', 'c', 'd', 'e', 'f', 'g']) {
-        yield character
-        await wait(1000)
+    test: () => ({
+      uri: 'foo',
+      async *alphabet() {
+        for (const character of ['a', 'b', 'c', 'd', 'e', 'f', 'g']) {
+          yield character
+          await wait(1000)
+        }
+      },
+      fastField: async () => {
+        await wait(100)
+        return 'I am speed'
+      },
+      slowField: async ({ waitFor }, info) => {
+        // console.log('info', waitFor, info)
+        await wait(waitFor)
+        return 'I am slow'
       }
-    },
-    fastField: async () => {
-      await wait(100)
-      return 'I am speed'
-    },
-    slowField: async (_, { waitFor }, info) => {
-      console.log('info', info)
-      await wait(waitFor)
-      return 'I am slow'
-    }
+    })
   }
 }
 
 const makeScannarr = async () => {
   const cache = cacheExchange({
-
+    keys: {
+      Test: (data) => data.uri
+    },
+    // updates: {
+    //   Test: {
+    //     slowField: (parent, args, cache, info) => {
+    //       console.log('update slowField', parent, args, cache, info)
+    //       return `I am slow, and modified, ${parent.alphabet?.length ?? 0}`
+    //     }
+    //   }
+    // },
+    resolvers: {
+      Test: {
+        fastField: (parent, args, cache, info) => {
+          // console.log('read slowField', parent, args, cache, info)
+          return `I am speed, and modified, and there is ${cache.resolve({ __typename: 'Test', uri: 'foo' }, 'alphabet')?.length ?? 0} alphabet elements`
+        }
+      }
+    }
   })
 
   const schema = createSchema({
@@ -55,8 +80,6 @@ const makeScannarr = async () => {
     schema,
     plugins: [useDeferStream()]
   })
-
-  
  
   const client = new Client({
     url: 'http://localhost:3000/graphql',
@@ -74,13 +97,16 @@ const makeScannarr = async () => {
     client
       .query(`
       query SlowAndFastFieldWithDefer {
-        ... on Query @defer { slowField }
-        fastField
-        alphabet @stream
+        test {
+          uri
+          ... on Test @defer { slowField }
+          fastField
+          alphabet @stream
+        }
       }
       `)
-      .subscribe(({ data }) => {
-        console.log('data', data)
+      .subscribe(({ data, error }) => {
+        console.log('data', data?.test, error)
       })
 
 }
