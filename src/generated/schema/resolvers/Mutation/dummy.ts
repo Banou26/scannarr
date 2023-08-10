@@ -1,0 +1,2 @@
+import type   { MutationResolvers } from './../../types.generated';
+        export const dummy: NonNullable<MutationResolvers['dummy']> = async (_parent, _arg, _ctx) => { /* Implement Mutation.dummy resolver logic here */ };
