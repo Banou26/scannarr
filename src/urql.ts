@@ -117,49 +117,52 @@ async function *getOriginResultsStreamed (
   const results =
     (uris ?? [undefined])
       .flatMap(uri =>
-        origins.map(async ({ origin, server }) =>
-          (async () =>
-            server
-              .handleRequest(
-                new Request(
-                  ctx.request.url,
-                  {
-                    method: 'POST',
-                    body: JSON.stringify({
-                      query: ctx.params.query?.replaceAll('@stream', ''),
-                      variables:
-                        uri
-                          ? ({
-                            ...ctx.params.variables,
-                            uri,
-                            handler: fromUri(uri).handler,
-                            id: fromUri(uri).id,
-                            origin: fromUri(uri).origin
-                          })
-                          : ctx.params.variables
-                    }),
-                    headers: { 'Content-Type': 'application/json' }
-                  }
-                ),
-                { ...await context?.(), server }
-              ))()
-            .then(response => response.json())
-            .then(result => ({
-              ...result,
-              origin,
-            }))
-            .catch(err => {
-              // if (!silenceResolverErrors) {
-                const error = new Error(`Error in origin for ${origin.name}:\n${err.message}`)
-                error.stack = `Error in origin for ${origin.name}:\n${err.stack}`
-                console.error(error)
-              // }
-              throw err
-            })
-        )
+        origins
+          .filter(({ origin }) => origin.supportedUris?.includes(fromUri(uri).origin))
+          .map(async ({ origin, server }) =>
+            (async () =>
+              server
+                .handleRequest(
+                  new Request(
+                    ctx.request.url,
+                    {
+                      method: 'POST',
+                      body: JSON.stringify({
+                        query: ctx.params.query?.replaceAll('@stream', ''),
+                        variables:
+                          uri
+                            ? ({
+                              ...ctx.params.variables,
+                              uri,
+                              handler: fromUri(uri).handler,
+                              id: fromUri(uri).id,
+                              origin: fromUri(uri).origin
+                            })
+                            : ctx.params.variables
+                      }),
+                      headers: { 'Content-Type': 'application/json' }
+                    }
+                  ),
+                  { ...await context?.(), server }
+                ))()
+              .then(response => response.json())
+              .then(result => ({
+                ...result,
+                origin,
+              }))
+              .catch(err => {
+                // if (!silenceResolverErrors) {
+                  const error = new Error(`Error in origin for ${origin.name}:\n${err.message}`)
+                  error.stack = `Error in origin for ${origin.name}:\n${err.stack}`
+                  console.error(error)
+                // }
+                throw err
+              })
+          )
       )
 
-  
+    await new Promise(resolve => setTimeout(resolve, 1000))
+
 
     let promiseList = results.slice(); // clone the list to avoid mutating the original
 
@@ -295,47 +298,51 @@ const makeScannarr = async (
       yoga.handleRequest(new Request(input, init), {})
   })
 
+  await new Promise(resolve => setTimeout(resolve, 2000))
+
   const p = performance.now()
   console.log('boop')
-  const res = await client
-    .query(`#graphql
-      fragment GetMediaTestFragment on Media {
-        handler
-        origin
-        id
-        uri
-        url
-        title {
-          romanized
-          english
-          native
+  
+  const { unsubscribe } =
+    client
+      .query(`#graphql
+        fragment GetMediaTestFragment on Media {
+          handler
+          origin
+          id
+          uri
+          url
+          title {
+            romanized
+            english
+            native
+          }
         }
-      }
 
-      query GetMediaTest($uri: String!, $origin: String, $id: String) {
-        Media(uri: $uri, origin: $origin, id: $id) {
-          ...GetMediaTestFragment
-          handles {
-            edges @stream {
-              node {
-                ...GetMediaTestFragment
+        query GetMediaTest($uri: String!, $origin: String, $id: String) {
+          Media(uri: $uri, origin: $origin, id: $id) {
+            ...GetMediaTestFragment
+            handles {
+              edges @stream {
+                node {
+                  ...GetMediaTestFragment
+                }
               }
             }
           }
         }
-      }
-  `, { uri: 'scannarr:bWFsOjU0MTEyLGFuaXppcDoxNzgwNixhbmlsaXN0OjE1OTgzMSxhbmltZXRvc2hvOjE3ODA2LGNyOkdKMEg3UUdRSyxhbmlkYjoxNzgwNixraXRzdTo0Njk1NCxub3RpZnltb2U6ZkpBbmZwMjRnLGxpdmVjaGFydDoxMTc2Nyx0dmRiOjQyOTMxMA==' })
-    .subscribe(({ data, error, hasNext }) => {
+    `, { uri: 'scannarr:bWFsOjU0MTEyLGFuaXppcDoxNzgwNixhbmlsaXN0OjE1OTgzMSxhbmltZXRvc2hvOjE3ODA2LGNyOkdKMEg3UUdRSyxhbmlkYjoxNzgwNixraXRzdTo0Njk1NCxub3RpZnltb2U6ZkpBbmZwMjRnLGxpdmVjaGFydDoxMTc2Nyx0dmRiOjQyOTMxMA==' })
+    .subscribe(async ({ data, error, hasNext }) => {
       if (error) {
         console.error(error)
         return
       }
       console.log('data', data?.Media, data.Media.title, data?.Media.handles.edges)
-      if (!hasNext) console.log('done', performance.now() - p)
+      if (!hasNext) {
+        console.log('done', performance.now() - p)
+        unsubscribe()
+      }
     })
-
-  console.log('end', performance.now() - p)
-  console.log('res', res)
 
 }
 
