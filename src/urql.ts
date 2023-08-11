@@ -2,6 +2,8 @@ import { Client, fetchExchange } from 'urql';
 import { cacheExchange } from '@urql/exchange-graphcache'
 import { createYoga, createSchema, YogaServer, YogaInitialContext, YogaServerInstance } from 'graphql-yoga'
 import { useDeferStream } from '@graphql-yoga/plugin-defer-stream'
+import { devtoolsExchange } from '@urql/devtools'
+import deepmerge from 'deepmerge'
 
 import { OriginWithResolvers } from './server'
 
@@ -9,10 +11,9 @@ import { typeDefs } from './generated/schema/typeDefs.generated'
 import { resolvers } from './generated/schema/resolvers.generated'
 
 import { targets as origins } from '../../laserr/src/index'
-import { fromScannarrUri, fromUri, isUri } from './utils'
+import { fromScannarrUri, fromUri, fromUris, isScannarrUri, isUri, joinUris, mergeScannarrUris, toScannarrUri } from './utils'
 
 import { fetch } from '../../oz/OL/src/utils/fetch'
-import deepmerge from 'deepmerge';
 
 type ServerContext = {
 
@@ -161,18 +162,12 @@ async function *getOriginResultsStreamed (
           )
       )
 
-    await new Promise(resolve => setTimeout(resolve, 1000))
-
-
-    let promiseList = results.slice(); // clone the list to avoid mutating the original
+    let promiseList = [...results]
 
     while (promiseList.length > 0) {
-        let index = await Promise.race(promiseList.map((p, i) => p.then(() => i)));
-        
+        const index = await Promise.race(promiseList.map((p, i) => p.then(() => i)));
         yield await promiseList[index]
-
-        // Remove the promise we just handled
-        promiseList.splice(index, 1);
+        promiseList.splice(index, 1)
     }
 }
 
@@ -207,45 +202,59 @@ const makeScannarr = async (
     },
     resolvers: {
       Media: {
-        title: (parent, args, cache, info) => {
-          const titles =
+        uri: (parent, args, cache, info) => {
+          const parentUri = parent.uri
+          const isScannarr = parentUri && isScannarrUri(parentUri)
+          const handleUris =
+            isScannarr &&
             cache.resolve(
               cache.resolve({ __typename: 'Media', uri: parent.uri }, 'handles'),
               'edges'
             )
-            ?.map(edge => {
-              const titleRef = cache.resolve(cache.resolve(edge, 'node'), 'title')
-              return {
-                romanized: cache.resolve(titleRef, 'romanized'),
-                english: cache.resolve(titleRef, 'english'),
-                native: cache.resolve(titleRef, 'native'),
-              }
-            })
-            ?? []
-          // console.log('handles', handles)
-          const result =
-            titles
-              .reduce(
-                (acc, title) => deepmerge(acc, Object.fromEntries(Object.entries(title).filter(([, value]) => value !== null))),
-                { __typename: 'MediaTitle' }
-              )
+            ?.map(edge => cache.resolve(cache.resolve(edge, 'node'), 'uri'))
 
-          if (Object.keys(result).length === 0) {
-            // console.log('result', {
-            //   __typename: 'MediaTitle',
-            //   romanized: cache.resolve(cache.resolve({ __typename: 'Media', uri: parent.uri }, 'title'), 'romanized'),
-            //   english: cache.resolve(cache.resolve({ __typename: 'Media', uri: parent.uri }, 'title'), 'english'),
-            //   native: cache.resolve(cache.resolve({ __typename: 'Media', uri: parent.uri }, 'title'), 'native'),
-            // })
+          return (
+            isScannarr
+              ? toScannarrUri(joinUris(handleUris))
+              : parent.uri
+          )
+        },
+        title: (parent, args, cache, info) => {
+          const parentUri = parent.uri
+          const isScannarr = parentUri && isScannarrUri(parentUri)
+
+          if (!isScannarr) {
             return {
+              __typename: 'MediaTitle',
               romanized: cache.resolve(cache.resolve({ __typename: 'Media', uri: parent.uri }, 'title'), 'romanized'),
               english: cache.resolve(cache.resolve({ __typename: 'Media', uri: parent.uri }, 'title'), 'english'),
               native: cache.resolve(cache.resolve({ __typename: 'Media', uri: parent.uri }, 'title'), 'native'),
             }
           }
-          // console.log('result', result)
-          return result
-          // return cache.resolve({ __typename: 'Media', uri: parent.uri }, 'title')
+
+          return (
+            fromScannarrUri(parent.uri)
+              .map(uri => {
+                const titleRef = cache.resolve({ __typename: 'Media', uri }, 'title')
+                return {
+                  romanized: cache.resolve(titleRef, 'romanized'),
+                  english: cache.resolve(titleRef, 'english'),
+                  native: cache.resolve(titleRef, 'native'),
+                }
+              })
+              .reduce(
+                (acc, title) =>
+                  deepmerge(
+                    acc,
+                    Object.fromEntries(
+                      Object
+                        .entries(title)
+                        .filter(([, value]) => value !== null)
+                    )
+                  ),
+                { __typename: 'MediaTitle' }
+              )
+          )
         }
       }
     }
@@ -258,12 +267,11 @@ const makeScannarr = async (
         Media: async (parent, args, ctx, info) => {
           const results = getOriginResultsStreamed({ ctx, origins, context })
 
-          console.log('results', results)
           return {
             handler: '',
             origin: '',
             id: '',
-            uri: 'foo',
+            uri: 'scannarr:',
             url: null,
             handles: {
               async *edges (...args) {
@@ -293,16 +301,11 @@ const makeScannarr = async (
  
   const client = new Client({
     url: 'http://localhost:3000/graphql',
-    exchanges: [cache, fetchExchange],
+    exchanges: [devtoolsExchange, cache, fetchExchange],
     fetch: async (input: RequestInfo | URL, init?: RequestInit | undefined) =>
       yoga.handleRequest(new Request(input, init), {})
   })
 
-  await new Promise(resolve => setTimeout(resolve, 2000))
-
-  const p = performance.now()
-  console.log('boop')
-  
   const { unsubscribe } =
     client
       .query(`#graphql
@@ -333,15 +336,14 @@ const makeScannarr = async (
         }
     `, { uri: 'scannarr:bWFsOjU0MTEyLGFuaXppcDoxNzgwNixhbmlsaXN0OjE1OTgzMSxhbmltZXRvc2hvOjE3ODA2LGNyOkdKMEg3UUdRSyxhbmlkYjoxNzgwNixraXRzdTo0Njk1NCxub3RpZnltb2U6ZkpBbmZwMjRnLGxpdmVjaGFydDoxMTc2Nyx0dmRiOjQyOTMxMA==' })
     .subscribe(async ({ data, error, hasNext }) => {
-      if (error) {
-        console.error(error)
-        return
-      }
-      console.log('data', data?.Media, data.Media.title, data?.Media.handles.edges)
-      if (!hasNext) {
-        console.log('done', performance.now() - p)
-        unsubscribe()
-      }
+      if (error) return console.error(error)
+      console.log(
+        'data',
+        data?.Media,
+        data.Media.title,
+        data?.Media.handles.edges
+      )
+      if (!hasNext) setTimeout(() => unsubscribe(), 0)
     })
 
 }
