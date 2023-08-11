@@ -733,22 +733,6 @@ import { Uri } from '../utils/uri'
         "description": " A Handle represents a unique identifier for a resource. ",
         "fields": [
           {
-            "name": "handler",
-            "description": " The name of the handler, e.g: 'fkn' for packages handled by FKN ",
-            "args": [],
-            "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": {
-                "kind": "SCALAR",
-                "name": "String",
-                "ofType": null
-              }
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "handles",
             "description": null,
             "args": [],

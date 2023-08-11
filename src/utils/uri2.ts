@@ -1,25 +1,20 @@
 import { Handle } from '../generated/graphql'
 import { groupBy } from './groupBy'
 
-export type Uri = `${`${string}:` | ''}${string}:${string}`
+export type Uri = `${string}:${string}`
 
 type Separated<S extends string> = `${S}${''|`,${S}`}`
 
 export type Uris = Separated<Separated<Uri>>
 
 export type UriValues = {
-  handler?: string
   origin: string
   id: string
 }
 
 export const fromUri = (uri: Uri): UriValues => {
-  const splits = uri.split(':') as [string, string, string] | [string, string]
-  const [handler, origin, id] =
-    splits.length <= 2
-      ? [undefined, ...splits]
-      : splits as [string, string, string]
-  return { handler, origin, id }
+  const [origin, id] = uri.split(':') as [string, string]
+  return { origin, id }
 }
 
 export const fromUris = <T extends string | undefined = undefined>(uriString: Uris, schemeSearch?: T): T extends string ? UriValues : UriValues[] => {
@@ -30,11 +25,12 @@ export const fromUris = <T extends string | undefined = undefined>(uriString: Ur
 }
 
 export const toUri = (
-  { handler, origin, id }:
-  { handler?: string, origin: string, id: string }
-): Uri => `${handler ? `${handler}:` : ''}${origin}:${id}`
+  { origin, id }:
+  { origin: string, id: string }
+): Uri => `${origin}:${id}`
 
-export const joinUris = (uris: Uri[]): Uri => uris.join(',')
+export const joinUris = (uris: Uri[]) => uris.join(',') as Uris
+export const splitUris = (uris: Uris) => uris.split(',') as Uri[]
 
 export const isUri = (uri: string): uri is Uri => {
   const parts =
@@ -42,7 +38,9 @@ export const isUri = (uri: string): uri is Uri => {
       .split(':')
       .filter(part => part.length)
 
-  return parts.length === 2 || parts.length === 3
+  if (parts[1]?.includes(',')) throw new Error(`Invalid uri: ${uri}, contains "," character in id`)
+
+  return parts.length === 2
 }
 
 export const isUris = (uri: string): uri is Uris =>
@@ -50,32 +48,57 @@ export const isUris = (uri: string): uri is Uris =>
     .split(',')
     .every(isUri)
 
-export const populateUri = <T extends Partial<Pick<Handle, 'uri' | 'handler'>> & Omit<Handle, 'uri' | 'handler'>>(handle: T): T & Handle => ({
+export const populateUri = <T extends Partial<Pick<Handle, 'uri'>> & Omit<Handle, 'uri'>>(handle: T): T & Handle => ({
   ...handle,
-  handler: handle.handler ? handle.handler : 'fkn',
-  uri: toUri({ handler: handle.handler, origin: handle.origin, id: handle.id }),
+  uri: toUri({ origin: handle.origin, id: handle.id }),
   url: handle.url
 })
 
-const BASE64_REGEX = /(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?/
+export type ScannarrUri = `scannarr:(${Uris})${''|`-${string}`}`
 
-export const joinToScannarrUri = (uris: Uri[]): Uri => `scannarr:(${uris.join(',')})`
-export const toScannarrUri = (uris: Uris): Uri => `scannarr:(${uris})`
-export const toScannarrId = (uris: Uris): string => btoa(uris)
-export const fromScannarrUri = (uri: Uri): Uri[] => atob(uri.split(':')[1]!.match(BASE64_REGEX)![0]).split(',') as Uri[]
-export const toUriEpisodeId = (uri: Uri, episodeId: string) => `${uri}-${episodeId}`
-export const fromUriEpisodeId = (uri: Uri) => ({
-  uri: uri.split('-')[0] as Uri,
-  episodeId: uri.split('-')[1] as string
-})
+const SCANNARR_REGEX = /scannarr:\((.*)\)(?:-(.*))?/
 
-export const mergeScannarrUris = (uris: Uri[]) =>
+export const isScannarrUri = (uri: string): uri is ScannarrUri => {
+  if (!uri.startsWith('scannarr:')) return false
+  const match = uri.match(SCANNARR_REGEX)
+  if (!match) return false
+  const uris = match?.[1]
+  // allow empty scannarr uris
+  return !uris || isUris(uris)
+}
+
+export const toScannarrUri = <T extends Uri[] | Uris>(uris: T, episode?: string) =>
+  `scannarr:(${toScannarrId(uris)})${episode ? `-${episode}` : ''}` as ScannarrUri
+
+export const toScannarrId = <T extends Uri[] | Uris>(uris: T): string =>
+  encodeURI(
+    Array.isArray(uris)
+      ? uris.join(',')
+      : uris
+  )
+
+export const fromScannarrUri = (uri: ScannarrUri) => {
+  const match = uri.match(SCANNARR_REGEX)
+  return match && ({
+    uri: match[0] as Uri,
+    origin: 'scannarr' as const,
+    id: match[0].replace('scannarr:', ''),
+    handleUris: splitUris(match[1] as Uris),
+    handleUrisString: match[1] as Uris,
+    handleUrisValues: fromUris(match[1] as Uris),
+    episodeId: match[2] as string
+  })
+}
+
+export const mergeScannarrUris = (uris: ScannarrUri[]) =>
   toScannarrUri(
     [
       ...groupBy(
         uris
-          .flatMap(uri => fromScannarrUri(uri ?? ''))
-          .map(uri => fromUri(uri)),
+          .flatMap(uri =>
+            fromScannarrUri(uri as ScannarrUri)
+              ?.handleUrisValues
+          ),
         uri => uri.origin
       )
     ].map(([origin, uris]) =>

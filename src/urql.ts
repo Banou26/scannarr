@@ -11,9 +11,10 @@ import { typeDefs } from './generated/schema/typeDefs.generated'
 import { resolvers } from './generated/schema/resolvers.generated'
 
 import { targets as origins } from '../../laserr/src/index'
-import { fromScannarrUri, fromUri, fromUris, isScannarrUri, isUri, joinUris, mergeScannarrUris, toScannarrUri } from './utils'
+import { fromScannarrUri, fromUri, isScannarrUri, isUri, toScannarrUri} from './utils/uri2'
 
 import { fetch } from '../../oz/OL/src/utils/fetch'
+import { Media } from './generated/graphql';
 
 type ServerContext = {
 
@@ -23,103 +24,21 @@ type UserContext = {
 
 }
 
-const getOriginResults = async (
-  { ctx, origins, context }:
-  { ctx: YogaInitialContext, origins: OriginWithServer[], context?: () => Promise<ServerContext> }
-) => {
-  const rootUri = ctx.params.variables?.uri
-  const uris =
-    rootUri && isUri(rootUri) && rootUri.startsWith('scannarr:')
-      ? fromScannarrUri(rootUri)
-      : undefined
-
-  const results =
-    await Promise.all(
-      (await Promise.allSettled(
-        (uris ?? [undefined])
-          .flatMap(uri =>
-            origins?.map(async ({ origin, server }) =>
-              (async () =>
-                server
-                  .handleRequest(
-                    new Request(
-                      ctx.request.url,
-                      {
-                        method: 'POST',
-                        body: JSON.stringify({
-                          query: ctx.params.query,
-                          variables:
-                            uri
-                              ? ({
-                                ...ctx.params.variables,
-                                uri,
-                                handler: fromUri(uri).handler,
-                                id: fromUri(uri).id,
-                                origin: fromUri(uri).origin
-                              })
-                              : ctx.params.variables
-                        }),
-                        headers: { 'Content-Type': 'application/json' }
-                      }
-                    ),
-                    { ...await context?.(), server }
-                  ))()
-                .then(response => response.json())
-                .then(result => ({
-                  ...result,
-                  origin,
-                }))
-                .catch(err => {
-                  if (!silenceResolverErrors) {
-                    const error = new Error(`Error in origin for ${origin.name}:\n${err.message}`)
-                    error.stack = `Error in origin for ${origin.name}:\n${err.stack}`
-                    console.error(error)
-                  }
-                  throw err
-                })
-            )
-          )
-      ))
-        .filter((result) => result.status === 'fulfilled')
-        .flatMap((result) => (result as PromiseFulfilledResult<any>).value)
-        .filter((result) =>
-          result !== undefined
-          && result !== null
-          && Object.values(result.data).some((value) => value !== undefined && value !== null)
-        )
-    )
-
-  return results
-}
-
-async function* unorderedPromisesToGenerator<T>(promises: Promise<T>[]): AsyncGenerator<T> {
-  let promiseList = promises.slice(); // clone the list to avoid mutating the original
-
-  while (promiseList.length > 0) {
-      let index = await Promise.race(promiseList.map((p, i) => p.then(() => i)));
-      
-      yield await promiseList[index];
-
-      // Remove the promise we just handled
-      promiseList.splice(index, 1);
-  }
-}
-
 async function *getOriginResultsStreamed (
   { ctx, origins, context }:
   { ctx: YogaInitialContext, origins: OriginWithServer[], context?: () => Promise<ServerContext> }
 ) {
   const rootUri = ctx.params.variables?.uri
   const uris =
-    rootUri && isUri(rootUri) && rootUri.startsWith('scannarr:')
-      ? fromScannarrUri(rootUri)
+    rootUri && isScannarrUri(rootUri)
+      ? fromScannarrUri(rootUri)?.handleUris
       : undefined
 
   const results =
     (uris ?? [undefined])
       .flatMap(uri =>
         origins
-          .filter(({ origin }) => origin.supportedUris?.includes(fromUri(uri).origin))
+          .filter(({ origin }) => uri ? origin.supportedUris?.includes(fromUri(uri).origin) : true)
           .map(async ({ origin, server }) =>
             (async () =>
               server
@@ -135,7 +54,6 @@ async function *getOriginResultsStreamed (
                             ? ({
                               ...ctx.params.variables,
                               uri,
-                              handler: fromUri(uri).handler,
                               id: fromUri(uri).id,
                               origin: fromUri(uri).origin
                             })
@@ -197,64 +115,68 @@ const makeScannarr = async (
 
   const cache = cacheExchange({
     keys: {
-      Media: (data) => data.uri,
+      Media: (media) => (media as Media).uri,
       MediaTitle: () => null
     },
     resolvers: {
       Media: {
         uri: (parent, args, cache, info) => {
-          const parentUri = parent.uri
+          const parentUri = parent.uri as string | undefined
+          if (!parentUri) return null
           const isScannarr = parentUri && isScannarrUri(parentUri)
           const handleUris =
             isScannarr &&
             cache.resolve(
-              cache.resolve({ __typename: 'Media', uri: parent.uri }, 'handles'),
+              cache.resolve({ __typename: 'Media', uri: parentUri }, 'handles') as string,
               'edges'
             )
             ?.map(edge => cache.resolve(cache.resolve(edge, 'node'), 'uri'))
 
           return (
             isScannarr
-              ? toScannarrUri(joinUris(handleUris))
+              ? toScannarrUri(handleUris)
               : parent.uri
           )
         },
         title: (parent, args, cache, info) => {
-          const parentUri = parent.uri
+          const parentUri = parent.uri as string | undefined
+          if (!parentUri) return null
           const isScannarr = parentUri && isScannarrUri(parentUri)
 
-          if (!isScannarr) {
-            return {
-              __typename: 'MediaTitle',
-              romanized: cache.resolve(cache.resolve({ __typename: 'Media', uri: parent.uri }, 'title'), 'romanized'),
-              english: cache.resolve(cache.resolve({ __typename: 'Media', uri: parent.uri }, 'title'), 'english'),
-              native: cache.resolve(cache.resolve({ __typename: 'Media', uri: parent.uri }, 'title'), 'native'),
-            }
+          if (isScannarr) {
+            return (
+              fromScannarrUri(parentUri)
+                ?.handleUris
+                ?.map(uri => {
+                  const titleRef = cache.resolve({ __typename: 'Media', uri }, 'title') as string | undefined
+                  return {
+                    romanized: cache.resolve(titleRef, 'romanized'),
+                    english: cache.resolve(titleRef, 'english'),
+                    native: cache.resolve(titleRef, 'native'),
+                  }
+                })
+                .reduce(
+                  (acc, title) =>
+                    deepmerge(
+                      acc,
+                      Object.fromEntries(
+                        Object
+                          .entries(title)
+                          .filter(([, value]) => value !== null)
+                      )
+                    ),
+                  { __typename: 'MediaTitle' }
+                )
+            )
+
           }
 
-          return (
-            fromScannarrUri(parent.uri)
-              .map(uri => {
-                const titleRef = cache.resolve({ __typename: 'Media', uri }, 'title')
-                return {
-                  romanized: cache.resolve(titleRef, 'romanized'),
-                  english: cache.resolve(titleRef, 'english'),
-                  native: cache.resolve(titleRef, 'native'),
-                }
-              })
-              .reduce(
-                (acc, title) =>
-                  deepmerge(
-                    acc,
-                    Object.fromEntries(
-                      Object
-                        .entries(title)
-                        .filter(([, value]) => value !== null)
-                    )
-                  ),
-                { __typename: 'MediaTitle' }
-              )
-          )
+          return {
+            __typename: 'MediaTitle',
+            romanized: cache.resolve(cache.resolve({ __typename: 'Media', uri: parentUri }, 'title'), 'romanized'),
+            english: cache.resolve(cache.resolve({ __typename: 'Media', uri: parentUri }, 'title'), 'english'),
+            native: cache.resolve(cache.resolve({ __typename: 'Media', uri: parentUri }, 'title'), 'native'),
+          }
         }
       }
     }
@@ -268,10 +190,9 @@ const makeScannarr = async (
           const results = getOriginResultsStreamed({ ctx, origins, context })
 
           return {
-            handler: '',
             origin: '',
             id: '',
-            uri: 'scannarr:',
+            uri: 'scannarr:()',
             url: null,
             handles: {
               async *edges (...args) {
@@ -310,7 +231,6 @@ const makeScannarr = async (
     client
       .query(`#graphql
         fragment GetMediaTestFragment on Media {
-          handler
           origin
           id
           uri
@@ -334,7 +254,7 @@ const makeScannarr = async (
             }
           }
         }
-    `, { uri: 'scannarr:bWFsOjU0MTEyLGFuaXppcDoxNzgwNixhbmlsaXN0OjE1OTgzMSxhbmltZXRvc2hvOjE3ODA2LGNyOkdKMEg3UUdRSyxhbmlkYjoxNzgwNixraXRzdTo0Njk1NCxub3RpZnltb2U6ZkpBbmZwMjRnLGxpdmVjaGFydDoxMTc2Nyx0dmRiOjQyOTMxMA==' })
+    `, { uri: 'scannarr:(mal:54112,anizip:17806,anilist:159831,animetosho:17806,cr:GJ0H7QGQK,anidb:17806,kitsu:46954,notifymoe:fJAnfp24g,livechart:11767,tvdb:429310)' })
     .subscribe(async ({ data, error, hasNext }) => {
       if (error) return console.error(error)
       console.log(
