@@ -70,22 +70,20 @@ async function *getOriginResultsStreamed (
                 origin,
               }))
               .catch(err => {
-                // if (!silenceResolverErrors) {
-                  const error = new Error(`Error in origin for ${origin.name}:\n${err.message}`)
-                  error.stack = `Error in origin for ${origin.name}:\n${err.stack}`
-                  console.error(error)
-                // }
+                const error = new Error(`Error in origin for ${origin.name}:\n${err.message}`)
+                error.stack = `Error in origin for ${origin.name}:\n${err.stack}`
+                console.error(error)
                 throw err
               })
           )
       )
 
-    let promiseList = [...results]
+    const promiseList = [...results]
 
     while (promiseList.length > 0) {
-        const index = await Promise.race(promiseList.map((p, i) => p.then(() => i)));
-        yield await promiseList[index]
-        promiseList.splice(index, 1)
+      const index = await Promise.race(promiseList.map((p, i) => p.then(() => i)));
+      yield await promiseList[index]
+      promiseList.splice(index, 1)
     }
 }
 
