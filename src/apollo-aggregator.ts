@@ -115,7 +115,8 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
           (uris ?? [undefined])
             .flatMap(uri =>
               resolversClients
-                ?.filter(({ origin }) => origin.supportedUris?.includes(fromUri(uri).origin))
+                // may need to change this once i have more resolvers for non scannarr origins
+                ?.filter(({ origin }) => uri ? origin.supportedUris?.includes(fromUri(uri).origin) : true)
                 ?.map(({ origin, client }) =>
                   client
                     .query({
