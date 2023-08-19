@@ -92,7 +92,7 @@ type OriginWithServer = {
   server: YogaServerInstance<{}, {}>
 }
 
-const makeScannarr = async (
+const makeScannarr = (
   { origins: _origins, context }:
   { origins: OriginWithResolvers[], context?: () => Promise<ServerContext> } =
   { origins: [], context: undefined }
@@ -166,7 +166,6 @@ const makeScannarr = async (
                   { __typename: 'MediaTitle' }
                 )
             )
-
           }
 
           return {
@@ -225,52 +224,57 @@ const makeScannarr = async (
       yoga.handleRequest(new Request(input, init), {})
   })
 
-  const { unsubscribe } =
+  return {
+    yoga,
     client
-      .query(`#graphql
-        fragment GetMediaTestFragment on Media {
-          origin
-          id
-          uri
-          url
-          title {
-            romanized
-            english
-            native
-          }
-        }
+  }
 
-        query GetMediaTest($uri: String!, $origin: String, $id: String) {
-          Media(uri: $uri, origin: $origin, id: $id) {
-            ...GetMediaTestFragment
-            handles {
-              edges @stream {
-                node {
-                  ...GetMediaTestFragment
-                }
-              }
-            }
-          }
-        }
-    `, { uri: 'scannarr:(mal:54112,anizip:17806,anilist:159831,animetosho:17806,cr:GJ0H7QGQK,anidb:17806,kitsu:46954,notifymoe:fJAnfp24g,livechart:11767,tvdb:429310)' })
-    .subscribe(async ({ data, error, hasNext }) => {
-      if (error) return console.error(error)
-      console.log(
-        'data',
-        data?.Media,
-        data.Media.title,
-        data?.Media.handles.edges
-      )
-      if (!hasNext) setTimeout(() => unsubscribe(), 0)
-    })
+  // const { unsubscribe } =
+  //   client
+  //     .query(`#graphql
+  //       fragment GetMediaTestFragment on Media {
+  //         origin
+  //         id
+  //         uri
+  //         url
+  //         title {
+  //           romanized
+  //           english
+  //           native
+  //         }
+  //       }
+
+  //       query GetMediaTest($uri: String!, $origin: String, $id: String) {
+  //         Media(uri: $uri, origin: $origin, id: $id) {
+  //           ...GetMediaTestFragment
+  //           handles {
+  //             edges @stream {
+  //               node {
+  //                 ...GetMediaTestFragment
+  //               }
+  //             }
+  //           }
+  //         }
+  //       }
+  //   `, { uri: 'scannarr:(mal:54112,anizip:17806,anilist:159831,animetosho:17806,cr:GJ0H7QGQK,anidb:17806,kitsu:46954,notifymoe:fJAnfp24g,livechart:11767,tvdb:429310)' })
+  //   .subscribe(async ({ data, error, hasNext }) => {
+  //     if (error) return console.error(error)
+  //     console.log(
+  //       'data',
+  //       data?.Media,
+  //       data.Media.title,
+  //       data?.Media.handles.edges
+  //     )
+  //     if (!hasNext) setTimeout(() => unsubscribe(), 0)
+  //   })
 
 }
 
-makeScannarr({
-  origins,
-  context: async () => ({
-    fetch
-  })
-})
+// makeScannarr({
+//   origins,
+//   context: async () => ({
+//     fetch
+//   })
+// })
 
 export default makeScannarr
