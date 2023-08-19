@@ -169,7 +169,7 @@ export type HandleRelation =
 export type Media = Handle & {
   __typename?: 'Media';
   /** The average score of the media */
-  averageScore?: Maybe<Scalars['Int']['output']>;
+  averageScore?: Maybe<Scalars['Float']['output']>;
   /** The banner image of the media */
   bannerImage?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   /** The cover images of the media */
@@ -1082,7 +1082,7 @@ export interface JsonScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes
 }
 
 export type MediaResolvers<ContextType = any, ParentType extends ResolversParentTypes['Media'] = ResolversParentTypes['Media']> = {
-  averageScore?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  averageScore?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   bannerImage?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   coverImage?: Resolver<Maybe<Array<Maybe<ResolversTypes['MediaCoverImage']>>>, ParentType, ContextType>;
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, Partial<MediaDescriptionArgs>>;

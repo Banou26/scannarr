@@ -140,7 +140,7 @@ type Media implements Handle {
   bannerImage: [String]
 
   """The average score of the media"""
-  averageScore: Int
+  averageScore: Float
 
   """The number of users with the media on their list"""
   popularity: Int
