@@ -19,7 +19,10 @@ export const fromUri = (uri: Uri): UriValues => {
 
 export const fromUris = <T extends string | undefined = undefined>(uriString: Uris, schemeSearch?: T): T extends string ? UriValues : UriValues[] => {
   const uris = uriString.split(',') as Uri[]
-  const result = uris.map((uri) => fromUri(uri))
+  const result =
+    uris
+      .filter(Boolean)
+      .map((uri) => fromUri(uri))
   if (schemeSearch) return result.find(({ origin }) => origin === schemeSearch) as T extends string ? UriValues : UriValues[]
   return result as T extends string ? UriValues : UriValues[]
 }
@@ -70,22 +73,45 @@ export const isScannarrUri = (uri: string): uri is ScannarrUri => {
 export const toScannarrUri = <T extends Uri[] | Uris>(uris: T, episode?: string) =>
   `scannarr:(${toScannarrId(uris)})${episode ? `-${episode}` : ''}` as ScannarrUri
 
-export const toScannarrId = <T extends Uri[] | Uris>(uris: T): string =>
-  encodeURI(
-    Array.isArray(uris)
-      ? uris.join(',')
-      : uris
-  )
+export const toScannarrId = <T extends Uri[] | Uris>(uris: T, sort = true): string =>
+  sort
+    ? toScannarrId(
+      (
+        fromUris(
+          Array.isArray(uris)
+            ? uris.join(',') as Uris
+            : uris
+        )
+      )
+        .filter(elem => elem.origin && elem.id)
+        .sort((a, b) => a.id.localeCompare(b.id))
+        .sort((a, b) => a.origin.localeCompare(b.origin))
+        .map(toUri),
+      false
+    )
+    : (
+      encodeURI(
+        Array.isArray(uris)
+          ? uris.join(',')
+          : uris
+      )
+    )
 
 export const fromScannarrUri = (uri: ScannarrUri) => {
   const match = uri.match(SCANNARR_REGEX)
+  if (!match) return undefined
+  const uris =
+    fromUris(match[1] as Uris)
+      .filter(elem => elem.origin && elem.id)
+      .sort((a, b) => a.id.localeCompare(b.id))
+      .sort((a, b) => a.origin.localeCompare(b.origin))
   return match && ({
-    uri: match[0] as Uri,
+    uri: `scannarr:(${joinUris(uris.map(toUri))})` as Uri,
     origin: 'scannarr' as const,
-    id: match[0].replace('scannarr:', ''),
-    handleUris: splitUris(match[1] as Uris),
-    handleUrisString: match[1] as Uris,
-    handleUrisValues: fromUris(match[1] as Uris),
+    id: `(${joinUris(uris.map(toUri))})`,
+    handleUris: uris.map(toUri),
+    handleUrisString: joinUris(uris.map(toUri)), // match[1] as Uris,
+    handleUrisValues: uris,
     episodeId: match[2] as string
   })
 }
