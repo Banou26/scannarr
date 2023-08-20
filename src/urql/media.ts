@@ -1,9 +1,9 @@
-import { DataFields, ResolveInfo, Variables } from '@urql/exchange-graphcache'
+import { Cache, DataFields, ResolveInfo, Variables } from '@urql/exchange-graphcache'
 import { ServerContext } from '.'
 import { Media } from '../generated/graphql'
 import { OriginWithResolvers } from '../server'
 import { isScannarrUri, toScannarrId, toScannarrUri } from '../utils/uri2'
-import { getOriginResultsStreamed, makeObjectResolver, makeScalarResolver } from './utils'
+import { getOriginResultsStreamed, makeArrayResolver, makeObjectResolver, makeScalarResolver } from './utils'
 
 const populateMedia = (media: Media) => ({
   origin: media.origin,
@@ -45,6 +45,12 @@ const populateMedia = (media: Media) => ({
     month: null,
     year: null,
   },
+  
+  coverImage: media.coverImage ?? [],
+  trailers: media.trailers ?? [],
+  externalLinks: media.externalLinks ?? [],
+  bannerImage: media.bannerImage ?? [],
+
   description: media.description ?? null,
   shortDescription: media.shortDescription ?? null,
   popularity: media.popularity ?? null,
@@ -76,6 +82,31 @@ export const serverResolvers = ({ origins, context }: { origins: OriginWithResol
 })
 
 export const cacheResolvers = ({ origins, context }: { origins: OriginWithResolvers[], context?: () => Promise<ServerContext> }) => ({
+  MediaCoverImage: {
+    default: (parent: DataFields, args: Variables, cache: Cache, info: ResolveInfo) => {
+      const coverImageRefs =
+        cache
+          .resolve(
+            {
+              __typename: 'Media',
+              uri: info.parentKey.slice('Media:'.length, info.parentKey.indexOf('.coverImage'))
+            },
+            `coverImage`
+          )
+
+      const coverImageRef = coverImageRefs?.at(info.parentKey.split('.').at(-1))
+      
+      if (!coverImageRef) return null
+
+      return (
+        cache.resolve(coverImageRef, 'extraLarge')
+        ?? cache.resolve(coverImageRef, 'large')
+        ?? cache.resolve(coverImageRef, 'medium')
+        ?? cache.resolve(coverImageRef, 'small')
+      )
+    }
+
+  },
   Media: {
     uri: (parent: DataFields, args: Variables, cache: Cache, info: ResolveInfo) => {
       const parentUri = parent.uri === 'scannarr:()' ? info.parentKey.replace('Media:', '') : parent.uri as string | undefined
@@ -146,6 +177,12 @@ export const cacheResolvers = ({ origins, context }: { origins: OriginWithResolv
         year: null,
       }
     }),
+
+    coverImage: makeArrayResolver({ __typename: 'Media', fieldName: 'coverImage' }),
+    trailers: makeArrayResolver({ __typename: 'Media', fieldName: 'trailers' }),
+    externalLinks: makeArrayResolver({ __typename: 'Media', fieldName: 'externalLinks' }),
+    bannerImage: makeArrayResolver({ __typename: 'Media', fieldName: 'bannerImage' }),
+
     description: makeScalarResolver({ __typename: 'Media', fieldName: 'description', defaultValue: null }),
     shortDescription: makeScalarResolver({ __typename: 'Media', fieldName: 'shortDescription', defaultValue: null }),
     popularity: makeScalarResolver({ __typename: 'Media', fieldName: 'popularity', defaultValue: null }),

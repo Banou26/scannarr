@@ -92,6 +92,26 @@ export const makeScalarResolver =
       return cache.resolve({ __typename, uri: parentUri }, fieldName)
     }
 
+export const makeArrayResolver =
+  ({ __typename, fieldName }: { __typename: string, fieldName: string }) =>
+    (parent, args, cache, info) => {
+      const parentUri = parent.uri as string | undefined
+      if (!parentUri) return parent[fieldName]
+      const isScannarr = parentUri && isScannarrUri(parentUri)
+
+      if (isScannarr) {
+        console.log('makeArrayResolver', parent, parentUri, isScannarr, cache.resolve({ __typename, parentUri }, fieldName))
+        return (
+          fromScannarrUri(parentUri)
+            ?.handleUris
+            ?.flatMap(uri => cache.resolve({ __typename, uri }, fieldName))
+          ?? []
+        )
+      }
+
+      return cache.resolve({ __typename, uri: parentUri }, fieldName)
+    }
+
 export const makeObjectResolver =
   <T extends Record<string, any>>({ __typename, fieldName, objectTypename, fields, defaultValue }: { __typename: string, objectTypename: string, fieldName: string, fields: string[], defaultValue: T }) =>
     (parent, args, cache, info) => {

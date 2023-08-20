@@ -11,7 +11,7 @@ import { typeDefs } from '../generated/schema/typeDefs.generated'
 import { targets as origins } from '../../../laserr/src/index'
 import { fromScannarrUri, fromUri, isScannarrUri, toScannarrId, toScannarrUri} from '../utils/uri2'
 
-import { Media } from '../generated/graphql'
+import { Media, MediaExternalLink, MediaTrailer } from '../generated/graphql'
 import { serverResolvers as makeMediaServerResolvers, cacheResolvers as makeMediaCacheResolvers } from './media'
 
 export type ServerContext = {
@@ -56,6 +56,9 @@ const makeScannarr = (
         const uri = (handles && toScannarrUri(handles)) ?? (media as Media).uri
         return uri
       },
+      MediaExternalLink: (mediaExternalLink) => (mediaExternalLink as MediaExternalLink).uri,
+      MediaTrailer: (mediaTrailer) => (mediaTrailer as MediaTrailer).uri,
+      MediaCoverImage: () => null,
       MediaTitle: () => null,
       FuzzyDate: () => null,
     },
