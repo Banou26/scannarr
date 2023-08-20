@@ -100,7 +100,6 @@ export const makeArrayResolver =
       const isScannarr = parentUri && isScannarrUri(parentUri)
 
       if (isScannarr) {
-        console.log('makeArrayResolver', parent, parentUri, isScannarr, cache.resolve({ __typename, parentUri }, fieldName))
         return (
           fromScannarrUri(parentUri)
             ?.handleUris

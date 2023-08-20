@@ -32,7 +32,6 @@ export type Episode = Handle & {
   airingAt?: Maybe<Scalars['Float']>;
   /** The description of the episode */
   description?: Maybe<Scalars['String']>;
-  handler: Scalars['String'];
   handles: EpisodeConnection;
   id: Scalars['String'];
   /** The associate media of the episode */
@@ -188,7 +187,6 @@ export type Media = Handle & {
   /** External links to another site related to the media */
   externalLinks?: Maybe<Array<Maybe<MediaExternalLink>>>;
   format?: Maybe<MediaFormat>;
-  handler: Scalars['String'];
   handles: MediaConnection;
   id: Scalars['String'];
   /** If the media is intended only for 18+ adult audiences */
@@ -256,7 +254,6 @@ export type MediaAiringSchedule = Handle & {
   description?: Maybe<Scalars['String']>;
   /** The airing episode number */
   episodeNumber: Scalars['Int'];
-  handler: Scalars['String'];
   handles: HandleConnection;
   id: Scalars['String'];
   /** The associate media of the airing episode */
@@ -326,7 +323,6 @@ export type MediaEdge = HandleEdge & {
 export type MediaExternalLink = Handle & {
   __typename?: 'MediaExternalLink';
   color?: Maybe<Scalars['String']>;
-  handler: Scalars['String'];
   handles: HandleConnection;
   /** The icon image url of the site. Not available for all links */
   icon?: Maybe<Scalars['String']>;
@@ -491,7 +487,6 @@ export type MediaTitleLanguageArgs = {
 /** Media trailer or advertisement */
 export type MediaTrailer = Handle & {
   __typename?: 'MediaTrailer';
-  handler: Scalars['String'];
   handles: HandleConnection;
   id: Scalars['String'];
   origin: Scalars['String'];
@@ -682,7 +677,6 @@ export type PlaybackSource = Handle & {
   filename?: Maybe<Scalars['String']>;
   filesCount?: Maybe<Scalars['Int']>;
   format?: Maybe<Scalars['String']>;
-  handler: Scalars['String'];
   handles: PlaybackSourceConnection;
   hash?: Maybe<Scalars['String']>;
   id: Scalars['String'];
@@ -806,7 +800,6 @@ export type QueryPlaybackSourceArgs = {
 export type Resource = Handle & {
   __typename?: 'Resource';
   batchResources: Array<ResourceConnection>;
-  handler: Scalars['String'];
   handles: ResourceConnection;
   id: Scalars['String'];
   isBatch?: Maybe<Scalars['Boolean']>;
@@ -832,7 +825,6 @@ export type ResourceEdge = HandleEdge & {
 
 export type Team = Handle & {
   __typename?: 'Team';
-  handler: Scalars['String'];
   handles: HandleConnection;
   id: Scalars['String'];
   name?: Maybe<Scalars['String']>;
@@ -1020,7 +1012,6 @@ export interface DateScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes
 export type EpisodeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Episode'] = ResolversParentTypes['Episode']> = {
   airingAt?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  handler?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   handles?: Resolver<ResolversTypes['EpisodeConnection'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   media?: Resolver<Maybe<ResolversTypes['Media']>, ParentType, ContextType>;
@@ -1097,7 +1088,6 @@ export type MediaResolvers<ContextType = Context, ParentType extends ResolversPa
   episodes?: Resolver<Maybe<ResolversTypes['EpisodeConnection']>, ParentType, ContextType, Partial<MediaEpisodesArgs>>;
   externalLinks?: Resolver<Maybe<Array<Maybe<ResolversTypes['MediaExternalLink']>>>, ParentType, ContextType>;
   format?: Resolver<Maybe<ResolversTypes['MediaFormat']>, ParentType, ContextType>;
-  handler?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   handles?: Resolver<ResolversTypes['MediaConnection'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   isAdult?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
@@ -1121,7 +1111,6 @@ export type MediaAiringScheduleResolvers<ContextType = Context, ParentType exten
   airingAt?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   episodeNumber?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  handler?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   handles?: Resolver<ResolversTypes['HandleConnection'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   media?: Resolver<Maybe<ResolversTypes['Media']>, ParentType, ContextType>;
@@ -1173,7 +1162,6 @@ export type MediaEdgeResolvers<ContextType = Context, ParentType extends Resolve
 
 export type MediaExternalLinkResolvers<ContextType = Context, ParentType extends ResolversParentTypes['MediaExternalLink'] = ResolversParentTypes['MediaExternalLink']> = {
   color?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  handler?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   handles?: Resolver<ResolversTypes['HandleConnection'], ParentType, ContextType>;
   icon?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1205,7 +1193,6 @@ export type MediaTitleResolvers<ContextType = Context, ParentType extends Resolv
 };
 
 export type MediaTrailerResolvers<ContextType = Context, ParentType extends ResolversParentTypes['MediaTrailer'] = ResolversParentTypes['MediaTrailer']> = {
-  handler?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   handles?: Resolver<ResolversTypes['HandleConnection'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   origin?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1261,7 +1248,6 @@ export type PlaybackSourceResolvers<ContextType = Context, ParentType extends Re
   filename?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   filesCount?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   format?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  handler?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   handles?: Resolver<ResolversTypes['PlaybackSourceConnection'], ParentType, ContextType>;
   hash?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1304,7 +1290,6 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
 
 export type ResourceResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Resource'] = ResolversParentTypes['Resource']> = {
   batchResources?: Resolver<Array<ResolversTypes['ResourceConnection']>, ParentType, ContextType>;
-  handler?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   handles?: Resolver<ResolversTypes['ResourceConnection'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   isBatch?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
@@ -1328,7 +1313,6 @@ export type ResourceEdgeResolvers<ContextType = Context, ParentType extends Reso
 };
 
 export type TeamResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Team'] = ResolversParentTypes['Team']> = {
-  handler?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   handles?: Resolver<ResolversTypes['HandleConnection'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;

@@ -11,8 +11,9 @@ import { typeDefs } from '../generated/schema/typeDefs.generated'
 import { targets as origins } from '../../../laserr/src/index'
 import { fromScannarrUri, fromUri, isScannarrUri, toScannarrId, toScannarrUri} from '../utils/uri2'
 
-import { Media, MediaExternalLink, MediaTrailer } from '../generated/graphql'
+import { Episode, Media, MediaExternalLink, MediaTrailer } from '../generated/graphql'
 import { serverResolvers as makeMediaServerResolvers, cacheResolvers as makeMediaCacheResolvers } from './media'
+import { serverResolvers as makeEpisodeServerResolvers, cacheResolvers as makeEpisodeCacheResolvers } from './episode'
 
 export type ServerContext = {
 
@@ -47,6 +48,7 @@ const makeScannarr = (
       }))
 
   const mediaCacheResolvers = makeMediaCacheResolvers({ origins, context })
+  const episodeCacheResolvers = makeEpisodeCacheResolvers({ origins, context })
 
   const cache = cacheExchange({
     keys: {
@@ -56,6 +58,16 @@ const makeScannarr = (
         const uri = (handles && toScannarrUri(handles)) ?? (media as Media).uri
         return uri
       },
+      MediaConnection: () => null,
+      MediaEdge: () => null,
+      Episode: (media) => {
+        if (media.origin !== 'scannarr') return (media as Episode).uri
+        const handles = (media as Episode).handles?.edges.map(handle => handle.node.uri)
+        const uri = (handles && toScannarrUri(handles)) ?? (media as Episode).uri
+        return uri
+      },
+      EpisodeConnection: () => null,
+      EpisodeEdge: () => null,
       MediaExternalLink: (mediaExternalLink) => (mediaExternalLink as MediaExternalLink).uri,
       MediaTrailer: (mediaTrailer) => (mediaTrailer as MediaTrailer).uri,
       MediaCoverImage: () => null,
@@ -63,18 +75,22 @@ const makeScannarr = (
       FuzzyDate: () => null,
     },
     resolvers: {
-      ...mediaCacheResolvers
+      ...mediaCacheResolvers,
+      ...episodeCacheResolvers
     }
   })
 
   const mediaResolvers = makeMediaServerResolvers({ origins, context })
+  const episodeResolvers = makeEpisodeServerResolvers({ origins, context })
 
   const schema = createSchema({
     typeDefs,
     resolvers: {
       ...mediaResolvers,
+      ...episodeResolvers,
       Query: {
-        ...mediaResolvers.Query
+        ...mediaResolvers.Query,
+        ...episodeResolvers.Query
       }
     }
   })

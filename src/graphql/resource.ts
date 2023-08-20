@@ -2,7 +2,6 @@ export const schema = `#graphql
 
 type Resource implements Handle {
   # Handle properties
-  handler: String!
   origin: String!
   id: String!
   uri: Uri!

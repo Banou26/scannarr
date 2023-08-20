@@ -69,22 +69,6 @@ import { Uri } from '../utils/uri'
             "deprecationReason": null
           },
           {
-            "name": "handler",
-            "description": null,
-            "args": [],
-            "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": {
-                "kind": "SCALAR",
-                "name": "String",
-                "ofType": null
-              }
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "handles",
             "description": null,
             "args": [],
@@ -1224,22 +1208,6 @@ import { Uri } from '../utils/uri'
             "deprecationReason": null
           },
           {
-            "name": "handler",
-            "description": null,
-            "args": [],
-            "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": {
-                "kind": "SCALAR",
-                "name": "String",
-                "ofType": null
-              }
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "handles",
             "description": null,
             "args": [],
@@ -1523,22 +1491,6 @@ import { Uri } from '../utils/uri'
               "ofType": {
                 "kind": "SCALAR",
                 "name": "Int",
-                "ofType": null
-              }
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "handler",
-            "description": null,
-            "args": [],
-            "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": {
-                "kind": "SCALAR",
-                "name": "String",
                 "ofType": null
               }
             },
@@ -2013,22 +1965,6 @@ import { Uri } from '../utils/uri'
               "kind": "SCALAR",
               "name": "String",
               "ofType": null
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "handler",
-            "description": null,
-            "args": [],
-            "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": {
-                "kind": "SCALAR",
-                "name": "String",
-                "ofType": null
-              }
             },
             "isDeprecated": false,
             "deprecationReason": null
@@ -2726,22 +2662,6 @@ import { Uri } from '../utils/uri'
         "name": "MediaTrailer",
         "description": "Media trailer or advertisement",
         "fields": [
-          {
-            "name": "handler",
-            "description": null,
-            "args": [],
-            "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": {
-                "kind": "SCALAR",
-                "name": "String",
-                "ofType": null
-              }
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
           {
             "name": "handles",
             "description": null,
@@ -4019,22 +3939,6 @@ import { Uri } from '../utils/uri'
             "deprecationReason": null
           },
           {
-            "name": "handler",
-            "description": null,
-            "args": [],
-            "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": {
-                "kind": "SCALAR",
-                "name": "String",
-                "ofType": null
-              }
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "handles",
             "description": null,
             "args": [],
@@ -5100,22 +5004,6 @@ import { Uri } from '../utils/uri'
             "deprecationReason": null
           },
           {
-            "name": "handler",
-            "description": null,
-            "args": [],
-            "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": {
-                "kind": "SCALAR",
-                "name": "String",
-                "ofType": null
-              }
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "handles",
             "description": null,
             "args": [],
@@ -5356,22 +5244,6 @@ import { Uri } from '../utils/uri'
         "name": "Team",
         "description": null,
         "fields": [
-          {
-            "name": "handler",
-            "description": null,
-            "args": [],
-            "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": {
-                "kind": "SCALAR",
-                "name": "String",
-                "ofType": null
-              }
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
           {
             "name": "handles",
             "description": null,

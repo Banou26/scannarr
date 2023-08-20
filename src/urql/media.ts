@@ -2,15 +2,18 @@ import { Cache, DataFields, ResolveInfo, Variables } from '@urql/exchange-graphc
 import { ServerContext } from '.'
 import { Media } from '../generated/graphql'
 import { OriginWithResolvers } from '../server'
-import { isScannarrUri, toScannarrId, toScannarrUri } from '../utils/uri2'
+import { fromScannarrUri, isScannarrUri, toScannarrId, toScannarrUri } from '../utils/uri2'
 import { getOriginResultsStreamed, makeArrayResolver, makeObjectResolver, makeScalarResolver } from './utils'
+import { populateEpisode } from './episode'
+import { groupBy } from '../utils/groupBy'
 
-const populateMedia = (media: Media) => ({
+export const populateMedia = (media: Media) => ({
   origin: media.origin,
   id: media.id,
   uri: media.uri,
   url: media.url ?? null,
   handles: {
+    __typename: 'MediaConnection',
     edges:
       typeof media.handles?.edges === 'function'
         ? (
@@ -18,7 +21,8 @@ const populateMedia = (media: Media) => ({
             for await (const edge of media.handles?.edges()) {
               yield {
                 ...edge,
-                node: populateMedia(edge.node)
+                node: populateMedia(edge.node),
+                __typename: 'MediaEdge'
               }
             }
           }
@@ -26,7 +30,8 @@ const populateMedia = (media: Media) => ({
         : (
           media.handles?.edges.map(edge => ({
             ...edge,
-            node: populateMedia(edge.node)
+            node: populateMedia(edge.node),
+            __typename: 'MediaEdge'
           })) ?? []
         )
   },
@@ -45,7 +50,30 @@ const populateMedia = (media: Media) => ({
     month: null,
     year: null,
   },
-  
+
+  episodes: {
+    __typename: 'EpisodeConnection',
+    edges:
+      typeof media.episodes?.edges === 'function'
+        ? (
+          async function *() {
+            for await (const edge of media.episodes?.edges()) {
+              yield {
+                ...edge,
+                node: populateEpisode(edge.node),
+                __typename: 'EpisodeEdge'
+              }
+            }
+          }
+        )
+        : (
+          media.episodes?.edges.map(edge => ({
+            ...edge,
+            node: populateEpisode(edge.node),
+            __typename: 'EpisodeEdge'
+          })) ?? []
+        )
+  },
   coverImage: media.coverImage ?? [],
   trailers: media.trailers ?? [],
   externalLinks: media.externalLinks ?? [],
@@ -71,7 +99,7 @@ export const serverResolvers = ({ origins, context }: { origins: OriginWithResol
             for await (const result of results) {
               if (!result.data.Media) continue
               yield {
-                node: result.data.Media
+                node: populateMedia(result.data.Media)
               }
             }
           }
@@ -126,7 +154,7 @@ export const cacheResolvers = ({ origins, context }: { origins: OriginWithResolv
           : parent.uri
       )
     },
-    id: (parent, args, cache, info) => {
+    id: (parent: DataFields, args: Variables, cache: Cache, info: ResolveInfo) => {
       const parentUri = parent.origin === 'scannarr' ? info.parentKey.replace('Media:', '') : parent.uri as string | undefined
       if (!parentUri) return parent.id
       const isScannarr = parentUri && isScannarrUri(parentUri)
@@ -144,6 +172,68 @@ export const cacheResolvers = ({ origins, context }: { origins: OriginWithResolv
           : parent.id
       )
     },
+
+    episodes: (parent: DataFields, args: Variables, cache: Cache, info: ResolveInfo) => {
+      const parentUri = parent.uri as string | undefined
+      // console.log('episodes', parent, args, cache, {...info})
+      if (!parentUri) {
+        // console.log('result3', parent.episodes)
+        return parent.episodes
+      }
+      const isScannarr = parentUri && isScannarrUri(parentUri)
+
+      if (isScannarr) {
+        const handlesEpisodeEdges =
+          cache.resolve(
+            cache.resolve({ __typename: 'Media', uri: parentUri }, 'handles') as string,
+            'edges'
+          )
+          ?.flatMap(edge => cache.resolve(cache.resolve(cache.resolve(edge, 'node'), 'episodes'), 'edges'))
+
+        // console.log('handlesEpisodeEdges', handlesEpisodeEdges)
+
+        const groupedByNumber = [
+          ...groupBy(
+            handlesEpisodeEdges,
+            (edge) => cache.resolve(cache.resolve(edge, 'node'), 'number')
+          ).entries()
+        ]
+
+        // console.log('groupedByNumber', groupedByNumber)
+
+        const nodes =
+          groupedByNumber
+            .map(([number, nodes]) => {
+              const handleUris = nodes?.flatMap(node => cache.resolve(cache.resolve(node, 'node'), 'uri'))
+
+              return populateEpisode({
+                origin: 'scannarr',
+                id: toScannarrId(handleUris),
+                uri: toScannarrUri(handleUris),
+                handles: {
+                  __typename: 'EpisodeConnection',
+                  edges: nodes?.map(node => ({ node }))
+                },
+                number: Number(number)
+              })
+            })
+
+        // console.log('nodes', nodes)
+
+        const result = {
+          __typename: 'EpisodeConnection',
+          edges: nodes?.flatMap(node => ({ __typename: 'EpisodeEdge', node })) ?? []
+        }
+
+        // console.log('result', result)
+
+        return result
+      }
+      // console.log('result2', cache.resolve({ __typename: 'Media', uri: parentUri }, 'episodes'))
+
+      return cache.resolve({ __typename: 'Media', uri: parentUri }, 'episodes')
+    },
+
     title: makeObjectResolver({
       __typename: 'Media',
       fieldName: 'title',

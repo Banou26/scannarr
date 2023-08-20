@@ -107,7 +107,6 @@ It generally represents a Movie, TV Show, Game, Package, ect...
 """
 type Media implements Handle {
   # Handle properties
-  handler: String!
   origin: String!
   id: String!
   uri: Uri!
@@ -202,7 +201,6 @@ type Media implements Handle {
 
 type Episode implements Handle  {
   # Handle properties
-  handler: String!
   origin: String!
   id: String!
   uri: Uri!
@@ -268,7 +266,6 @@ enum PlaybackSourceFileStructure {
 
 type Team implements Handle {
   # Handle properties
-  handler: String!
   origin: String!
   id: String!
   uri: Uri!
@@ -284,7 +281,6 @@ type Team implements Handle {
 
 type PlaybackSource implements Handle {
   # Handle properties
-  handler: String!
   origin: String!
   id: String!
   uri: Uri!
@@ -379,7 +375,6 @@ Media Airing Schedule. NOTE: We only aim to guarantee that FUTURE airing data is
 """
 type MediaAiringSchedule implements Handle {
   # Handle properties
-  handler: String!
   origin: String!
   id: String!
   uri: Uri!
@@ -466,7 +461,6 @@ type MediaCoverImage {
 """An external link to another site related to the media or its properties"""
 type MediaExternalLink implements Handle {
   # Handle properties
-  handler: String!
   origin: String!
   id: String!
   uri: Uri!
@@ -491,7 +485,6 @@ type MediaExternalLink implements Handle {
 """Media trailer or advertisement"""
 type MediaTrailer implements Handle {
   # Handle properties
-  handler: String!
   origin: String!
   id: String!
   uri: Uri!
