@@ -196,19 +196,35 @@ export const cacheResolvers = ({ origins, context }: { origins: OriginWithResolv
 
         const nodes =
           groupedByNumber
-            .map(([number, nodes]) => {
-              const handleUris = nodes?.flatMap(node => cache.resolve(cache.resolve(node, 'node'), 'uri'))
-
-              return populateEpisode({
+            .map(([number, edges]) => {
+              const handleUris = edges?.flatMap(node => cache.resolve(cache.resolve(node, 'node'), 'uri'))
+              
+              const res = populateEpisode({
                 origin: 'scannarr',
                 id: toScannarrId(handleUris),
                 uri: toScannarrUri(handleUris),
                 handles: {
                   __typename: 'EpisodeConnection',
-                  edges: nodes?.map(node => ({ node }))
+                  edges: edges?.map(edge => ({
+                    __typename: 'EpisodeEdge',
+                    node:
+                      populateEpisode(
+                        cache.resolve(edge, 'node'),
+                        (entity: Entity, fieldName: string, args?: FieldArgs) =>
+                          cache.resolve(entity, fieldName, args)
+                      )
+                  }))
                 },
                 number: Number(number)
               })
+
+              console.log(
+                'episodes handleUris',
+                handleUris,
+                edges,
+                res
+              )
+              return res
             })
 
         // console.log('nodes', nodes)
@@ -218,7 +234,7 @@ export const cacheResolvers = ({ origins, context }: { origins: OriginWithResolv
           edges: nodes?.flatMap(node => ({ __typename: 'EpisodeEdge', node })) ?? []
         }
 
-        // console.log('result', result)
+        console.log('result', result)
 
         return result
       }

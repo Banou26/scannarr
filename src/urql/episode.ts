@@ -5,13 +5,28 @@ import { OriginWithResolvers } from '../server'
 import { isScannarrUri, toScannarrId, toScannarrUri } from '../utils/uri2'
 import { getOriginResultsStreamed, makeArrayResolver, makeObjectResolver, makeScalarResolver } from './utils'
 
-export const populateEpisode = (episode: Episode) => ({
+export const populateEpisode = (episode: Episode, resolve) => ({
   __typename: 'Episode',
-  origin: episode.origin,
-  id: episode.id,
-  uri: episode.uri,
-  url: episode.url ?? null,
-  handles: {
+  origin: resolve ? resolve(episode, 'origin') : episode.origin,
+  id: resolve ? resolve(episode, 'id') : episode.id,
+  uri: resolve ? resolve(episode, 'uri') : episode.uri,
+  url: resolve ? resolve(episode, 'url') : (episode.url ?? null),
+  handles:
+  // console.log(
+  //   'populateEpisode',
+  //   episode,
+  //   episode.handles,
+  //   episode.handles?.edges.map(edge =>
+  //     typeof edge.node === 'string'
+  //       ? ({ node: edge.node, __typename: 'EpisodeEdge' })
+  //       : ({
+  //         ...edge,
+  //         node: populateEpisode(edge.node),
+  //         __typename: 'EpisodeEdge'
+  //       })  
+  //   ) ?? []
+  // ) ||
+  (episode.handles ?? {
     __typename: 'EpisodeConnection',
     edges:
       typeof episode.handles?.edges === 'function'
@@ -27,13 +42,17 @@ export const populateEpisode = (episode: Episode) => ({
           }
         )
         : (
-          episode.handles?.edges.map(edge => ({
-            ...edge,
-            node: populateEpisode(edge.node),
-            __typename: 'EpisodeEdge'
-          })) ?? []
+          episode.handles?.edges.map(edge =>
+            typeof edge.node === 'string'
+              ? ({ node: edge.node, __typename: 'EpisodeEdge' })
+              : ({
+                ...edge,
+                node: populateEpisode(edge.node),
+                __typename: 'EpisodeEdge'
+              })  
+          ) ?? []
         )
-  },
+  }),
 
   title: episode.title ?? {
     romanized: null,
@@ -41,13 +60,13 @@ export const populateEpisode = (episode: Episode) => ({
     native: null,
   },
 
-  mediaUri: episode.mediaUri ?? null,
+  mediaUri: resolve ? resolve(episode, 'mediaUri') : (episode.mediaUri ?? null),
 
-  number: episode.number ?? null,
-  description: episode.description ?? null,
-  thumbnail: episode.thumbnail ?? null,
-  timeUntilAiring: episode.timeUntilAiring ?? null,
-  airingAt: episode.airingAt ?? null
+  number: resolve ? resolve(episode, 'number') : (episode.number ?? null),
+  description: resolve ? resolve(episode, 'description') : (episode.description ?? null),
+  thumbnail: resolve ? resolve(episode, 'thumbnail') : (episode.thumbnail ?? null),
+  timeUntilAiring: resolve ? resolve(episode, 'timeUntilAiring') : (episode.timeUntilAiring ?? null),
+  airingAt: resolve ? resolve(episode, 'airingAt') : ( episode.airingAt ?? null)
 })
 
 export const serverResolvers = ({ origins, context }: { origins: OriginWithResolvers[], context?: () => Promise<ServerContext> }) => ({
@@ -63,6 +82,7 @@ export const serverResolvers = ({ origins, context }: { origins: OriginWithResol
             for await (const result of results) {
               if (!result.data.Episode) continue
               yield {
+                __typename: 'EpisodeEdge',
                 node: populateEpisode(result.data.Episode)
               }
             }
@@ -75,6 +95,36 @@ export const serverResolvers = ({ origins, context }: { origins: OriginWithResol
 
 export const cacheResolvers = ({ origins, context }: { origins: OriginWithResolvers[], context?: () => Promise<ServerContext> }) => ({
   Episode: {
+
+    // handles: (parent, args, cache, info) => {
+    //   if (parent.origin === 'scannarr') {
+
+    //     console.log('handles', parent, args, cache, {...info})
+    //     const handleUris =
+    //       cache.resolve(
+    //         cache.resolve({ __typename: 'Episode', uri: parent.uri }, 'handles') as string,
+    //         'edges'
+    //       )
+    //       ?.map(edge => cache.resolve(cache.resolve(edge, 'node'), 'uri'))
+
+    //     console.log('handles handleUris', handleUris)
+
+    //     return {
+    //       __typename: 'EpisodeConnection',
+    //       edges: handleUris?.map(uri => ({
+    //         __typename: 'EpisodeEdge',
+    //         node: {
+    //           __typename: 'Episode',
+    //           uri
+    //         }
+    //       })) ?? []
+    //     }
+    //   }
+
+
+    //   return parent.handles
+    // },
+
     uri: (parent: DataFields, args: Variables, cache: Cache, info: ResolveInfo) => {
       const parentUri = parent.uri === 'scannarr:()' ? info.parentKey.replace('Episode:', '') : parent.uri as string | undefined
       if (!parentUri) return parent.uri
