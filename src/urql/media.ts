@@ -54,25 +54,12 @@ export const populateMedia = (media: Media) => ({
   episodes: {
     __typename: 'EpisodeConnection',
     edges:
-      typeof media.episodes?.edges === 'function'
-        ? (
-          async function *() {
-            for await (const edge of media.episodes?.edges()) {
-              yield {
-                ...edge,
-                node: populateEpisode(edge.node),
-                __typename: 'EpisodeEdge'
-              }
-            }
-          }
-        )
-        : (
-          media.episodes?.edges.map(edge => ({
-            ...edge,
-            node: populateEpisode(edge.node),
-            __typename: 'EpisodeEdge'
-          })) ?? []
-        )
+      media.episodes?.edges.map(edge => ({
+        ...edge,
+        node: populateEpisode(edge.node),
+        __typename: 'EpisodeEdge'
+      }))
+      ?? []
   },
   coverImage: media.coverImage ?? [],
   trailers: media.trailers ?? [],
@@ -95,10 +82,16 @@ export const serverResolvers = ({ origins, context }: { origins: OriginWithResol
         id: '()',
         uri: 'scannarr:()',
         handles: {
+          __typename: 'MediaConnection',
           async *edges (...args) {
             for await (const result of results) {
               if (!result.data.Media) continue
+              // console.log('yield', {
+              //   __typename: 'MediaEdge',
+              //   node: populateMedia(result.data.Media)
+              // })
               yield {
+                __typename: 'MediaEdge',
                 node: populateMedia(result.data.Media)
               }
             }

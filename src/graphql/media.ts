@@ -383,7 +383,7 @@ type MediaAiringSchedule implements Handle {
 
   # MediaAiringSchedule properties
   """The time the episode airs at"""
-  airingAt: Float!
+  airingAt: Float
 
   """The airing episode number"""
   episodeNumber: Int!
@@ -395,7 +395,7 @@ type MediaAiringSchedule implements Handle {
   mediaUri: String!
 
   """Seconds until episode starts airing"""
-  timeUntilAiring: Float!
+  timeUntilAiring: Float
 
   """The url for the thumbnail image of the video"""
   thumbnail: String
