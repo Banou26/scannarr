@@ -76,11 +76,8 @@ export const makeScalarResolver =
       const parentUri = parent.uri as string | undefined
       if (!parentUri) return parent[fieldName]
       const isScannarr = parentUri && isScannarrUri(parentUri)
-
       if (isScannarr) {
-        if (fieldName === 'airingAt') {
-          console.log('airingAt', parent, args, cache, {...info})
-        }
+        // console.log('scalar', parent, args, cache, {...info})
         return (
           fromScannarrUri(parentUri)
             ?.handleUris

@@ -215,15 +215,20 @@ export const cacheResolvers = ({ origins, context }: { origins: OriginWithResolv
                       )
                   }))
                 },
-                number: Number(number)
+                number: Number(number),
+
+                thumbnail: makeScalarResolver({ __typename: 'Episode', fieldName: 'thumbnail', defaultValue: null })({ uri: toScannarrUri(handleUris) }, undefined, cache, info),
+                timeUntilAiring: makeScalarResolver({ __typename: 'Episode', fieldName: 'timeUntilAiring', defaultValue: null })({ uri: toScannarrUri(handleUris) }, undefined, cache, info),
+                airingAt: makeScalarResolver({ __typename: 'Episode', fieldName: 'airingAt', defaultValue: null })({ uri: toScannarrUri(handleUris) }, undefined, cache, info),
+                description: makeScalarResolver({ __typename: 'Episode', fieldName: 'description', defaultValue: null })({ uri: toScannarrUri(handleUris) }, undefined, cache, info),
               })
 
-              console.log(
-                'episodes handleUris',
-                handleUris,
-                edges,
-                res
-              )
+              // console.log(
+              //   'episodes handleUris',
+              //   handleUris,
+              //   edges,
+              //   res
+              // )
               return res
             })
 
@@ -234,7 +239,7 @@ export const cacheResolvers = ({ origins, context }: { origins: OriginWithResolv
           edges: nodes?.flatMap(node => ({ __typename: 'EpisodeEdge', node })) ?? []
         }
 
-        console.log('result', result)
+        // console.log('result', result)
 
         return result
       }
