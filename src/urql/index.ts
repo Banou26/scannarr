@@ -41,7 +41,21 @@ const makeScannarr = (
           createYoga({
             schema: createSchema({
               typeDefs,
-              resolvers: origin.resolvers
+              resolvers: {
+                ...origin.resolvers,
+                Query: {
+                  Page: () => ({}),
+                  ...origin.resolvers.Query
+                },
+                Page: {
+                  media: () => [],
+                  ...origin.resolvers.Page
+                },
+                EpisodeConnection: {
+                  edges: () => [],
+                  ...origin.resolvers.EpisodeConnection
+                }
+              }
             }),
             plugins: [useDeferStream()]
           })
@@ -52,6 +66,7 @@ const makeScannarr = (
 
   const cache = cacheExchange({
     keys: {
+      Page: () => null,
       Media: (media) => {
         if (media.origin !== 'scannarr') return (media as Media).uri
         const handles = (media as Media).handles?.edges.map(handle => handle.node.uri)
@@ -88,7 +103,17 @@ const makeScannarr = (
     resolvers: {
       ...mediaResolvers,
       ...episodeResolvers,
+
+      Page: {
+        origin: () => [],
+        episode: () => [],
+        playbackSource: () => [],
+        ...mediaResolvers.Page,
+        ...episodeResolvers.Page
+      },
+
       Query: {
+        Page: () => ({}),
         ...mediaResolvers.Query,
         ...episodeResolvers.Query
       }

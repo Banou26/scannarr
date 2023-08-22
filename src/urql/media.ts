@@ -3,9 +3,10 @@ import { ServerContext } from '.'
 import { Media } from '../generated/graphql'
 import { OriginWithResolvers } from '../server'
 import { fromScannarrUri, isScannarrUri, toScannarrId, toScannarrUri } from '../utils/uri2'
-import { getOriginResultsStreamed, makeArrayResolver, makeObjectResolver, makeScalarResolver } from './utils'
+import { getOriginResults, getOriginResultsStreamed, makeArrayResolver, makeObjectResolver, makeScalarResolver } from './utils'
 import { populateEpisode } from './episode'
 import { groupBy } from '../utils/groupBy'
+import { groupRelatedHandles } from './utils'
 
 export const populateMedia = (media: Media) => ({
   origin: media.origin,
@@ -74,6 +75,16 @@ export const populateMedia = (media: Media) => ({
 })
 
 export const serverResolvers = ({ origins, context }: { origins: OriginWithResolvers[], context?: () => Promise<ServerContext> }) => ({
+  Page: {
+    media: async (parent, args, ctx, info) => {
+      const results = await getOriginResults({ ctx, origins, context })
+      const { scannarrHandles } = groupRelatedHandles({
+        typename: 'Media',
+        results: (results?.flatMap(results => results.data.Page.media ?? []) ?? []) as Media[]
+      })
+      return scannarrHandles.map(populateMedia)
+    }
+  },
   Query: {
     Media: (parent, args, ctx, info) => {
       const results = getOriginResultsStreamed({ ctx, origins, context })

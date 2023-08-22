@@ -70,6 +70,7 @@ export const populateEpisode = (episode: Episode, resolve) => ({
 })
 
 export const serverResolvers = ({ origins, context }: { origins: OriginWithResolvers[], context?: () => Promise<ServerContext> }) => ({
+  Page: {},
   Query: {
     Episode: (parent, args, ctx, info) => {
       const results = getOriginResultsStreamed({ ctx, origins, context })
