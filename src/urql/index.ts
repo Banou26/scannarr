@@ -52,7 +52,8 @@ const makeScannarr = (
                   ...origin.resolvers.Page
                 },
                 EpisodeConnection: {
-                  edges: () => [],
+                  // this breaks episodes on media
+                  // edges: () => [],
                   ...origin.resolvers.EpisodeConnection
                 }
               }
