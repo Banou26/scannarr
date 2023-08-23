@@ -113,7 +113,7 @@ export const serverResolvers = ({ origins, context }: { origins: OriginWithResol
   }
 })
 
-export const cacheResolvers = ({ origins, context }: { origins: OriginWithResolvers[], context?: () => Promise<ServerContext> }) => ({
+export const cacheResolvers = ({ context }: { context?: () => Promise<ServerContext> }) => ({
   MediaCoverImage: {
     default: (parent: DataFields, args: Variables, cache: Cache, info: ResolveInfo) => {
       const coverImageRefs =
