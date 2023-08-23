@@ -1,56 +1,55 @@
-import type { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
-import type { Context } from '../server';
-import { Uri } from '../utils/uri'
-import gql from 'graphql-tag';
+import { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
 export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
 export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
+export type MakeEmpty<T extends { [key: string]: unknown }, K extends keyof T> = { [_ in K]?: never };
+export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
-  ID: string;
-  String: string;
-  Boolean: boolean;
-  Int: number;
-  Float: number;
+  ID: { input: string; output: string; }
+  String: { input: string; output: string; }
+  Boolean: { input: boolean; output: boolean; }
+  Int: { input: number; output: number; }
+  Float: { input: number; output: number; }
   /** ISO 3166-1 alpha-2 country code */
-  CountryCode: any;
+  CountryCode: { input: any; output: any; }
   /** ISO 8601:2004 date-time */
-  Date: any;
+  Date: { input: any; output: any; }
   /** 8 digit long date integer (YYYYMMDD). Unknown dates represented by 0. E.g. 2016: 20160000, May 1976: 19760500 */
-  FuzzyDateInt: any;
+  FuzzyDateInt: { input: any; output: any; }
   /** ISO 21778:2017 JavaScript Object Notation (JSON) */
-  Json: any;
+  Json: { input: any; output: any; }
   /** RFC 3986 uniform resource identifier (URI) as stricter form "scheme:path */
-  Uri: Uri;
+  Uri: { input: any; output: any; }
 };
 
 export type Episode = Handle & {
   __typename?: 'Episode';
   /** The time the episode airs at */
-  airingAt?: Maybe<Scalars['Float']>;
+  airingAt?: Maybe<Scalars['Float']['output']>;
   /** The description of the episode */
-  description?: Maybe<Scalars['String']>;
+  description?: Maybe<Scalars['String']['output']>;
   handles: EpisodeConnection;
-  id: Scalars['String'];
+  id: Scalars['String']['output'];
   /** The associate media of the episode */
   media?: Maybe<Media>;
   /** The associate media uri of the episode */
-  mediaUri?: Maybe<Scalars['String']>;
+  mediaUri?: Maybe<Scalars['String']['output']>;
   /** The episode number */
-  number?: Maybe<Scalars['Float']>;
-  origin: Scalars['String'];
+  number?: Maybe<Scalars['Float']['output']>;
+  origin: Scalars['String']['output'];
   /** The playback information for the episode */
   playback?: Maybe<PlaybackSourceConnection>;
   /** The url for the thumbnail image of the video */
-  thumbnail?: Maybe<Scalars['String']>;
+  thumbnail?: Maybe<Scalars['String']['output']>;
   /** Seconds until episode starts airing */
-  timeUntilAiring?: Maybe<Scalars['Float']>;
+  timeUntilAiring?: Maybe<Scalars['Float']['output']>;
   /** The title of the episode */
   title?: Maybe<MediaTitle>;
-  uri: Scalars['Uri'];
-  url?: Maybe<Scalars['String']>;
+  uri: Scalars['Uri']['output'];
+  url?: Maybe<Scalars['String']['output']>;
 };
 
 export type EpisodeConnection = HandleConnection & {
@@ -68,85 +67,82 @@ export type EpisodeEdge = HandleEdge & {
   handleRelationType: HandleRelation;
   node: Episode;
   /** The uri of the connection */
-  uri?: Maybe<Scalars['Int']>;
+  uri?: Maybe<Scalars['Int']['output']>;
 };
 
-export enum EpisodeSort {
-  EndDate = 'END_DATE',
-  EndDateDesc = 'END_DATE_DESC',
-  Format = 'FORMAT',
-  FormatDesc = 'FORMAT_DESC',
-  Id = 'ID',
-  IdDesc = 'ID_DESC',
-  Latest = 'LATEST',
-  Oldest = 'OLDEST',
-  Popularity = 'POPULARITY',
-  PopularityDesc = 'POPULARITY_DESC',
-  Score = 'SCORE',
-  ScoreDesc = 'SCORE_DESC',
-  SearchMatch = 'SEARCH_MATCH',
-  StartDate = 'START_DATE',
-  StartDateDesc = 'START_DATE_DESC',
-  Status = 'STATUS',
-  StatusDesc = 'STATUS_DESC',
-  TitleEnglish = 'TITLE_ENGLISH',
-  TitleEnglishDesc = 'TITLE_ENGLISH_DESC',
-  TitleNative = 'TITLE_NATIVE',
-  TitleNativeDesc = 'TITLE_NATIVE_DESC',
-  TitleRomanized = 'TITLE_ROMANIZED',
-  TitleRomanizedDesc = 'TITLE_ROMANIZED_DESC',
-  Type = 'TYPE',
-  TypeDesc = 'TYPE_DESC'
-}
+export type EpisodeSort =
+  | 'END_DATE'
+  | 'END_DATE_DESC'
+  | 'FORMAT'
+  | 'FORMAT_DESC'
+  | 'ID'
+  | 'ID_DESC'
+  | 'LATEST'
+  | 'OLDEST'
+  | 'POPULARITY'
+  | 'POPULARITY_DESC'
+  | 'SCORE'
+  | 'SCORE_DESC'
+  | 'SEARCH_MATCH'
+  | 'START_DATE'
+  | 'START_DATE_DESC'
+  | 'STATUS'
+  | 'STATUS_DESC'
+  | 'TITLE_ENGLISH'
+  | 'TITLE_ENGLISH_DESC'
+  | 'TITLE_NATIVE'
+  | 'TITLE_NATIVE_DESC'
+  | 'TITLE_ROMANIZED'
+  | 'TITLE_ROMANIZED_DESC'
+  | 'TYPE'
+  | 'TYPE_DESC';
 
-export enum ExternalLinkMediaType {
-  Anime = 'ANIME',
-  Manga = 'MANGA',
-  Staff = 'STAFF'
-}
+export type ExternalLinkMediaType =
+  | 'ANIME'
+  | 'MANGA'
+  | 'STAFF';
 
-export enum ExternalLinkType {
-  Info = 'INFO',
-  Social = 'SOCIAL',
-  Streaming = 'STREAMING'
-}
+export type ExternalLinkType =
+  | 'INFO'
+  | 'SOCIAL'
+  | 'STREAMING';
 
 /** Date object that allows for incomplete date values (fuzzy) */
 export type FuzzyDate = {
   __typename?: 'FuzzyDate';
   /** Numeric Day (24) */
-  day?: Maybe<Scalars['Int']>;
+  day?: Maybe<Scalars['Int']['output']>;
   /** Numeric Month (3) */
-  month?: Maybe<Scalars['Int']>;
+  month?: Maybe<Scalars['Int']['output']>;
   /** Numeric Year (2017) */
-  year?: Maybe<Scalars['Int']>;
+  year?: Maybe<Scalars['Int']['output']>;
 };
 
 /** Date object that allows for incomplete date values (fuzzy) */
 export type FuzzyDateInput = {
   /** Numeric Day (24) */
-  day?: InputMaybe<Scalars['Int']>;
+  day?: InputMaybe<Scalars['Int']['input']>;
   /** Numeric Month (3) */
-  month?: InputMaybe<Scalars['Int']>;
+  month?: InputMaybe<Scalars['Int']['input']>;
   /** Numeric Year (2017) */
-  year?: InputMaybe<Scalars['Int']>;
+  year?: InputMaybe<Scalars['Int']['input']>;
 };
 
 /**  A Handle represents a unique identifier for a resource.  */
 export type Handle = {
   handles: HandleConnection;
   /**  The id of the resource, e.g: 'react' for the React package  */
-  id: Scalars['String'];
+  id: Scalars['String']['output'];
   /**  The origin of the resource, e.g: 'npm', generally the host of the resource  */
-  origin: Scalars['String'];
+  origin: Scalars['String']['output'];
   /**
    * The uri of the resource.
    * An uri is the combination of the handler, the origin and the id
    * e.g: 'fkn:npm:react' for the React package
    */
-  uri: Scalars['Uri'];
+  uri: Scalars['Uri']['output'];
   /**  The URL of the resource, e.g: 'https://npmjs.com/package/react'  */
-  url?: Maybe<Scalars['String']>;
+  url?: Maybe<Scalars['String']['output']>;
 };
 
 export type HandleConnection = {
@@ -162,9 +158,8 @@ export type HandleEdge = {
   node: Handle;
 };
 
-export enum HandleRelation {
-  Identical = 'IDENTICAL'
-}
+export type HandleRelation =
+  | 'IDENTICAL';
 
 /**
  * Media is a type of handle that represents a media.
@@ -173,33 +168,33 @@ export enum HandleRelation {
 export type Media = Handle & {
   __typename?: 'Media';
   /** The average score of the media */
-  averageScore?: Maybe<Scalars['Float']>;
+  averageScore?: Maybe<Scalars['Float']['output']>;
   /** The banner image of the media */
-  bannerImage?: Maybe<Array<Maybe<Scalars['String']>>>;
+  bannerImage?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   /** The cover images of the media */
   coverImage?: Maybe<Array<Maybe<MediaCoverImage>>>;
   /** Long description of the media's story and characters */
-  description?: Maybe<Scalars['String']>;
+  description?: Maybe<Scalars['String']['output']>;
   /** The last official release date of the media */
   endDate?: Maybe<FuzzyDate>;
-  episodeCount?: Maybe<Scalars['Int']>;
+  episodeCount?: Maybe<Scalars['Int']['output']>;
   episodes?: Maybe<EpisodeConnection>;
   /** External links to another site related to the media */
   externalLinks?: Maybe<Array<Maybe<MediaExternalLink>>>;
   format?: Maybe<MediaFormat>;
   handles: MediaConnection;
-  id: Scalars['String'];
+  id: Scalars['String']['output'];
   /** If the media is intended only for 18+ adult audiences */
-  isAdult?: Maybe<Scalars['Boolean']>;
-  origin: Scalars['String'];
+  isAdult?: Maybe<Scalars['Boolean']['output']>;
+  origin: Scalars['String']['output'];
   /** The number of users with the media on their list */
-  popularity?: Maybe<Scalars['Int']>;
+  popularity?: Maybe<Scalars['Int']['output']>;
   /** The season the media was initially released in */
   season?: Maybe<MediaSeason>;
   /** The season year the media was initially released in */
-  seasonYear?: Maybe<Scalars['Int']>;
+  seasonYear?: Maybe<Scalars['Int']['output']>;
   /** Short description of the media's story and characters */
-  shortDescription?: Maybe<Scalars['String']>;
+  shortDescription?: Maybe<Scalars['String']['output']>;
   /** The first official release date of the media */
   startDate?: Maybe<FuzzyDate>;
   /** The current releasing status of the media */
@@ -212,8 +207,8 @@ export type Media = Handle & {
   trailers?: Maybe<Array<Maybe<MediaTrailer>>>;
   /** The type of the media */
   type?: Maybe<MediaType>;
-  uri: Scalars['Uri'];
-  url?: Maybe<Scalars['String']>;
+  uri: Scalars['Uri']['output'];
+  url?: Maybe<Scalars['String']['output']>;
 };
 
 
@@ -222,7 +217,7 @@ export type Media = Handle & {
  * It generally represents a Movie, TV Show, Game, Package, ect...
  */
 export type MediaDescriptionArgs = {
-  asHtml?: InputMaybe<Scalars['Boolean']>;
+  asHtml?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 
@@ -231,9 +226,9 @@ export type MediaDescriptionArgs = {
  * It generally represents a Movie, TV Show, Game, Package, ect...
  */
 export type MediaEpisodesArgs = {
-  notYetAired?: InputMaybe<Scalars['Boolean']>;
-  page?: InputMaybe<Scalars['Int']>;
-  perPage?: InputMaybe<Scalars['Int']>;
+  notYetAired?: InputMaybe<Scalars['Boolean']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  perPage?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -242,33 +237,33 @@ export type MediaEpisodesArgs = {
  * It generally represents a Movie, TV Show, Game, Package, ect...
  */
 export type MediaShortDescriptionArgs = {
-  asHtml?: InputMaybe<Scalars['Boolean']>;
+  asHtml?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 /** Media Airing Schedule. NOTE: We only aim to guarantee that FUTURE airing data is present and accurate. */
 export type MediaAiringSchedule = Handle & {
   __typename?: 'MediaAiringSchedule';
   /** The time the episode airs at */
-  airingAt?: Maybe<Scalars['Float']>;
+  airingAt?: Maybe<Scalars['Float']['output']>;
   /** The description of the episode */
-  description?: Maybe<Scalars['String']>;
+  description?: Maybe<Scalars['String']['output']>;
   /** The airing episode number */
-  episodeNumber: Scalars['Int'];
+  episodeNumber: Scalars['Int']['output'];
   handles: HandleConnection;
-  id: Scalars['String'];
+  id: Scalars['String']['output'];
   /** The associate media of the airing episode */
   media?: Maybe<Media>;
   /** The associate media uri of the airing episode */
-  mediaUri: Scalars['String'];
-  origin: Scalars['String'];
+  mediaUri: Scalars['String']['output'];
+  origin: Scalars['String']['output'];
   /** The url for the thumbnail image of the video */
-  thumbnail?: Maybe<Scalars['String']>;
+  thumbnail?: Maybe<Scalars['String']['output']>;
   /** Seconds until episode starts airing */
-  timeUntilAiring?: Maybe<Scalars['Float']>;
+  timeUntilAiring?: Maybe<Scalars['Float']['output']>;
   /** The title of the episode */
   title?: Maybe<MediaTitle>;
-  uri: Scalars['Uri'];
-  url?: Maybe<Scalars['String']>;
+  uri: Scalars['Uri']['output'];
+  url?: Maybe<Scalars['String']['output']>;
 };
 
 export type MediaAiringScheduleConnection = {
@@ -284,7 +279,7 @@ export type MediaAiringScheduleEdge = {
   __typename?: 'MediaAiringScheduleEdge';
   node?: Maybe<MediaAiringSchedule>;
   /** The uri of the connection */
-  uri?: Maybe<Scalars['Int']>;
+  uri?: Maybe<Scalars['Int']['output']>;
 };
 
 export type MediaConnection = HandleConnection & {
@@ -299,17 +294,17 @@ export type MediaConnection = HandleConnection & {
 export type MediaCoverImage = {
   __typename?: 'MediaCoverImage';
   /** Average #hex color of cover image */
-  color?: Maybe<Scalars['String']>;
+  color?: Maybe<Scalars['String']['output']>;
   /** The cover image of the media by default. Using highest resolution available. */
-  default?: Maybe<Scalars['String']>;
+  default?: Maybe<Scalars['String']['output']>;
   /** The cover image of the media at its largest size. 500x735 */
-  extraLarge?: Maybe<Scalars['String']>;
+  extraLarge?: Maybe<Scalars['String']['output']>;
   /** The cover image of the media at large size. 250x367 */
-  large?: Maybe<Scalars['String']>;
+  large?: Maybe<Scalars['String']['output']>;
   /** The cover image of the media at medium size. 120x171 */
-  medium?: Maybe<Scalars['String']>;
+  medium?: Maybe<Scalars['String']['output']>;
   /** The cover image of the media at small size. 64x92 */
-  small?: Maybe<Scalars['String']>;
+  small?: Maybe<Scalars['String']['output']>;
 };
 
 export type MediaEdge = HandleEdge & {
@@ -322,239 +317,233 @@ export type MediaEdge = HandleEdge & {
 /** An external link to another site related to the media or its properties */
 export type MediaExternalLink = Handle & {
   __typename?: 'MediaExternalLink';
-  color?: Maybe<Scalars['String']>;
+  color?: Maybe<Scalars['String']['output']>;
   handles: HandleConnection;
   /** The icon image url of the site. Not available for all links */
-  icon?: Maybe<Scalars['String']>;
-  id: Scalars['String'];
-  isDisabled?: Maybe<Scalars['Boolean']>;
+  icon?: Maybe<Scalars['String']['output']>;
+  id: Scalars['String']['output'];
+  isDisabled?: Maybe<Scalars['Boolean']['output']>;
   /** Language the site content is in */
-  language?: Maybe<Scalars['String']>;
-  notes?: Maybe<Scalars['String']>;
-  origin: Scalars['String'];
+  language?: Maybe<Scalars['String']['output']>;
+  notes?: Maybe<Scalars['String']['output']>;
+  origin: Scalars['String']['output'];
   type?: Maybe<ExternalLinkType>;
-  uri: Scalars['Uri'];
-  url?: Maybe<Scalars['String']>;
+  uri: Scalars['Uri']['output'];
+  url?: Maybe<Scalars['String']['output']>;
 };
 
 /** The format the media was released in */
-export enum MediaFormat {
+export type MediaFormat =
   /** Professionally published manga with more than one chapter */
-  Manga = 'MANGA',
+  | 'MANGA'
   /** Anime movies with a theatrical release */
-  Movie = 'MOVIE',
+  | 'MOVIE'
   /** Short anime released as a music video */
-  Music = 'MUSIC',
+  | 'MUSIC'
   /** Written books released as a series of light novels */
-  Novel = 'NOVEL',
+  | 'NOVEL'
   /** (Original Net Animation) Anime that have been originally released online or are only available through streaming services. */
-  Ona = 'ONA',
+  | 'ONA'
   /** Manga with just one chapter */
-  OneShot = 'ONE_SHOT',
+  | 'ONE_SHOT'
   /**
    * (Original Video Animation) Anime that have been released directly on
    * DVD/Blu-ray without originally going through a theatrical release or
    * television broadcast
    */
-  Ova = 'OVA',
+  | 'OVA'
   /** Special episodes that have been included in DVD/Blu-ray releases, picture dramas, pilots, etc */
-  Special = 'SPECIAL',
+  | 'SPECIAL'
   /** Anime broadcast on television */
-  Tv = 'TV',
+  | 'TV'
   /** Anime which are under 15 minutes in length and broadcast on television */
-  TvShort = 'TV_SHORT'
-}
+  | 'TV_SHORT';
 
-export enum MediaSeason {
+export type MediaSeason =
   /** Months September to November */
-  Fall = 'FALL',
+  | 'FALL'
   /** Months March to May */
-  Spring = 'SPRING',
+  | 'SPRING'
   /** Months June to August */
-  Summer = 'SUMMER',
+  | 'SUMMER'
   /** Months December to February */
-  Winter = 'WINTER'
-}
+  | 'WINTER';
 
-export enum MediaSort {
-  EndDate = 'END_DATE',
-  EndDateDesc = 'END_DATE_DESC',
-  Format = 'FORMAT',
-  FormatDesc = 'FORMAT_DESC',
-  Id = 'ID',
-  IdDesc = 'ID_DESC',
-  Popularity = 'POPULARITY',
-  PopularityDesc = 'POPULARITY_DESC',
-  Score = 'SCORE',
-  ScoreDesc = 'SCORE_DESC',
-  SearchMatch = 'SEARCH_MATCH',
-  StartDate = 'START_DATE',
-  StartDateDesc = 'START_DATE_DESC',
-  Status = 'STATUS',
-  StatusDesc = 'STATUS_DESC',
-  TitleEnglish = 'TITLE_ENGLISH',
-  TitleEnglishDesc = 'TITLE_ENGLISH_DESC',
-  TitleNative = 'TITLE_NATIVE',
-  TitleNativeDesc = 'TITLE_NATIVE_DESC',
-  TitleRomanized = 'TITLE_ROMANIZED',
-  TitleRomanizedDesc = 'TITLE_ROMANIZED_DESC',
-  Type = 'TYPE',
-  TypeDesc = 'TYPE_DESC'
-}
+export type MediaSort =
+  | 'END_DATE'
+  | 'END_DATE_DESC'
+  | 'FORMAT'
+  | 'FORMAT_DESC'
+  | 'ID'
+  | 'ID_DESC'
+  | 'POPULARITY'
+  | 'POPULARITY_DESC'
+  | 'SCORE'
+  | 'SCORE_DESC'
+  | 'SEARCH_MATCH'
+  | 'START_DATE'
+  | 'START_DATE_DESC'
+  | 'STATUS'
+  | 'STATUS_DESC'
+  | 'TITLE_ENGLISH'
+  | 'TITLE_ENGLISH_DESC'
+  | 'TITLE_NATIVE'
+  | 'TITLE_NATIVE_DESC'
+  | 'TITLE_ROMANIZED'
+  | 'TITLE_ROMANIZED_DESC'
+  | 'TYPE'
+  | 'TYPE_DESC';
 
 /** Source type the media was adapted from */
-export enum MediaSource {
+export type MediaSource =
   /** Japanese Anime */
-  Anime = 'ANIME',
+  | 'ANIME'
   /** Comics excluding manga */
-  Comic = 'COMIC',
+  | 'COMIC'
   /** Self-published works */
-  Doujinshi = 'DOUJINSHI',
+  | 'DOUJINSHI'
   /** Games excluding video games */
-  Game = 'GAME',
+  | 'GAME'
   /** Written work published in volumes */
-  LightNovel = 'LIGHT_NOVEL',
+  | 'LIGHT_NOVEL'
   /** Live action media such as movies or TV show */
-  LiveAction = 'LIVE_ACTION',
+  | 'LIVE_ACTION'
   /** Asian comic book */
-  Manga = 'MANGA',
+  | 'MANGA'
   /** Multimedia project */
-  MultimediaProject = 'MULTIMEDIA_PROJECT',
+  | 'MULTIMEDIA_PROJECT'
   /** Written works not published in volumes */
-  Novel = 'NOVEL',
+  | 'NOVEL'
   /** An original production not based of another work */
-  Original = 'ORIGINAL',
+  | 'ORIGINAL'
   /** Other */
-  Other = 'OTHER',
+  | 'OTHER'
   /** Picture book */
-  PictureBook = 'PICTURE_BOOK',
+  | 'PICTURE_BOOK'
   /** Video game */
-  VideoGame = 'VIDEO_GAME',
+  | 'VIDEO_GAME'
   /** Video game driven primary by text and narrative */
-  VisualNovel = 'VISUAL_NOVEL',
+  | 'VISUAL_NOVEL'
   /** Written works published online */
-  WebNovel = 'WEB_NOVEL'
-}
+  | 'WEB_NOVEL';
 
 /** The current releasing status of the media */
-export enum MediaStatus {
+export type MediaStatus =
   /** Ended before the work could be finished */
-  Cancelled = 'CANCELLED',
+  | 'CANCELLED'
   /** Has completed and is no longer being released */
-  Finished = 'FINISHED',
+  | 'FINISHED'
   /** Is currently paused from releasing and will resume at a later date */
-  Hiatus = 'HIATUS',
+  | 'HIATUS'
   /** To be released at a later date */
-  NotYetReleased = 'NOT_YET_RELEASED',
+  | 'NOT_YET_RELEASED'
   /** Currently releasing */
-  Releasing = 'RELEASING'
-}
+  | 'RELEASING';
 
 /** Alternative titles of the media */
 export type MediaSynonym = {
   __typename?: 'MediaSynonym';
   /** Is alternative title a romanized version of the native title */
-  isRomanized?: Maybe<Scalars['Boolean']>;
+  isRomanized?: Maybe<Scalars['Boolean']['output']>;
   /** The language the title is in */
-  language?: Maybe<Scalars['String']>;
+  language?: Maybe<Scalars['String']['output']>;
   /** The score of the title based on searchability */
-  score?: Maybe<Scalars['Float']>;
+  score?: Maybe<Scalars['Float']['output']>;
   /** The alternative title */
-  synonym?: Maybe<Scalars['String']>;
+  synonym?: Maybe<Scalars['String']['output']>;
 };
 
 /** The official titles of the media in various languages */
 export type MediaTitle = {
   __typename?: 'MediaTitle';
   /** The official english title */
-  english?: Maybe<Scalars['String']>;
+  english?: Maybe<Scalars['String']['output']>;
   /** The official language title */
-  language?: Maybe<Scalars['String']>;
+  language?: Maybe<Scalars['String']['output']>;
   /** Official title in it's native language */
-  native?: Maybe<Scalars['String']>;
+  native?: Maybe<Scalars['String']['output']>;
   /** Official title in it's romanized form */
-  romanized?: Maybe<Scalars['String']>;
+  romanized?: Maybe<Scalars['String']['output']>;
   /** The currently authenticated users preferred title language. Default english */
-  userPreferred?: Maybe<Scalars['String']>;
+  userPreferred?: Maybe<Scalars['String']['output']>;
 };
 
 
 /** The official titles of the media in various languages */
 export type MediaTitleLanguageArgs = {
-  countryCode?: InputMaybe<Scalars['CountryCode']>;
+  countryCode?: InputMaybe<Scalars['CountryCode']['input']>;
 };
 
 /** Media trailer or advertisement */
 export type MediaTrailer = Handle & {
   __typename?: 'MediaTrailer';
   handles: HandleConnection;
-  id: Scalars['String'];
-  origin: Scalars['String'];
+  id: Scalars['String']['output'];
+  origin: Scalars['String']['output'];
   /** The url for the thumbnail image of the video */
-  thumbnail?: Maybe<Scalars['String']>;
-  uri: Scalars['Uri'];
-  url?: Maybe<Scalars['String']>;
+  thumbnail?: Maybe<Scalars['String']['output']>;
+  uri: Scalars['Uri']['output'];
+  url?: Maybe<Scalars['String']['output']>;
 };
 
 /** The type of the media */
-export enum MediaType {
+export type MediaType =
   /** Japanese Anime */
-  Anime = 'ANIME',
+  | 'ANIME'
   /** Comics excluding manga */
-  Comic = 'COMIC',
+  | 'COMIC'
   /** Self-published works */
-  Doujinshi = 'DOUJINSHI',
+  | 'DOUJINSHI'
   /** Games excluding video games */
-  Game = 'GAME',
+  | 'GAME'
   /** Written work published in volumes */
-  LightNovel = 'LIGHT_NOVEL',
+  | 'LIGHT_NOVEL'
   /** Live action media such as movies or TV show */
-  LiveAction = 'LIVE_ACTION',
+  | 'LIVE_ACTION'
   /** Asian comic book */
-  Manga = 'MANGA',
+  | 'MANGA'
   /** Movies with a theatrical release */
-  Movie = 'MOVIE',
+  | 'MOVIE'
   /** Multimedia project */
-  MultimediaProject = 'MULTIMEDIA_PROJECT',
+  | 'MULTIMEDIA_PROJECT'
   /** Short anime released as a music video */
-  Music = 'MUSIC',
+  | 'MUSIC'
   /** Written works not published in volumes */
-  Novel = 'NOVEL',
+  | 'NOVEL'
   /** (Original Net Animation) Anime that have been originally released online or are only available through streaming services. */
-  Ona = 'ONA',
+  | 'ONA'
   /** Manga with just one chapter */
-  OneShot = 'ONE_SHOT',
+  | 'ONE_SHOT'
   /** Other */
-  Other = 'OTHER',
+  | 'OTHER'
   /**
    * (Original Video Animation) Anime that have been released directly on
    * DVD/Blu-ray without originally going through a theatrical release or
    * television broadcast
    */
-  Ova = 'OVA',
+  | 'OVA'
   /** Picture book */
-  PictureBook = 'PICTURE_BOOK',
+  | 'PICTURE_BOOK'
   /** Software */
-  Software = 'SOFTWARE',
+  | 'SOFTWARE'
   /** Special episodes that have been included in DVD/Blu-ray releases, pilots, etc */
-  Special = 'SPECIAL',
+  | 'SPECIAL'
   /** Media broadcast on television */
-  Tv = 'TV',
+  | 'TV'
   /** Media which are under 15 minutes in length and broadcast on television */
-  TvShort = 'TV_SHORT',
+  | 'TV_SHORT'
   /** Video */
-  Video = 'VIDEO',
+  | 'VIDEO'
   /** Video game */
-  VideoGame = 'VIDEO_GAME',
+  | 'VIDEO_GAME'
   /** Video game driven primary by text and narrative */
-  VisualNovel = 'VISUAL_NOVEL',
+  | 'VISUAL_NOVEL'
   /** Written works published online */
-  WebNovel = 'WEB_NOVEL'
-}
+  | 'WEB_NOVEL';
 
 export type Mutation = {
   __typename?: 'Mutation';
-  dummy?: Maybe<Scalars['String']>;
+  dummy?: Maybe<Scalars['String']['output']>;
 };
 
 /**
@@ -566,18 +555,18 @@ export type Origin = {
   /** The media types of the target */
   categories: Array<MediaType>;
   /** The icon URL */
-  icon?: Maybe<Scalars['String']>;
+  icon?: Maybe<Scalars['String']['output']>;
   /** Origin ID, e.g: "nflx" for Netflix */
-  id: Scalars['String'];
+  id: Scalars['String']['output'];
   /** If the origin returns metadata only, e.g no playback or download data */
-  metadataOnly?: Maybe<Scalars['Boolean']>;
+  metadataOnly?: Maybe<Scalars['Boolean']['output']>;
   /** Origin full name, e.g: "Netflix"  */
-  name: Scalars['String'];
+  name: Scalars['String']['output'];
   /** If the origin is official, e.g a legal redistributor or platform */
-  official?: Maybe<Scalars['Boolean']>;
-  supportedUris?: Maybe<Array<Scalars['String']>>;
+  official?: Maybe<Scalars['Boolean']['output']>;
+  supportedUris?: Maybe<Array<Scalars['String']['output']>>;
   /** The origin's URL, e.g "https://www.netflix.com/""  */
-  url?: Maybe<Scalars['String']>;
+  url?: Maybe<Scalars['String']['output']>;
 };
 
 export type Page = {
@@ -591,107 +580,107 @@ export type Page = {
 
 
 export type PageEpisodeArgs = {
-  id?: InputMaybe<Scalars['String']>;
-  origin?: InputMaybe<Scalars['String']>;
-  search?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['String']['input']>;
+  origin?: InputMaybe<Scalars['String']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
   sort?: InputMaybe<Array<InputMaybe<EpisodeSort>>>;
-  uri?: InputMaybe<Scalars['String']>;
+  uri?: InputMaybe<Scalars['String']['input']>;
 };
 
 
 export type PageMediaArgs = {
-  endDate?: InputMaybe<Scalars['FuzzyDateInt']>;
-  endDate_greater?: InputMaybe<Scalars['FuzzyDateInt']>;
-  endDate_lesser?: InputMaybe<Scalars['FuzzyDateInt']>;
-  endDate_like?: InputMaybe<Scalars['String']>;
-  id?: InputMaybe<Scalars['String']>;
-  origin?: InputMaybe<Scalars['String']>;
-  search?: InputMaybe<Scalars['String']>;
+  endDate?: InputMaybe<Scalars['FuzzyDateInt']['input']>;
+  endDate_greater?: InputMaybe<Scalars['FuzzyDateInt']['input']>;
+  endDate_lesser?: InputMaybe<Scalars['FuzzyDateInt']['input']>;
+  endDate_like?: InputMaybe<Scalars['String']['input']>;
+  id?: InputMaybe<Scalars['String']['input']>;
+  origin?: InputMaybe<Scalars['String']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
   season?: InputMaybe<MediaSeason>;
-  seasonYear?: InputMaybe<Scalars['Int']>;
+  seasonYear?: InputMaybe<Scalars['Int']['input']>;
   sort?: InputMaybe<Array<InputMaybe<MediaSort>>>;
-  startDate?: InputMaybe<Scalars['FuzzyDateInt']>;
-  startDate_greater?: InputMaybe<Scalars['FuzzyDateInt']>;
-  startDate_lesser?: InputMaybe<Scalars['FuzzyDateInt']>;
-  startDate_like?: InputMaybe<Scalars['String']>;
+  startDate?: InputMaybe<Scalars['FuzzyDateInt']['input']>;
+  startDate_greater?: InputMaybe<Scalars['FuzzyDateInt']['input']>;
+  startDate_lesser?: InputMaybe<Scalars['FuzzyDateInt']['input']>;
+  startDate_like?: InputMaybe<Scalars['String']['input']>;
   status?: InputMaybe<MediaStatus>;
   status_in?: InputMaybe<Array<InputMaybe<MediaStatus>>>;
   status_not?: InputMaybe<MediaStatus>;
   status_not_in?: InputMaybe<Array<InputMaybe<MediaStatus>>>;
-  uri?: InputMaybe<Scalars['String']>;
+  uri?: InputMaybe<Scalars['String']['input']>;
 };
 
 
 export type PageOriginArgs = {
   categories?: InputMaybe<Array<MediaType>>;
-  ids?: InputMaybe<Array<Scalars['String']>>;
-  metadataOnly?: InputMaybe<Scalars['Boolean']>;
-  names?: InputMaybe<Array<Scalars['String']>>;
-  official?: InputMaybe<Scalars['Boolean']>;
+  ids?: InputMaybe<Array<Scalars['String']['input']>>;
+  metadataOnly?: InputMaybe<Scalars['Boolean']['input']>;
+  names?: InputMaybe<Array<Scalars['String']['input']>>;
+  official?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 
 export type PagePlaybackSourceArgs = {
-  id?: InputMaybe<Scalars['String']>;
-  name?: InputMaybe<Scalars['String']>;
-  names?: InputMaybe<Array<Scalars['String']>>;
-  number?: InputMaybe<Scalars['Float']>;
-  origin?: InputMaybe<Scalars['String']>;
-  quality?: InputMaybe<Scalars['String']>;
-  resolution?: InputMaybe<Scalars['String']>;
-  search?: InputMaybe<Scalars['String']>;
-  season?: InputMaybe<Scalars['Int']>;
-  trusted?: InputMaybe<Scalars['Boolean']>;
-  uri?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['String']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  names?: InputMaybe<Array<Scalars['String']['input']>>;
+  number?: InputMaybe<Scalars['Float']['input']>;
+  origin?: InputMaybe<Scalars['String']['input']>;
+  quality?: InputMaybe<Scalars['String']['input']>;
+  resolution?: InputMaybe<Scalars['String']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
+  season?: InputMaybe<Scalars['Int']['input']>;
+  trusted?: InputMaybe<Scalars['Boolean']['input']>;
+  uri?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type PageInfo = {
   __typename?: 'PageInfo';
   /** The current page */
-  currentPageCursor?: Maybe<Scalars['String']>;
+  currentPageCursor?: Maybe<Scalars['String']['output']>;
   /** The first page */
-  firstPageCursor?: Maybe<Scalars['String']>;
+  firstPageCursor?: Maybe<Scalars['String']['output']>;
   /** Total number of items on the current page */
-  inPage?: Maybe<Scalars['Int']>;
+  inPage?: Maybe<Scalars['Int']['output']>;
   /** The last page cursor */
-  lastPageCursor?: Maybe<Scalars['String']>;
+  lastPageCursor?: Maybe<Scalars['String']['output']>;
   /** The current page */
-  nextPageCursor?: Maybe<Scalars['String']>;
+  nextPageCursor?: Maybe<Scalars['String']['output']>;
   /** The current page */
-  previousPageCursor?: Maybe<Scalars['String']>;
+  previousPageCursor?: Maybe<Scalars['String']['output']>;
   /** The total number of items. Note: This value is not guaranteed to be accurate, do not rely on this for logic */
-  total?: Maybe<Scalars['Int']>;
+  total?: Maybe<Scalars['Int']['output']>;
   /** Total number of items after the current page. Note: This value is not guaranteed to be accurate, do not rely on this for logic */
-  totalAfter?: Maybe<Scalars['Int']>;
+  totalAfter?: Maybe<Scalars['Int']['output']>;
   /** Total number of items before the current page. Note: This value is not guaranteed to be accurate, do not rely on this for logic */
-  totalBefore?: Maybe<Scalars['Int']>;
+  totalBefore?: Maybe<Scalars['Int']['output']>;
 };
 
 export type PlaybackSource = Handle & {
   __typename?: 'PlaybackSource';
   Episode?: Maybe<Episode>;
-  bytes?: Maybe<Scalars['Float']>;
+  bytes?: Maybe<Scalars['Float']['output']>;
   /** Stringified (json?) data for the playback, useful for custom players */
-  data?: Maybe<Scalars['String']>;
-  episodeRange?: Maybe<Scalars['String']>;
-  filename?: Maybe<Scalars['String']>;
-  filesCount?: Maybe<Scalars['Int']>;
-  format?: Maybe<Scalars['String']>;
+  data?: Maybe<Scalars['String']['output']>;
+  episodeRange?: Maybe<Scalars['String']['output']>;
+  filename?: Maybe<Scalars['String']['output']>;
+  filesCount?: Maybe<Scalars['Int']['output']>;
+  format?: Maybe<Scalars['String']['output']>;
   handles: PlaybackSourceConnection;
-  hash?: Maybe<Scalars['String']>;
-  id: Scalars['String'];
+  hash?: Maybe<Scalars['String']['output']>;
+  id: Scalars['String']['output'];
   media?: Maybe<Media>;
-  origin: Scalars['String'];
-  resolution?: Maybe<Scalars['String']>;
+  origin: Scalars['String']['output'];
+  resolution?: Maybe<Scalars['String']['output']>;
   structure?: Maybe<PlaybackSourceFileStructure>;
   team?: Maybe<Team>;
-  thumbnails?: Maybe<Array<Maybe<Scalars['String']>>>;
+  thumbnails?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   title?: Maybe<MediaTitle>;
   /** The type of playback */
   type?: Maybe<PlaybackSourceType>;
-  uploadDate?: Maybe<Scalars['Float']>;
-  uri: Scalars['Uri'];
-  url?: Maybe<Scalars['String']>;
+  uploadDate?: Maybe<Scalars['Float']['output']>;
+  uri: Scalars['Uri']['output'];
+  url?: Maybe<Scalars['String']['output']>;
 };
 
 export type PlaybackSourceConnection = HandleConnection & {
@@ -709,20 +698,18 @@ export type PlaybackSourceEdge = HandleEdge & {
   handleRelationType: HandleRelation;
   node: PlaybackSource;
   /** The uri of the connection */
-  uri?: Maybe<Scalars['Int']>;
+  uri?: Maybe<Scalars['Int']['output']>;
 };
 
-export enum PlaybackSourceFileStructure {
-  Multi = 'MULTI',
-  Single = 'SINGLE'
-}
+export type PlaybackSourceFileStructure =
+  | 'MULTI'
+  | 'SINGLE';
 
-export enum PlaybackSourceType {
-  Custom = 'CUSTOM',
-  Iframe = 'IFRAME',
-  Other = 'OTHER',
-  Torrent = 'TORRENT'
-}
+export type PlaybackSourceType =
+  | 'CUSTOM'
+  | 'IFRAME'
+  | 'OTHER'
+  | 'TORRENT';
 
 export type Query = {
   __typename?: 'Query';
@@ -731,81 +718,81 @@ export type Query = {
   Origin?: Maybe<Origin>;
   Page: Page;
   PlaybackSource?: Maybe<PlaybackSource>;
-  dummy?: Maybe<Scalars['String']>;
+  dummy?: Maybe<Scalars['String']['output']>;
 };
 
 
 export type QueryEpisodeArgs = {
-  id?: InputMaybe<Scalars['String']>;
-  origin?: InputMaybe<Scalars['String']>;
-  search?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['String']['input']>;
+  origin?: InputMaybe<Scalars['String']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
   sort?: InputMaybe<Array<InputMaybe<EpisodeSort>>>;
-  uri?: InputMaybe<Scalars['String']>;
+  uri?: InputMaybe<Scalars['String']['input']>;
 };
 
 
 export type QueryMediaArgs = {
-  endDate?: InputMaybe<Scalars['FuzzyDateInt']>;
-  endDate_greater?: InputMaybe<Scalars['FuzzyDateInt']>;
-  endDate_lesser?: InputMaybe<Scalars['FuzzyDateInt']>;
-  endDate_like?: InputMaybe<Scalars['String']>;
-  id?: InputMaybe<Scalars['String']>;
-  origin?: InputMaybe<Scalars['String']>;
-  search?: InputMaybe<Scalars['String']>;
+  endDate?: InputMaybe<Scalars['FuzzyDateInt']['input']>;
+  endDate_greater?: InputMaybe<Scalars['FuzzyDateInt']['input']>;
+  endDate_lesser?: InputMaybe<Scalars['FuzzyDateInt']['input']>;
+  endDate_like?: InputMaybe<Scalars['String']['input']>;
+  id?: InputMaybe<Scalars['String']['input']>;
+  origin?: InputMaybe<Scalars['String']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
   season?: InputMaybe<MediaSeason>;
-  seasonYear?: InputMaybe<Scalars['Int']>;
+  seasonYear?: InputMaybe<Scalars['Int']['input']>;
   sort?: InputMaybe<Array<InputMaybe<MediaSort>>>;
-  startDate?: InputMaybe<Scalars['FuzzyDateInt']>;
-  startDate_greater?: InputMaybe<Scalars['FuzzyDateInt']>;
-  startDate_lesser?: InputMaybe<Scalars['FuzzyDateInt']>;
-  startDate_like?: InputMaybe<Scalars['String']>;
+  startDate?: InputMaybe<Scalars['FuzzyDateInt']['input']>;
+  startDate_greater?: InputMaybe<Scalars['FuzzyDateInt']['input']>;
+  startDate_lesser?: InputMaybe<Scalars['FuzzyDateInt']['input']>;
+  startDate_like?: InputMaybe<Scalars['String']['input']>;
   status?: InputMaybe<MediaStatus>;
   status_in?: InputMaybe<Array<InputMaybe<MediaStatus>>>;
   status_not?: InputMaybe<MediaStatus>;
   status_not_in?: InputMaybe<Array<InputMaybe<MediaStatus>>>;
-  uri?: InputMaybe<Scalars['String']>;
+  uri?: InputMaybe<Scalars['String']['input']>;
 };
 
 
 export type QueryOriginArgs = {
   categories?: InputMaybe<Array<MediaType>>;
-  id?: InputMaybe<Scalars['String']>;
-  metadataOnly?: InputMaybe<Scalars['Boolean']>;
-  name?: InputMaybe<Scalars['String']>;
-  official?: InputMaybe<Scalars['Boolean']>;
+  id?: InputMaybe<Scalars['String']['input']>;
+  metadataOnly?: InputMaybe<Scalars['Boolean']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  official?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 
 export type QueryPageArgs = {
-  after?: InputMaybe<Scalars['Int']>;
-  at?: InputMaybe<Scalars['String']>;
-  before?: InputMaybe<Scalars['Int']>;
+  after?: InputMaybe<Scalars['Int']['input']>;
+  at?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
 export type QueryPlaybackSourceArgs = {
-  id?: InputMaybe<Scalars['String']>;
-  name?: InputMaybe<Scalars['String']>;
-  names?: InputMaybe<Array<Scalars['String']>>;
-  number?: InputMaybe<Scalars['Float']>;
-  origin?: InputMaybe<Scalars['String']>;
-  quality?: InputMaybe<Scalars['String']>;
-  resolution?: InputMaybe<Scalars['String']>;
-  search?: InputMaybe<Scalars['String']>;
-  season?: InputMaybe<Scalars['Int']>;
-  trusted?: InputMaybe<Scalars['Boolean']>;
-  uri?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['String']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  names?: InputMaybe<Array<Scalars['String']['input']>>;
+  number?: InputMaybe<Scalars['Float']['input']>;
+  origin?: InputMaybe<Scalars['String']['input']>;
+  quality?: InputMaybe<Scalars['String']['input']>;
+  resolution?: InputMaybe<Scalars['String']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
+  season?: InputMaybe<Scalars['Int']['input']>;
+  trusted?: InputMaybe<Scalars['Boolean']['input']>;
+  uri?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type Resource = Handle & {
   __typename?: 'Resource';
   batchResources: Array<ResourceConnection>;
   handles: ResourceConnection;
-  id: Scalars['String'];
-  isBatch?: Maybe<Scalars['Boolean']>;
-  origin: Scalars['String'];
-  uri: Scalars['Uri'];
-  url?: Maybe<Scalars['String']>;
+  id: Scalars['String']['output'];
+  isBatch?: Maybe<Scalars['Boolean']['output']>;
+  origin: Scalars['String']['output'];
+  uri: Scalars['Uri']['output'];
+  url?: Maybe<Scalars['String']['output']>;
 };
 
 export type ResourceConnection = HandleConnection & {
@@ -826,11 +813,11 @@ export type ResourceEdge = HandleEdge & {
 export type Team = Handle & {
   __typename?: 'Team';
   handles: HandleConnection;
-  id: Scalars['String'];
-  name?: Maybe<Scalars['String']>;
-  origin: Scalars['String'];
-  uri: Scalars['Uri'];
-  url?: Maybe<Scalars['String']>;
+  id: Scalars['String']['output'];
+  name?: Maybe<Scalars['String']['output']>;
+  origin: Scalars['String']['output'];
+  uri: Scalars['Uri']['output'];
+  url?: Maybe<Scalars['String']['output']>;
 };
 
 
@@ -901,28 +888,36 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 ) => TResult | Promise<TResult>;
 
 
+/** Mapping of interface types */
+export type ResolversInterfaceTypes<RefType extends Record<string, unknown>> = {
+  Handle: ( Episode & { __typename: 'Episode' } ) | ( Media & { __typename: 'Media' } ) | ( MediaAiringSchedule & { __typename: 'MediaAiringSchedule' } ) | ( MediaExternalLink & { __typename: 'MediaExternalLink' } ) | ( MediaTrailer & { __typename: 'MediaTrailer' } ) | ( PlaybackSource & { __typename: 'PlaybackSource' } ) | ( Resource & { __typename: 'Resource' } ) | ( Team & { __typename: 'Team' } );
+  HandleConnection: ( EpisodeConnection & { __typename: 'EpisodeConnection' } ) | ( MediaConnection & { __typename: 'MediaConnection' } ) | ( PlaybackSourceConnection & { __typename: 'PlaybackSourceConnection' } ) | ( ResourceConnection & { __typename: 'ResourceConnection' } );
+  HandleEdge: ( EpisodeEdge & { __typename: 'EpisodeEdge' } ) | ( MediaEdge & { __typename: 'MediaEdge' } ) | ( PlaybackSourceEdge & { __typename: 'PlaybackSourceEdge' } ) | ( ResourceEdge & { __typename: 'ResourceEdge' } );
+};
+
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = {
-  Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
-  CountryCode: ResolverTypeWrapper<Scalars['CountryCode']>;
-  Date: ResolverTypeWrapper<Scalars['Date']>;
+  CountryCode: ResolverTypeWrapper<Scalars['CountryCode']['output']>;
+  Date: ResolverTypeWrapper<Scalars['Date']['output']>;
   Episode: ResolverTypeWrapper<Episode>;
+  Float: ResolverTypeWrapper<Scalars['Float']['output']>;
+  String: ResolverTypeWrapper<Scalars['String']['output']>;
   EpisodeConnection: ResolverTypeWrapper<EpisodeConnection>;
   EpisodeEdge: ResolverTypeWrapper<EpisodeEdge>;
+  Int: ResolverTypeWrapper<Scalars['Int']['output']>;
   EpisodeSort: EpisodeSort;
   ExternalLinkMediaType: ExternalLinkMediaType;
   ExternalLinkType: ExternalLinkType;
-  Float: ResolverTypeWrapper<Scalars['Float']>;
   FuzzyDate: ResolverTypeWrapper<FuzzyDate>;
   FuzzyDateInput: FuzzyDateInput;
-  FuzzyDateInt: ResolverTypeWrapper<Scalars['FuzzyDateInt']>;
-  Handle: ResolversTypes['Episode'] | ResolversTypes['Media'] | ResolversTypes['MediaAiringSchedule'] | ResolversTypes['MediaExternalLink'] | ResolversTypes['MediaTrailer'] | ResolversTypes['PlaybackSource'] | ResolversTypes['Resource'] | ResolversTypes['Team'];
-  HandleConnection: ResolversTypes['EpisodeConnection'] | ResolversTypes['MediaConnection'] | ResolversTypes['PlaybackSourceConnection'] | ResolversTypes['ResourceConnection'];
-  HandleEdge: ResolversTypes['EpisodeEdge'] | ResolversTypes['MediaEdge'] | ResolversTypes['PlaybackSourceEdge'] | ResolversTypes['ResourceEdge'];
+  FuzzyDateInt: ResolverTypeWrapper<Scalars['FuzzyDateInt']['output']>;
+  Handle: ResolverTypeWrapper<ResolversInterfaceTypes<ResolversTypes>['Handle']>;
+  HandleConnection: ResolverTypeWrapper<ResolversInterfaceTypes<ResolversTypes>['HandleConnection']>;
+  HandleEdge: ResolverTypeWrapper<ResolversInterfaceTypes<ResolversTypes>['HandleEdge']>;
   HandleRelation: HandleRelation;
-  Int: ResolverTypeWrapper<Scalars['Int']>;
-  Json: ResolverTypeWrapper<Scalars['Json']>;
+  Json: ResolverTypeWrapper<Scalars['Json']['output']>;
   Media: ResolverTypeWrapper<Media>;
+  Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   MediaAiringSchedule: ResolverTypeWrapper<MediaAiringSchedule>;
   MediaAiringScheduleConnection: ResolverTypeWrapper<MediaAiringScheduleConnection>;
   MediaAiringScheduleEdge: ResolverTypeWrapper<MediaAiringScheduleEdge>;
@@ -952,29 +947,29 @@ export type ResolversTypes = {
   Resource: ResolverTypeWrapper<Resource>;
   ResourceConnection: ResolverTypeWrapper<ResourceConnection>;
   ResourceEdge: ResolverTypeWrapper<ResourceEdge>;
-  String: ResolverTypeWrapper<Scalars['String']>;
   Team: ResolverTypeWrapper<Team>;
-  Uri: ResolverTypeWrapper<Scalars['Uri']>;
+  Uri: ResolverTypeWrapper<Scalars['Uri']['output']>;
 };
 
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = {
-  Boolean: Scalars['Boolean'];
-  CountryCode: Scalars['CountryCode'];
-  Date: Scalars['Date'];
+  CountryCode: Scalars['CountryCode']['output'];
+  Date: Scalars['Date']['output'];
   Episode: Episode;
+  Float: Scalars['Float']['output'];
+  String: Scalars['String']['output'];
   EpisodeConnection: EpisodeConnection;
   EpisodeEdge: EpisodeEdge;
-  Float: Scalars['Float'];
+  Int: Scalars['Int']['output'];
   FuzzyDate: FuzzyDate;
   FuzzyDateInput: FuzzyDateInput;
-  FuzzyDateInt: Scalars['FuzzyDateInt'];
-  Handle: ResolversParentTypes['Episode'] | ResolversParentTypes['Media'] | ResolversParentTypes['MediaAiringSchedule'] | ResolversParentTypes['MediaExternalLink'] | ResolversParentTypes['MediaTrailer'] | ResolversParentTypes['PlaybackSource'] | ResolversParentTypes['Resource'] | ResolversParentTypes['Team'];
-  HandleConnection: ResolversParentTypes['EpisodeConnection'] | ResolversParentTypes['MediaConnection'] | ResolversParentTypes['PlaybackSourceConnection'] | ResolversParentTypes['ResourceConnection'];
-  HandleEdge: ResolversParentTypes['EpisodeEdge'] | ResolversParentTypes['MediaEdge'] | ResolversParentTypes['PlaybackSourceEdge'] | ResolversParentTypes['ResourceEdge'];
-  Int: Scalars['Int'];
-  Json: Scalars['Json'];
+  FuzzyDateInt: Scalars['FuzzyDateInt']['output'];
+  Handle: ResolversInterfaceTypes<ResolversParentTypes>['Handle'];
+  HandleConnection: ResolversInterfaceTypes<ResolversParentTypes>['HandleConnection'];
+  HandleEdge: ResolversInterfaceTypes<ResolversParentTypes>['HandleEdge'];
+  Json: Scalars['Json']['output'];
   Media: Media;
+  Boolean: Scalars['Boolean']['output'];
   MediaAiringSchedule: MediaAiringSchedule;
   MediaAiringScheduleConnection: MediaAiringScheduleConnection;
   MediaAiringScheduleEdge: MediaAiringScheduleEdge;
@@ -996,9 +991,8 @@ export type ResolversParentTypes = {
   Resource: Resource;
   ResourceConnection: ResourceConnection;
   ResourceEdge: ResourceEdge;
-  String: Scalars['String'];
   Team: Team;
-  Uri: Scalars['Uri'];
+  Uri: Scalars['Uri']['output'];
 };
 
 export interface CountryCodeScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['CountryCode'], any> {
@@ -1009,7 +1003,7 @@ export interface DateScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes
   name: 'Date';
 }
 
-export type EpisodeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Episode'] = ResolversParentTypes['Episode']> = {
+export type EpisodeResolvers<ContextType = any, ParentType extends ResolversParentTypes['Episode'] = ResolversParentTypes['Episode']> = {
   airingAt?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   handles?: Resolver<ResolversTypes['EpisodeConnection'], ParentType, ContextType>;
@@ -1027,21 +1021,21 @@ export type EpisodeResolvers<ContextType = Context, ParentType extends Resolvers
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type EpisodeConnectionResolvers<ContextType = Context, ParentType extends ResolversParentTypes['EpisodeConnection'] = ResolversParentTypes['EpisodeConnection']> = {
+export type EpisodeConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['EpisodeConnection'] = ResolversParentTypes['EpisodeConnection']> = {
   edges?: Resolver<Array<ResolversTypes['EpisodeEdge']>, ParentType, ContextType>;
   nodes?: Resolver<Array<ResolversTypes['Episode']>, ParentType, ContextType>;
   pageInfo?: Resolver<Maybe<ResolversTypes['PageInfo']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type EpisodeEdgeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['EpisodeEdge'] = ResolversParentTypes['EpisodeEdge']> = {
+export type EpisodeEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['EpisodeEdge'] = ResolversParentTypes['EpisodeEdge']> = {
   handleRelationType?: Resolver<ResolversTypes['HandleRelation'], ParentType, ContextType>;
   node?: Resolver<ResolversTypes['Episode'], ParentType, ContextType>;
   uri?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type FuzzyDateResolvers<ContextType = Context, ParentType extends ResolversParentTypes['FuzzyDate'] = ResolversParentTypes['FuzzyDate']> = {
+export type FuzzyDateResolvers<ContextType = any, ParentType extends ResolversParentTypes['FuzzyDate'] = ResolversParentTypes['FuzzyDate']> = {
   day?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   month?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   year?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
@@ -1052,8 +1046,8 @@ export interface FuzzyDateIntScalarConfig extends GraphQLScalarTypeConfig<Resolv
   name: 'FuzzyDateInt';
 }
 
-export type HandleResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Handle'] = ResolversParentTypes['Handle']> = {
-  __resolveType: TypeResolveFn<'Episode' | 'Media' | 'MediaAiringSchedule' | 'MediaExternalLink' | 'MediaTrailer' | 'PlaybackSource' | 'Resource' | 'Team', ParentType, ContextType>;
+export type HandleResolvers<ContextType = any, ParentType extends ResolversParentTypes['Handle'] = ResolversParentTypes['Handle']> = {
+  __resolveType?: TypeResolveFn<'Episode' | 'Media' | 'MediaAiringSchedule' | 'MediaExternalLink' | 'MediaTrailer' | 'PlaybackSource' | 'Resource' | 'Team', ParentType, ContextType>;
   handles?: Resolver<ResolversTypes['HandleConnection'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   origin?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1061,15 +1055,15 @@ export type HandleResolvers<ContextType = Context, ParentType extends ResolversP
   url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
-export type HandleConnectionResolvers<ContextType = Context, ParentType extends ResolversParentTypes['HandleConnection'] = ResolversParentTypes['HandleConnection']> = {
-  __resolveType: TypeResolveFn<'EpisodeConnection' | 'MediaConnection' | 'PlaybackSourceConnection' | 'ResourceConnection', ParentType, ContextType>;
+export type HandleConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['HandleConnection'] = ResolversParentTypes['HandleConnection']> = {
+  __resolveType?: TypeResolveFn<'EpisodeConnection' | 'MediaConnection' | 'PlaybackSourceConnection' | 'ResourceConnection', ParentType, ContextType>;
   edges?: Resolver<Array<ResolversTypes['HandleEdge']>, ParentType, ContextType>;
   nodes?: Resolver<Array<ResolversTypes['Handle']>, ParentType, ContextType>;
   pageInfo?: Resolver<Maybe<ResolversTypes['PageInfo']>, ParentType, ContextType>;
 };
 
-export type HandleEdgeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['HandleEdge'] = ResolversParentTypes['HandleEdge']> = {
-  __resolveType: TypeResolveFn<'EpisodeEdge' | 'MediaEdge' | 'PlaybackSourceEdge' | 'ResourceEdge', ParentType, ContextType>;
+export type HandleEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['HandleEdge'] = ResolversParentTypes['HandleEdge']> = {
+  __resolveType?: TypeResolveFn<'EpisodeEdge' | 'MediaEdge' | 'PlaybackSourceEdge' | 'ResourceEdge', ParentType, ContextType>;
   handleRelationType?: Resolver<ResolversTypes['HandleRelation'], ParentType, ContextType>;
   node?: Resolver<ResolversTypes['Handle'], ParentType, ContextType>;
 };
@@ -1078,7 +1072,7 @@ export interface JsonScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes
   name: 'Json';
 }
 
-export type MediaResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Media'] = ResolversParentTypes['Media']> = {
+export type MediaResolvers<ContextType = any, ParentType extends ResolversParentTypes['Media'] = ResolversParentTypes['Media']> = {
   averageScore?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   bannerImage?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   coverImage?: Resolver<Maybe<Array<Maybe<ResolversTypes['MediaCoverImage']>>>, ParentType, ContextType>;
@@ -1107,7 +1101,7 @@ export type MediaResolvers<ContextType = Context, ParentType extends ResolversPa
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type MediaAiringScheduleResolvers<ContextType = Context, ParentType extends ResolversParentTypes['MediaAiringSchedule'] = ResolversParentTypes['MediaAiringSchedule']> = {
+export type MediaAiringScheduleResolvers<ContextType = any, ParentType extends ResolversParentTypes['MediaAiringSchedule'] = ResolversParentTypes['MediaAiringSchedule']> = {
   airingAt?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   episodeNumber?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
@@ -1124,27 +1118,27 @@ export type MediaAiringScheduleResolvers<ContextType = Context, ParentType exten
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type MediaAiringScheduleConnectionResolvers<ContextType = Context, ParentType extends ResolversParentTypes['MediaAiringScheduleConnection'] = ResolversParentTypes['MediaAiringScheduleConnection']> = {
+export type MediaAiringScheduleConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['MediaAiringScheduleConnection'] = ResolversParentTypes['MediaAiringScheduleConnection']> = {
   edges?: Resolver<Maybe<Array<Maybe<ResolversTypes['MediaAiringScheduleEdge']>>>, ParentType, ContextType>;
   nodes?: Resolver<Maybe<Array<Maybe<ResolversTypes['MediaAiringSchedule']>>>, ParentType, ContextType>;
   pageInfo?: Resolver<Maybe<ResolversTypes['PageInfo']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type MediaAiringScheduleEdgeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['MediaAiringScheduleEdge'] = ResolversParentTypes['MediaAiringScheduleEdge']> = {
+export type MediaAiringScheduleEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['MediaAiringScheduleEdge'] = ResolversParentTypes['MediaAiringScheduleEdge']> = {
   node?: Resolver<Maybe<ResolversTypes['MediaAiringSchedule']>, ParentType, ContextType>;
   uri?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type MediaConnectionResolvers<ContextType = Context, ParentType extends ResolversParentTypes['MediaConnection'] = ResolversParentTypes['MediaConnection']> = {
+export type MediaConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['MediaConnection'] = ResolversParentTypes['MediaConnection']> = {
   edges?: Resolver<Array<ResolversTypes['MediaEdge']>, ParentType, ContextType>;
   nodes?: Resolver<Array<ResolversTypes['Media']>, ParentType, ContextType>;
   pageInfo?: Resolver<Maybe<ResolversTypes['PageInfo']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type MediaCoverImageResolvers<ContextType = Context, ParentType extends ResolversParentTypes['MediaCoverImage'] = ResolversParentTypes['MediaCoverImage']> = {
+export type MediaCoverImageResolvers<ContextType = any, ParentType extends ResolversParentTypes['MediaCoverImage'] = ResolversParentTypes['MediaCoverImage']> = {
   color?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   default?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   extraLarge?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -1154,13 +1148,13 @@ export type MediaCoverImageResolvers<ContextType = Context, ParentType extends R
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type MediaEdgeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['MediaEdge'] = ResolversParentTypes['MediaEdge']> = {
+export type MediaEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['MediaEdge'] = ResolversParentTypes['MediaEdge']> = {
   handleRelationType?: Resolver<ResolversTypes['HandleRelation'], ParentType, ContextType>;
   node?: Resolver<ResolversTypes['Media'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type MediaExternalLinkResolvers<ContextType = Context, ParentType extends ResolversParentTypes['MediaExternalLink'] = ResolversParentTypes['MediaExternalLink']> = {
+export type MediaExternalLinkResolvers<ContextType = any, ParentType extends ResolversParentTypes['MediaExternalLink'] = ResolversParentTypes['MediaExternalLink']> = {
   color?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   handles?: Resolver<ResolversTypes['HandleConnection'], ParentType, ContextType>;
   icon?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -1175,7 +1169,7 @@ export type MediaExternalLinkResolvers<ContextType = Context, ParentType extends
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type MediaSynonymResolvers<ContextType = Context, ParentType extends ResolversParentTypes['MediaSynonym'] = ResolversParentTypes['MediaSynonym']> = {
+export type MediaSynonymResolvers<ContextType = any, ParentType extends ResolversParentTypes['MediaSynonym'] = ResolversParentTypes['MediaSynonym']> = {
   isRomanized?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   language?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   score?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
@@ -1183,7 +1177,7 @@ export type MediaSynonymResolvers<ContextType = Context, ParentType extends Reso
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type MediaTitleResolvers<ContextType = Context, ParentType extends ResolversParentTypes['MediaTitle'] = ResolversParentTypes['MediaTitle']> = {
+export type MediaTitleResolvers<ContextType = any, ParentType extends ResolversParentTypes['MediaTitle'] = ResolversParentTypes['MediaTitle']> = {
   english?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   language?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, Partial<MediaTitleLanguageArgs>>;
   native?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -1192,7 +1186,7 @@ export type MediaTitleResolvers<ContextType = Context, ParentType extends Resolv
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type MediaTrailerResolvers<ContextType = Context, ParentType extends ResolversParentTypes['MediaTrailer'] = ResolversParentTypes['MediaTrailer']> = {
+export type MediaTrailerResolvers<ContextType = any, ParentType extends ResolversParentTypes['MediaTrailer'] = ResolversParentTypes['MediaTrailer']> = {
   handles?: Resolver<ResolversTypes['HandleConnection'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   origin?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1202,11 +1196,11 @@ export type MediaTrailerResolvers<ContextType = Context, ParentType extends Reso
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type MutationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
+export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   dummy?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
-export type OriginResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Origin'] = ResolversParentTypes['Origin']> = {
+export type OriginResolvers<ContextType = any, ParentType extends ResolversParentTypes['Origin'] = ResolversParentTypes['Origin']> = {
   categories?: Resolver<Array<ResolversTypes['MediaType']>, ParentType, ContextType>;
   icon?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1218,7 +1212,7 @@ export type OriginResolvers<ContextType = Context, ParentType extends ResolversP
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type PageResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Page'] = ResolversParentTypes['Page']> = {
+export type PageResolvers<ContextType = any, ParentType extends ResolversParentTypes['Page'] = ResolversParentTypes['Page']> = {
   episode?: Resolver<Array<ResolversTypes['Episode']>, ParentType, ContextType, Partial<PageEpisodeArgs>>;
   media?: Resolver<Array<ResolversTypes['Media']>, ParentType, ContextType, Partial<PageMediaArgs>>;
   origin?: Resolver<Array<ResolversTypes['Origin']>, ParentType, ContextType, Partial<PageOriginArgs>>;
@@ -1227,7 +1221,7 @@ export type PageResolvers<ContextType = Context, ParentType extends ResolversPar
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type PageInfoResolvers<ContextType = Context, ParentType extends ResolversParentTypes['PageInfo'] = ResolversParentTypes['PageInfo']> = {
+export type PageInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['PageInfo'] = ResolversParentTypes['PageInfo']> = {
   currentPageCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   firstPageCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   inPage?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
@@ -1240,7 +1234,7 @@ export type PageInfoResolvers<ContextType = Context, ParentType extends Resolver
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type PlaybackSourceResolvers<ContextType = Context, ParentType extends ResolversParentTypes['PlaybackSource'] = ResolversParentTypes['PlaybackSource']> = {
+export type PlaybackSourceResolvers<ContextType = any, ParentType extends ResolversParentTypes['PlaybackSource'] = ResolversParentTypes['PlaybackSource']> = {
   Episode?: Resolver<Maybe<ResolversTypes['Episode']>, ParentType, ContextType>;
   bytes?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   data?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -1265,21 +1259,21 @@ export type PlaybackSourceResolvers<ContextType = Context, ParentType extends Re
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type PlaybackSourceConnectionResolvers<ContextType = Context, ParentType extends ResolversParentTypes['PlaybackSourceConnection'] = ResolversParentTypes['PlaybackSourceConnection']> = {
+export type PlaybackSourceConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['PlaybackSourceConnection'] = ResolversParentTypes['PlaybackSourceConnection']> = {
   edges?: Resolver<Array<ResolversTypes['PlaybackSourceEdge']>, ParentType, ContextType>;
   nodes?: Resolver<Array<ResolversTypes['PlaybackSource']>, ParentType, ContextType>;
   pageInfo?: Resolver<Maybe<ResolversTypes['PageInfo']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type PlaybackSourceEdgeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['PlaybackSourceEdge'] = ResolversParentTypes['PlaybackSourceEdge']> = {
+export type PlaybackSourceEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['PlaybackSourceEdge'] = ResolversParentTypes['PlaybackSourceEdge']> = {
   handleRelationType?: Resolver<ResolversTypes['HandleRelation'], ParentType, ContextType>;
   node?: Resolver<ResolversTypes['PlaybackSource'], ParentType, ContextType>;
   uri?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type QueryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
+export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   Episode?: Resolver<Maybe<ResolversTypes['Episode']>, ParentType, ContextType, Partial<QueryEpisodeArgs>>;
   Media?: Resolver<Maybe<ResolversTypes['Media']>, ParentType, ContextType, Partial<QueryMediaArgs>>;
   Origin?: Resolver<Maybe<ResolversTypes['Origin']>, ParentType, ContextType, Partial<QueryOriginArgs>>;
@@ -1288,7 +1282,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   dummy?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
-export type ResourceResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Resource'] = ResolversParentTypes['Resource']> = {
+export type ResourceResolvers<ContextType = any, ParentType extends ResolversParentTypes['Resource'] = ResolversParentTypes['Resource']> = {
   batchResources?: Resolver<Array<ResolversTypes['ResourceConnection']>, ParentType, ContextType>;
   handles?: Resolver<ResolversTypes['ResourceConnection'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1299,20 +1293,20 @@ export type ResourceResolvers<ContextType = Context, ParentType extends Resolver
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type ResourceConnectionResolvers<ContextType = Context, ParentType extends ResolversParentTypes['ResourceConnection'] = ResolversParentTypes['ResourceConnection']> = {
+export type ResourceConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['ResourceConnection'] = ResolversParentTypes['ResourceConnection']> = {
   edges?: Resolver<Array<ResolversTypes['ResourceEdge']>, ParentType, ContextType>;
   nodes?: Resolver<Array<ResolversTypes['Resource']>, ParentType, ContextType>;
   pageInfo?: Resolver<Maybe<ResolversTypes['PageInfo']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type ResourceEdgeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['ResourceEdge'] = ResolversParentTypes['ResourceEdge']> = {
+export type ResourceEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['ResourceEdge'] = ResolversParentTypes['ResourceEdge']> = {
   handleRelationType?: Resolver<ResolversTypes['HandleRelation'], ParentType, ContextType>;
   node?: Resolver<ResolversTypes['Resource'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type TeamResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Team'] = ResolversParentTypes['Team']> = {
+export type TeamResolvers<ContextType = any, ParentType extends ResolversParentTypes['Team'] = ResolversParentTypes['Team']> = {
   handles?: Resolver<ResolversTypes['HandleConnection'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -1326,7 +1320,7 @@ export interface UriScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes[
   name: 'Uri';
 }
 
-export type Resolvers<ContextType = Context> = {
+export type Resolvers<ContextType = any> = {
   CountryCode?: GraphQLScalarType;
   Date?: GraphQLScalarType;
   Episode?: EpisodeResolvers<ContextType>;

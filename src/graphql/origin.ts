@@ -58,6 +58,8 @@ type Origin {
 
   """If the origin returns metadata only, e.g no playback or download data"""
   metadataOnly: Boolean
+
+  supportedUris: [String!]
 }
 
 `

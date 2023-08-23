@@ -114,34 +114,37 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
         (await Promise.allSettled(
           (uris ?? [undefined])
             .flatMap(uri =>
-              resolversClients?.map(({ origin, client }) =>
-                client
-                  .query({
-                    query: gql(body.query),
-                    variables:
-                      uri
-                        ? ({
-                          ...body.variables,
-                          uri,
-                          handler: fromUri(uri).handler,
-                          id: fromUri(uri).id,
-                          origin: fromUri(uri).origin
-                        })
-                        : body.variables
-                  })
-                  .then(result => ({
-                    ...result,
-                    origin,
-                  }))
-                  .catch(err => {
-                    if (!silenceResolverErrors) {
-                      const error = new Error(`Error in origin for ${origin.name}:\n${err.message}`)
-                      error.stack = `Error in origin for ${origin.name}:\n${err.stack}`
-                      console.error(error)
-                    }
-                    throw err
-                  })
-              )
+              resolversClients
+                // may need to change this once i have more resolvers for non scannarr origins
+                ?.filter(({ origin }) => uri ? origin.supportedUris?.includes(fromUri(uri).origin) : true)
+                ?.map(({ origin, client }) =>
+                  client
+                    .query({
+                      query: gql(body.query),
+                      variables:
+                        uri
+                          ? ({
+                            ...body.variables,
+                            uri,
+                            handler: fromUri(uri).handler,
+                            id: fromUri(uri).id,
+                            origin: fromUri(uri).origin
+                          })
+                          : body.variables
+                    })
+                    .then(result => ({
+                      ...result,
+                      origin,
+                    }))
+                    .catch(err => {
+                      if (!silenceResolverErrors) {
+                        const error = new Error(`Error in origin for ${origin.name}:\n${err.message}`)
+                        error.stack = `Error in origin for ${origin.name}:\n${err.stack}`
+                        console.error(error)
+                      }
+                      throw err
+                    })
+                )
             )
         ))
           .filter((result) => result.status === 'fulfilled')

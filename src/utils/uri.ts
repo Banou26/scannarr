@@ -34,6 +34,8 @@ export const toUri = (
   { handler?: string, origin: string, id: string }
 ): Uri => `${handler ? `${handler}:` : ''}${origin}:${id}`
 
+export const joinUris = (uris: Uri[]): Uri => uris.join(',')
+
 export const isUri = (uri: string): uri is Uri => {
   const parts =
     uri
@@ -57,6 +59,7 @@ export const populateUri = <T extends Partial<Pick<Handle, 'uri' | 'handler'>> &
 
 const BASE64_REGEX = /(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?/
 
+export const isScannarrUri = (uri: Uri): boolean => uri.startsWith('scannarr:')
 export const toScannarrUri = (uris: Uris): Uri => `scannarr:${btoa(uris)}`
 export const toScannarrId = (uris: Uris): string => btoa(uris)
 export const fromScannarrUri = (uri: Uri): Uri[] => atob(uri.split(':')[1]!.match(BASE64_REGEX)![0]).split(',') as Uri[]
