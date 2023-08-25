@@ -5,7 +5,7 @@ import { OriginWithResolvers } from '../server'
 import { isScannarrUri, toScannarrId, toScannarrUri } from '../utils/uri2'
 import { getOriginResultsStreamed, makeArrayResolver, makeObjectResolver, makeScalarResolver } from './utils'
 
-export const populateEpisode = (episode: Episode, resolve) => ({
+export const populateEpisode = (episode: Episode, resolve?: (ref: any, str: string) => any) => ({
   __typename: 'Episode',
   origin: resolve ? resolve(episode, 'origin') : episode.origin,
   id: resolve ? resolve(episode, 'id') : episode.id,
@@ -96,36 +96,6 @@ export const serverResolvers = ({ origins, context }: { origins: OriginWithResol
 
 export const cacheResolvers = ({ origins, context }: { origins: OriginWithResolvers[], context?: () => Promise<ServerContext> }) => ({
   Episode: {
-
-    // handles: (parent, args, cache, info) => {
-    //   if (parent.origin === 'scannarr') {
-
-    //     console.log('handles', parent, args, cache, {...info})
-    //     const handleUris =
-    //       cache.resolve(
-    //         cache.resolve({ __typename: 'Episode', uri: parent.uri }, 'handles') as string,
-    //         'edges'
-    //       )
-    //       ?.map(edge => cache.resolve(cache.resolve(edge, 'node'), 'uri'))
-
-    //     console.log('handles handleUris', handleUris)
-
-    //     return {
-    //       __typename: 'EpisodeConnection',
-    //       edges: handleUris?.map(uri => ({
-    //         __typename: 'EpisodeEdge',
-    //         node: {
-    //           __typename: 'Episode',
-    //           uri
-    //         }
-    //       })) ?? []
-    //     }
-    //   }
-
-
-    //   return parent.handles
-    // },
-
     uri: (parent: DataFields, args: Variables, cache: Cache, info: ResolveInfo) => {
       const parentUri = parent.uri === 'scannarr:()' ? info.parentKey.replace('Episode:', '') : parent.uri as string | undefined
       if (!parentUri) return parent.uri

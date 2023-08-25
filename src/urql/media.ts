@@ -8,7 +8,7 @@ import { populateEpisode } from './episode'
 import { groupBy } from '../utils/groupBy'
 import { groupRelatedHandles } from './utils'
 
-export const populateMedia = (media: Media) => ({
+export const populateMedia = (media: Media, resolve?: (ref: any, str: string) => any) => ({
   origin: media.origin,
   id: media.id,
   uri: media.uri,

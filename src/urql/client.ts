@@ -8,9 +8,10 @@ import { OriginWithResolvers } from '../server'
 
 import { toScannarrUri} from '../utils/uri2'
 
-import { Episode, Media, MediaExternalLink, MediaTrailer } from '../generated/graphql'
+import { Episode, Media, MediaExternalLink, MediaTrailer, PlaybackSource } from '../generated/graphql'
 import { cacheResolvers as makeMediaCacheResolvers } from './media'
 import { cacheResolvers as makeEpisodeCacheResolvers } from './episode'
+import { cacheResolvers as makePlaybackSourceCacheResolvers } from './playback-source'
 
 export type ServerContext = {
 
@@ -48,6 +49,14 @@ export const makeScannarrClient = (
       },
       EpisodeConnection: () => null,
       EpisodeEdge: () => null,
+      PlaybackSource: (playbackSource) => {
+        if (playbackSource.origin !== 'scannarr') return (playbackSource as PlaybackSource).uri
+        const handles = (playbackSource as PlaybackSource).handles?.edges.map(handle => handle.node.uri)
+        const uri = (handles && toScannarrUri(handles)) ?? (playbackSource as PlaybackSource).uri
+        return uri
+      },
+      PlaybackSourceConnection: () => null,
+      PlaybackSourceEdge: () => null,
       MediaExternalLink: (mediaExternalLink) => (mediaExternalLink as MediaExternalLink).uri,
       MediaTrailer: (mediaTrailer) => (mediaTrailer as MediaTrailer).uri,
       MediaCoverImage: () => null,
@@ -56,7 +65,8 @@ export const makeScannarrClient = (
     },
     resolvers: {
       ...makeMediaCacheResolvers({ context }),
-      ...makeEpisodeCacheResolvers({ context })
+      ...makeEpisodeCacheResolvers({ context }),
+      ...makePlaybackSourceCacheResolvers({ context })
     }
   })
 
