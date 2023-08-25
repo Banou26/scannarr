@@ -27,7 +27,7 @@ export type OriginWithServer = {
 
 export const makeScannarrClient = (
   { context, handleRequest }:
-  { context?: () => Promise<ServerContext>, handleRequest: (request: Request, ctx: {}) => Response | Promise<Response> }
+  { context?: () => Promise<ServerContext>, handleRequest: (input: RequestInfo | URL, init?: RequestInit | undefined) => Response | Promise<Response> }
 ) => {
   const cache = cacheExchange({
     keys: {
@@ -63,8 +63,10 @@ export const makeScannarrClient = (
   const client = new Client({
     url: 'http://d/graphql',
     exchanges: [devtoolsExchange, cache, fetchExchange],
-    fetch: async (input: RequestInfo | URL, init?: RequestInit | undefined) =>
-      handleRequest(new Request(input, init), {})
+    fetch: async (input: RequestInfo | URL, init?: RequestInit | undefined) => {
+      const { body, headers } = await handleRequest(input, init)
+      return new Response(body, { headers: Object.fromEntries(headers.entries()) })
+    }
   })
 
   return {
