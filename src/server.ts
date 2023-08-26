@@ -13,7 +13,7 @@ import { Sorts } from './sorts'
 import schema from './graphql'
 
 import { ApolloClient, InMemoryCache, gql } from '@apollo/client/core'
-import { Uris, fromScannarrUri, fromUri, fromUris, isUri, populateUri, toScannarrId, toScannarrUri } from './utils'
+import { Uris, fromScannarrUri, fromUri, fromUris, isUri, populateHandle, toScannarrId, toScannarrUri } from './utils'
 import { makeLink } from './link'
 import { groupBy } from './utils/groupBy'
 import { defaultResolvers, indexHandles } from './utils/apollo'
@@ -411,7 +411,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
         const handleGroups = groups.map((uris) => results.filter((handle) => uris.includes(handle.uri)))
         const scannarrHandles =
           handleGroups
-            .map((handles) => populateUri({
+            .map((handles) => populateHandle({
               __typename: typeName,
               origin: 'scannarr',
               id: toScannarrId(handles.map(handle => handle.uri).join(',') as Uris),
@@ -466,7 +466,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
               .filter(uri => originResults?.some(result => result?.data?.Media?.uri === uri))
               .map(uri => ({
                 node: {
-                  ...populateUri({
+                  ...populateHandle({
                     id: fromUri(uri).id,
                     origin: fromUri(uri).origin,
                     handles: {
@@ -487,7 +487,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
 
           return {
             ...deepmerge.all(edges.map(edge => edge?.node)),
-            ...populateUri({
+            ...populateHandle({
               origin: _origin,
               id: id!,
               handles: {
@@ -506,7 +506,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
               .filter(uri => originResults?.some(result => result?.data?.Episode?.uri === uri))
               .map(uri => ({
                 node: {
-                  ...populateUri({
+                  ...populateHandle({
                     id: fromUri(uri).id,
                     origin: fromUri(uri).origin,
                     handles: {
@@ -526,7 +526,7 @@ export default <Context extends BaseContext, T extends MakeServerOptions<Context
 
           return {
             ...deepmerge.all(edges.map(edge => edge?.node)),
-            ...populateUri({
+            ...populateHandle({
               origin: _origin,
               id: id!,
               handles: {

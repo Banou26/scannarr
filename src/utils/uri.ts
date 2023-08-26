@@ -50,7 +50,7 @@ export const isUris = (uri: string): uri is Uris =>
     .split(',')
     .every(isUri)
 
-export const populateUri = <T extends Partial<Pick<Handle, 'uri' | 'handler'>> & Omit<Handle, 'uri' | 'handler'>>(handle: T): T & Handle => ({
+export const populateHandle = <T extends Partial<Pick<Handle, 'uri' | 'handler'>> & Omit<Handle, 'uri' | 'handler'>>(handle: T): T & Handle => ({
   ...handle,
   handler: handle.handler ? handle.handler : 'fkn',
   uri: toUri({ handler: handle.handler, origin: handle.origin, id: handle.id }),

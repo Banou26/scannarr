@@ -1,7 +1,7 @@
 import { ReadFieldFunction } from '@apollo/client/cache/core/types/common'
 import { Policies } from '../apollo'
 import { Handle, HandleRelation, Resolvers } from '../generated/graphql'
-import { Uris, populateUri, toScannarrId } from './uri'
+import { Uris, populateHandle, toScannarrId } from './uri'
 import { getEdges } from './handle'
 
 export const defaultResolvers = (resolvers: Resolvers) => ({
@@ -101,7 +101,7 @@ export const groupRelatedHandles = <T extends Handle>({ typename, results: _resu
 }
 
 export const makeScannarrHandle = ({ typename, handles, readField }: { typename: string, handles: Handle[], readField?: ReadFieldFunction }) =>
-  populateUri({
+  populateHandle({
     __typename: typename,
     origin: 'scannarr',
     id: toScannarrId(handles.map(handle => readField ? readField('uri', handle) : handle.uri).join(',') as Uris),

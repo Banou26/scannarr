@@ -9,7 +9,7 @@ import { defaultResolvers, groupRelatedHandles, makeArrayTypePolicy, makeObjectT
 import schema from './graphql'
 import { groupBy } from './utils/groupBy'
 import { getEdges } from './utils/handle'
-import { populateUri, toScannarrUri } from './utils'
+import { populateHandle, toScannarrUri } from './utils'
 
 export type Policies = {
   [key: string]: {
@@ -210,7 +210,7 @@ const makeScannarr = <T extends ContextThunk>({
                 typename: 'Media',
                 handles:
                   getEdges(readField('handles'))
-                    .map((edge) => populateUri({
+                    .map((edge) => populateHandle({
                       origin: readField('origin', readField('media', edge.node)),
                       id: readField('id', readField('media', edge.node)),
                       uri: readField('uri', readField('media', edge.node)),

@@ -51,10 +51,14 @@ export const isUris = (uri: string): uri is Uris =>
     .split(',')
     .every(isUri)
 
-export const populateUri = <T extends Partial<Pick<Handle, 'uri'>> & Omit<Handle, 'uri'>>(handle: T): T & Handle => ({
-  ...handle,
+export const populateHandle = <T extends Partial<Pick<Handle, 'uri'>> & Omit<Handle, 'uri'>>(handle: T): T & Handle => ({
   uri: toUri({ origin: handle.origin, id: handle.id }),
-  url: handle.url
+  url: handle.url ?? null,
+  ...handle,
+  handles: handle.handles ?? {
+    edges: [],
+    nodes: []
+  }
 })
 
 export type ScannarrUri = `scannarr:(${Uris})${''|`-${string}`}`

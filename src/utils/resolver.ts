@@ -3,7 +3,7 @@ import type { GraphQLResolveInfo, GraphQLType } from 'graphql'
 
 import { isListType, isNonNullType, isObjectType } from 'graphql'
 import { Handle, HandleRelation } from '../generated/graphql'
-import { Uri, Uris, populateUri, toScannarrId } from './uri'
+import { Uri, Uris, populateHandle, toScannarrId } from './uri'
 import { mergeDeep } from './merge'
 
 export const graphify = (
@@ -90,7 +90,7 @@ export const graphify = (
 
     const scannarrHandles =
       handleGroups
-        .map((handles) => populateUri({
+        .map((handles) => populateHandle({
           __typename: typeName,
           origin: 'scannarr',
           id: toScannarrId(handles.map(handle => handle.uri).join(',') as Uris),
