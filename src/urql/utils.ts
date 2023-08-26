@@ -48,9 +48,38 @@ export const indexHandles = <T extends Handle[]>({ results: _results }: { result
   }
 }
 
+// refactor: replace this with a simpler function, i was too lazy and chatgpt'd it lol
+function mergeRelatedArrays(arrays) {
+  const findArrayWithId = (id, excludeIndex) => {
+      return arrays.findIndex((arr, index) => {
+          if (index !== excludeIndex && arr.includes(id)) {
+              return true
+          }
+          return false
+      })
+  }
+
+  for (let i = 0; i < arrays.length; i++) {
+      const currentArray = arrays[i]
+
+      for (const id of currentArray) {
+          const matchingArrayIndex = findArrayWithId(id, i)
+          if (matchingArrayIndex !== -1) {
+              arrays[i] = [...new Set([...currentArray, ...arrays[matchingArrayIndex]])]
+              arrays.splice(matchingArrayIndex, 1)
+              i = 0
+              break
+          }
+      }
+  }
+
+  return arrays
+}
+
 export const groupRelatedHandles = <T extends Handle>({ typename, results: _results }: { typename: string, results: T[] }) => {
   const { results, index } = indexHandles({ results: _results })
-  const groups =
+
+  const _groups =
     [
       ...new Set(
         Object
@@ -59,6 +88,8 @@ export const groupRelatedHandles = <T extends Handle>({ typename, results: _resu
           .map((uris) => uris.join(' '))
       )
     ].map((uris) => uris.split(' '))
+
+  const groups = mergeRelatedArrays(_groups)
 
   const handleGroups = groups.map((uris) => results.filter((handle) => uris.includes(handle.uri)))
 
