@@ -109,13 +109,80 @@ export const getOriginResults = async (
       ? fromScannarrUri(rootUri)?.handleUris
       : undefined
 
-  return (
+  const resultPromises =
     (await Promise.all(
       (uris ?? [undefined])
         .flatMap(uri =>
           origins
             .filter(({ origin }) => uri ? origin.supportedUris?.includes(fromUri(uri).origin) : true)
-            .map(async ({ origin, server }) =>
+            .map(async ({ origin, server }) => {
+              let resolve, reject
+              const promise = new Promise((res, rej) => {
+                resolve = res
+                reject = rej
+              })
+
+              const callResolver = () =>
+                (async () =>
+                  server
+                    .handleRequest(
+                      new Request(
+                        ctx.request.url,
+                        {
+                          method: 'POST',
+                          body: JSON.stringify({
+                            query: ctx.params.query?.replaceAll('@stream', ''),
+                            variables:
+                              uri
+                                ? ({
+                                  ...ctx.params.variables,
+                                  uri,
+                                  id: fromUri(uri).id,
+                                  origin: fromUri(uri).origin
+                                })
+                                : ctx.params.variables
+                          }),
+                          headers: { 'Content-Type': 'application/json' }
+                        }
+                      ),
+                      { ...await context?.(), server, results: resultPromises.map(({ promise }) => promise) }
+                    ))()
+                  .then(response => response.json())
+              return {
+                promise,
+                callResolver
+              }
+            })
+        )
+    ))
+    .filter((result) => !result.errors?.length)
+
+  return await Promise.all(resultPromises.map(({ callResolver }) => callResolver()))
+}
+
+export async function *getOriginResultsStreamed (
+  { ctx, origins, context }:
+  { ctx: YogaInitialContext, origins: OriginWithServer[], context?: () => Promise<ServerContext> }
+) {
+  const rootUri = ctx.params.variables?.uri
+  const uris =
+    rootUri && isScannarrUri(rootUri)
+      ? fromScannarrUri(rootUri)?.handleUris
+      : undefined
+
+  const resultPromises =
+    (uris ?? [undefined])
+      .flatMap(uri =>
+        origins
+          .filter(({ origin }) => uri ? origin.supportedUris?.includes(fromUri(uri).origin) : true)
+          .map(({ origin, server }) => {
+            let resolve, reject
+            const promise = new Promise((res, rej) => {
+              resolve = res
+              reject = rej
+            })
+
+            const callResolver = () =>
               (async () =>
                 server
                   .handleRequest(
@@ -138,69 +205,33 @@ export const getOriginResults = async (
                         headers: { 'Content-Type': 'application/json' }
                       }
                     ),
-                    { ...await context?.(), server }
+                    { ...await context?.(), server, results: resultPromises.map(({ promise }) => promise) }
                   ))()
                 .then(response => response.json())
-            )
-        )
-    ))
-    .filter((result) => !result.errors?.length)
-  )
-}
-
-export async function *getOriginResultsStreamed (
-  { ctx, origins, context }:
-  { ctx: YogaInitialContext, origins: OriginWithServer[], context?: () => Promise<ServerContext> }
-) {
-  const rootUri = ctx.params.variables?.uri
-  const uris =
-    rootUri && isScannarrUri(rootUri)
-      ? fromScannarrUri(rootUri)?.handleUris
-      : undefined
-
-  const results =
-    (uris ?? [undefined])
-      .flatMap(uri =>
-        origins
-          .filter(({ origin }) => uri ? origin.supportedUris?.includes(fromUri(uri).origin) : true)
-          .map(async ({ origin, server }) =>
-            (async () =>
-              server
-                .handleRequest(
-                  new Request(
-                    ctx.request.url,
-                    {
-                      method: 'POST',
-                      body: JSON.stringify({
-                        query: ctx.params.query?.replaceAll('@stream', ''),
-                        variables:
-                          uri
-                            ? ({
-                              ...ctx.params.variables,
-                              uri,
-                              id: fromUri(uri).id,
-                              origin: fromUri(uri).origin
-                            })
-                            : ctx.params.variables
-                      }),
-                      headers: { 'Content-Type': 'application/json' }
-                    }
-                  ),
-                  { ...await context?.(), server }
-                ))()
-              .then(response => response.json())
-              .then(result => ({
-                ...result,
-                origin,
-              }))
-              .catch(err => {
-                const error = new Error(`Error in origin for ${origin.name}:\n${err.message}`)
-                error.stack = `Error in origin for ${origin.name}:\n${err.stack}`
-                console.error(error)
-                throw err
-              })
-          )
+                .then(result => {
+                  const res = ({
+                    ...result,
+                    origin,
+                  })
+                  resolve(res)
+                  return res
+                })
+                .catch(err => {
+                  const error = new Error(`Error in origin for ${origin.name}:\n${err.message}`)
+                  error.stack = `Error in origin for ${origin.name}:\n${err.stack}`
+                  console.error(error)
+                  reject(err)
+                  throw err
+                })
+            
+            return {
+              promise,
+              callResolver
+            }
+          })
       )
+
+  const results = resultPromises.map(({ callResolver }) => callResolver())
 
   const promiseList = [...results]
 
