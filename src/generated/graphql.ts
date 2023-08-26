@@ -575,6 +575,8 @@ export type Origin = {
   name: Scalars['String'];
   /** If the origin is official, e.g a legal redistributor or platform */
   official?: Maybe<Scalars['Boolean']>;
+  /** Origin ID, e.g: "nflx" for Netflix */
+  origin: Scalars['String'];
   supportedUris?: Maybe<Array<Scalars['String']>>;
   /** The origin's URL, e.g "https://www.netflix.com/""  */
   url?: Maybe<Scalars['String']>;
@@ -1213,6 +1215,7 @@ export type OriginResolvers<ContextType = Context, ParentType extends ResolversP
   metadataOnly?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   official?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  origin?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   supportedUris?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
   url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;

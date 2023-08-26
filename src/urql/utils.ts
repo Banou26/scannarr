@@ -1,11 +1,11 @@
-import type { OriginWithServer, ServerContext } from './index'
-
 import deepmerge from 'deepmerge'
 
 import { fromScannarrUri, fromUri, isScannarrUri, populateHandle, toScannarrId } from '../utils/uri2'
 import { YogaInitialContext } from 'graphql-yoga'
-import { Handle, HandleRelation } from '../generated/graphql'
+import { Handle, HandleRelation, Origin } from '../generated/graphql'
 import { getEdges } from '../utils/handle'
+import { OriginWithServer, ServerContext } from './client'
+import { OriginWithResolvers } from '../server'
 
 
 export const indexHandles = <T extends Handle[]>({ results: _results }: { results: T }) => {
@@ -148,7 +148,7 @@ export const getOriginResults = async (
             .filter(({ origin }) => uri ? origin.supportedUris?.includes(fromUri(uri).origin) : true)
             .map(async ({ origin, server }) => {
               let resolve, reject
-              const promise = new Promise((res, rej) => {
+              const promise = new Promise<{ data: any, origin: OriginWithResolvers }>((res, rej) => {
                 resolve = res
                 reject = rej
               })
@@ -176,10 +176,21 @@ export const getOriginResults = async (
                           headers: { 'Content-Type': 'application/json' }
                         }
                       ),
-                      { ...await context?.(), server, results: resultPromises.map(({ promise }) => promise) }
+                      {
+                        ...await context?.(),
+                        server,
+                        results:
+                          resultPromises
+                            .filter(({ origin: _origin }) => _origin.origin !== origin.origin)
+                            .map(({ promise, origin }) => ({
+                              data: promise.then(result => result.data),
+                              origin
+                            }))
+                      }
                     ))()
                   .then(response => response.json())
               return {
+                origin,
                 promise,
                 callResolver
               }
@@ -208,7 +219,7 @@ export async function *getOriginResultsStreamed (
           .filter(({ origin }) => uri ? origin.supportedUris?.includes(fromUri(uri).origin) : true)
           .map(({ origin, server }) => {
             let resolve, reject
-            const promise = new Promise((res, rej) => {
+            const promise = new Promise<{ data: any, origin: OriginWithResolvers }>((res, rej) => {
               resolve = res
               reject = rej
             })
@@ -236,7 +247,17 @@ export async function *getOriginResultsStreamed (
                         headers: { 'Content-Type': 'application/json' }
                       }
                     ),
-                    { ...await context?.(), server, results: resultPromises.map(({ promise }) => promise) }
+                    {
+                      ...await context?.(),
+                      server,
+                      results:
+                        resultPromises
+                          .filter(({ origin: _origin }) => _origin.origin !== origin.origin)
+                          .map(({ promise, origin }) => ({
+                            data: promise.then(result => result.data),
+                            origin
+                          }))
+                    }
                   ))()
                 .then(response => response.json())
                 .then(result => {
@@ -256,6 +277,7 @@ export async function *getOriginResultsStreamed (
                 })
             
             return {
+              origin,
               promise,
               callResolver
             }
@@ -267,8 +289,8 @@ export async function *getOriginResultsStreamed (
   const promiseList = [...results]
 
   while (promiseList.length > 0) {
-    const index = await Promise.race(promiseList.map((p, i) => p.then(() => i)));
-    yield await promiseList[index]
+    const [value, index] = await Promise.race(promiseList.map((p, i) => p.then((val) => [val, i])))
+    yield await value
     promiseList.splice(index, 1)
   }
 }

@@ -41,6 +41,9 @@ type Origin {
   """Origin ID, e.g: "nflx" for Netflix"""
   id: String!
 
+  """Origin ID, e.g: "nflx" for Netflix"""
+  origin: String!
+
   """The icon URL"""
   icon: String
 
