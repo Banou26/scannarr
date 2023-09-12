@@ -104,10 +104,24 @@ export const groupRelatedHandles = <T extends Handle>({ typename, results: _resu
   }
 }
 
-export const makeScannarrHandle = ({ typename, handles, readField }: { typename: string, handles: Handle[], readField?: ReadFieldFunction }) =>
-  ({
+export const makeScannarrHandle = ({ typename, handles, readField }: { typename: string, handles: Handle[], readField?: ReadFieldFunction }) => {
+  // const getRecursiveHandles = (handle: Handle) => {
+  //   const identicalHandles = getEdges(handle.handles) ?? []
+  //   return [
+  //     handle,
+  //     ...identicalHandles.flatMap(handle => getRecursiveHandles(handle.node))
+  //   ]
+  // }
+
+  // const handleUris = handles.flatMap(handle => getRecursiveHandles(handle)).map(handle => handle.uri)
+  // const id = toScannarrId(handleUris)
+  // const uri = toScannarrId(handleUris)
+
+  const res = ({
     __typename: typename,
     origin: 'scannarr',
+    // id,
+    // uri,
     id: '()',
     uri: 'scannarr:()',
     url: '',
@@ -129,6 +143,11 @@ export const makeScannarrHandle = ({ typename, handles, readField }: { typename:
       }))
     }
   })
+
+  // console.log('makeScannarrHandle', res, handles)
+  
+  return res
+}
 
 export const getOriginResults = async (
   { ctx, origins, context }:

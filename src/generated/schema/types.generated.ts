@@ -660,10 +660,10 @@ export type PageInfo = {
 
 export type PlaybackSource = Handle & {
   __typename?: 'PlaybackSource';
-  Episode?: Maybe<Episode>;
   bytes?: Maybe<Scalars['Float']['output']>;
   /** Stringified (json?) data for the playback, useful for custom players */
   data?: Maybe<Scalars['String']['output']>;
+  episode?: Maybe<Episode>;
   episodeRange?: Maybe<Scalars['String']['output']>;
   filename?: Maybe<Scalars['String']['output']>;
   filesCount?: Maybe<Scalars['Int']['output']>;
@@ -1238,9 +1238,9 @@ export type PageInfoResolvers<ContextType = any, ParentType extends ResolversPar
 };
 
 export type PlaybackSourceResolvers<ContextType = any, ParentType extends ResolversParentTypes['PlaybackSource'] = ResolversParentTypes['PlaybackSource']> = {
-  Episode?: Resolver<Maybe<ResolversTypes['Episode']>, ParentType, ContextType>;
   bytes?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   data?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  episode?: Resolver<Maybe<ResolversTypes['Episode']>, ParentType, ContextType>;
   episodeRange?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   filename?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   filesCount?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;

@@ -3,7 +3,8 @@ import { ServerContext } from '.'
 import { Episode } from '../generated/graphql'
 import { OriginWithResolvers } from '../server'
 import { isScannarrUri, toScannarrId, toScannarrUri } from '../utils/uri2'
-import { getOriginResultsStreamed, makeArrayResolver, makeObjectResolver, makeScalarResolver } from './utils'
+import { getOriginResults, getOriginResultsStreamed, groupRelatedHandles, makeArrayResolver, makeObjectResolver, makeScalarResolver } from './utils'
+import { populateMedia } from './media'
 
 export const populateEpisode = (episode: Episode, resolve?: (ref: any, str: string) => any) => ({
   __typename: 'Episode',
@@ -70,7 +71,17 @@ export const populateEpisode = (episode: Episode, resolve?: (ref: any, str: stri
 })
 
 export const serverResolvers = ({ origins, context }: { origins: OriginWithResolvers[], context?: () => Promise<ServerContext> }) => ({
-  Page: {},
+  Page: {
+    episode: async (parent, args, ctx, info) => {
+      const results = await getOriginResults({ ctx, origins, context })
+      const { scannarrHandles } = groupRelatedHandles({
+        typename: 'Episode',
+        results: (results?.flatMap(results => results.data.Page.episode ?? []) ?? []) as Episode[]
+      })
+      console.log('Page.episode scannarrHandles', scannarrHandles)
+      return scannarrHandles.map(episode => populateEpisode(episode))
+    }
+  },
   Query: {
     Episode: (parent, args, ctx, info) => {
       const results = getOriginResultsStreamed({ ctx, origins, context })
@@ -143,6 +154,96 @@ export const cacheResolvers = ({ origins, context }: { origins: OriginWithResolv
         native: null,
       }
     }),
+
+    // mediaUri: (parent: DataFields, args: Variables, cache: Cache, info: ResolveInfo) => {
+    //   const parentUri = parent.origin === 'scannarr' ? info.parentKey.replace('Episode:', '') : parent.uri as string | undefined
+    //   if (!parentUri) return parent.mediaUri
+    //   const isScannarr = parentUri && isScannarrUri(parentUri)
+    //   const handleUris =
+    //     isScannarr &&
+    //     cache.resolve(
+    //       cache.resolve({ __typename: 'Episode', uri: parentUri }, 'handles') as string,
+    //       'edges'
+    //     )
+    //     ?.map(edge => cache.resolve(cache.resolve(edge, 'node'), 'mediaUri'))
+
+    //   return (
+    //     isScannarr
+    //       ? toScannarrUri(handleUris)
+    //       : parent.mediaUri
+    //   )
+    // },
+
+    // media: (parent, args, cache, info) => {
+    //   const parentUri = parent.origin === 'scannarr' ? info.parentKey.replace('Episode:', '') : parent.uri as string | undefined
+    //   if (!parentUri) return parent.media
+    //   const isScannarr = parentUri && isScannarrUri(parentUri)
+    //   if (!isScannarr) return parent.media
+    //   const handles =
+    //     isScannarr &&
+    //     cache.resolve(
+    //       cache.resolve({ __typename: 'Episode', uri: parentUri }, 'handles') as string,
+    //       'edges'
+    //     )
+    //     ?.map(edge => cache.resolve(cache.resolve(edge, 'node'), 'media'))
+
+    //   const handleUris = handles?.flatMap(handle => cache.resolve(handle, 'uri')) ?? []
+
+    //   // const getRecursiveHandles = (handle: Handle) => {
+    //   //   const identicalHandles = getEdges(handle.handles) ?? []
+    //   //   return [
+    //   //     handle,
+    //   //     ...identicalHandles.flatMap(handle => getRecursiveHandles(handle.node))
+    //   //   ]
+    //   // }
+
+    //   // const handleUris = handles.flatMap(handle => getRecursiveHandles(handle)).map(handle => handle.uri)
+    //   const id = toScannarrId(handleUris)
+    //   const uri = toScannarrUri(handleUris)
+
+    //   return populateMedia({
+    //     __typename: 'Media',
+    //     id,
+    //     uri,
+    //     title: {
+    //       romanized: null,
+    //       english: null,
+    //       native: null,
+    //     },
+    //     thumbnail: null,
+    //     description: null,
+    //     episodes: {
+    //       __typename: 'EpisodeConnection',
+    //       edges: []
+    //     },
+    //     playbackSources: {
+    //       __typename: 'PlaybackSourceConnection',
+    //       edges: []
+    //     }
+    //   })
+
+
+    //   // return {
+    //   //   __typename: 'Media',
+    //   //   id,
+    //   //   uri,
+    //   //   title: {
+    //   //     romanized: null,
+    //   //     english: null,
+    //   //     native: null,
+    //   //   },
+    //   //   thumbnail: null,
+    //   //   description: null,
+    //   //   episodes: {
+    //   //     __typename: 'EpisodeConnection',
+    //   //     edges: []
+    //   //   },
+    //   //   playbackSources: {
+    //   //     __typename: 'PlaybackSourceConnection',
+    //   //     edges: []
+    //   //   }
+    //   // }
+    // },
 
     number: makeScalarResolver({ __typename: 'Episode', fieldName: 'number', defaultValue: null }),
     thumbnail: makeScalarResolver({ __typename: 'Episode', fieldName: 'thumbnail', defaultValue: null }),

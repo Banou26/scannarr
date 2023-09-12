@@ -9,6 +9,7 @@ import { groupBy } from '../utils/groupBy'
 import { groupRelatedHandles } from './utils'
 
 export const populateMedia = (media: Media, resolve?: (ref: any, str: string) => any) => ({
+  __typename: 'Media',
   origin: media.origin,
   id: media.id,
   uri: media.uri,
@@ -82,7 +83,7 @@ export const serverResolvers = ({ origins, context }: { origins: OriginWithResol
         typename: 'Media',
         results: (results?.flatMap(results => results.data.Page.media ?? []) ?? []) as Media[]
       })
-      return scannarrHandles.map(populateMedia)
+      return scannarrHandles.map(media => populateMedia(media))
     }
   },
   Query: {
@@ -142,6 +143,7 @@ export const cacheResolvers = ({ context }: { context?: () => Promise<ServerCont
   Media: {
     uri: (parent: DataFields, args: Variables, cache: Cache, info: ResolveInfo) => {
       const parentUri = parent.uri === 'scannarr:()' ? info.parentKey.replace('Media:', '') : parent.uri as string | undefined
+      // console.log('Media.uri', parent, args, cache, {...info})
       if (!parentUri) return parent.uri
       const isScannarr = parentUri && isScannarrUri(parentUri)
       const handleUris =

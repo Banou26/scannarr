@@ -30,6 +30,7 @@ export const makeScannarrServer = (
                   ...origin.resolvers.Query
                 },
                 Page: {
+                  episode: () => [],
                   media: () => [],
                   playbackSource: () => [],
                   ...origin.resolvers.Page
