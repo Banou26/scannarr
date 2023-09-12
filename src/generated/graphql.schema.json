@@ -3863,18 +3863,6 @@ import { Uri } from '../utils/uri'
         "description": null,
         "fields": [
           {
-            "name": "Episode",
-            "description": null,
-            "args": [],
-            "type": {
-              "kind": "OBJECT",
-              "name": "Episode",
-              "ofType": null
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "bytes",
             "description": null,
             "args": [],
@@ -3893,6 +3881,18 @@ import { Uri } from '../utils/uri'
             "type": {
               "kind": "SCALAR",
               "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "episode",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "OBJECT",
+              "name": "Episode",
               "ofType": null
             },
             "isDeprecated": false,

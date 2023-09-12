@@ -291,7 +291,7 @@ type PlaybackSource implements Handle {
 
   media: Media
   
-  Episode: Episode
+  episode: Episode
 
   """The type of playback"""
   type: PlaybackSourceType
