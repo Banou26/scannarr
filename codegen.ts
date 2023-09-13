@@ -29,12 +29,8 @@ const config: CodegenConfig = {
     },
     './src/generated/graphql.schema.json': {
       plugins: [
-        'introspection',
-        {
-          add: {
-            content: `import { Uri } from '../utils/uri'`
-          }
-        }
+        // 'introspection',
+        'urql-introspection'
       ],
       config: {
         scalars: {

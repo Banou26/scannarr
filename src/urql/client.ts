@@ -12,6 +12,7 @@ import { Episode, Media, MediaExternalLink, MediaTrailer, PlaybackSource } from 
 import { cacheResolvers as makeMediaCacheResolvers } from './media'
 import { cacheResolvers as makeEpisodeCacheResolvers } from './episode'
 import { cacheResolvers as makePlaybackSourceCacheResolvers } from './playback-source'
+import introspection from '../generated/graphql.schema.json'
 
 export type ServerContext = {
 
@@ -31,6 +32,7 @@ export const makeScannarrClient = (
   { context?: () => Promise<ServerContext>, handleRequest: (input: RequestInfo | URL, init?: RequestInit | undefined) => Response | Promise<Response> }
 ) => {
   const cache = cacheExchange({
+    schema: introspection,
     keys: {
       Page: () => null,
       Media: (media) => {

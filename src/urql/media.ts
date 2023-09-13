@@ -10,10 +10,10 @@ import { groupRelatedHandles } from './utils'
 
 export const populateMedia = (media: Media, resolve?: (ref: any, str: string) => any) => ({
   __typename: 'Media',
-  origin: media.origin,
-  id: media.id,
-  uri: media.uri,
-  url: media.url ?? null,
+  origin: resolve ? resolve(media, 'origin') : media.origin,
+  id: resolve ? resolve(media, 'id') : media.id,
+  uri: resolve ? resolve(media, 'uri') : media.uri,
+  url: resolve ? resolve(media, 'url') : media.url ?? null,
   handles: {
     __typename: 'MediaConnection',
     edges:
@@ -37,7 +37,7 @@ export const populateMedia = (media: Media, resolve?: (ref: any, str: string) =>
           })) ?? []
         )
   },
-  title: media.title ?? {
+  title:  media.title ?? {
     romanized: null,
     english: null,
     native: null,
@@ -68,11 +68,11 @@ export const populateMedia = (media: Media, resolve?: (ref: any, str: string) =>
   externalLinks: media.externalLinks ?? [],
   bannerImage: media.bannerImage ?? [],
 
-  description: media.description ?? null,
-  shortDescription: media.shortDescription ?? null,
-  popularity: media.popularity ?? null,
-  averageScore: media.averageScore ?? null,
-  episodeCount: media.episodeCount ?? null
+  description: resolve ? resolve(media, 'description') : media.description ?? null,
+  shortDescription: resolve ? resolve(media, 'shortDescription') : media.shortDescription ?? null,
+  popularity: resolve ? resolve(media, 'popularity') : media.popularity ?? null,
+  averageScore: resolve ? resolve(media, 'averageScore') : media.averageScore ?? null,
+  episodeCount: resolve ? resolve(media, 'episodeCount') : media.episodeCount ?? null
 })
 
 export const serverResolvers = ({ origins, context }: { origins: OriginWithResolvers[], context?: () => Promise<ServerContext> }) => ({
