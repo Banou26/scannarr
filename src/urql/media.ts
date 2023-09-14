@@ -10,10 +10,10 @@ import { groupRelatedHandles } from './utils'
 
 export const populateMedia = (media: Media, resolve?: (ref: any, str: string) => any) => ({
   __typename: 'Media',
-  origin: resolve ? resolve(media, 'origin') : media.origin,
-  id: resolve ? resolve(media, 'id') : media.id,
-  uri: resolve ? resolve(media, 'uri') : media.uri,
-  url: resolve ? resolve(media, 'url') : media.url ?? null,
+  origin: (resolve ? resolve(media, 'origin') : media.origin) ?? media.origin,
+  id: (resolve ? resolve(media, 'id') : media.id) ?? media.id,
+  uri: (resolve ? resolve(media, 'uri') : media.uri) ?? media.uri,
+  url: resolve ? resolve(media, 'url') : media.url ?? '',
   handles: {
     __typename: 'MediaConnection',
     edges:
