@@ -176,70 +176,70 @@ export const cacheResolvers = ({ origins, context }: { origins: OriginWithResolv
 
 
 
-    media: (parent: DataFields, args: Variables, cache: Cache, info: ResolveInfo) => {
-      console.log(
-        'Episode.media resolver', parent, args, cache, {...info},
-        Object.fromEntries(
-          cache
-            .inspectFields(info.parentKey)
-            .map(item => [
-              item.fieldName,
-              item.fieldName === 'media'
-                ? (
-                  Object.fromEntries(
-                    cache
-                      .inspectFields(cache.resolve(info.parentKey, item.fieldName))
-                      .map(item2 => [
-                        item2.fieldName,
-                        cache.resolve(cache.resolve(info.parentKey, item.fieldName), item2.fieldName)
-                      ])
-                  )
-                )
-                : cache.resolve(info.parentKey, item.fieldName)
-            ])
-        )
-      )
-      const parentUri = parent.origin === 'scannarr' ? info.parentKey.replace('Episode:', '') : parent.uri as string | undefined
-      if (!parentUri) return parent.media ?? cache.resolve(info.parentKey, 'media')
-      const isScannarr = parentUri && isScannarrUri(parentUri)
-      if (!isScannarr) return parent.media ?? cache.resolve(info.parentKey, 'media')
-      const handles =
-        isScannarr &&
-        cache.resolve(
-          cache.resolve({ __typename: 'Episode', uri: parentUri }, 'handles') as string,
-          'edges'
-        )
-        ?.map(edge => cache.resolve(cache.resolve(edge, 'node'), 'media'))
-      const handleUris = handles?.flatMap(handle => cache.resolve(handle, 'uri')) ?? []
-      const id = toScannarrId(handleUris)
-      const uri = toScannarrUri(handleUris)
+    // media: (parent: DataFields, args: Variables, cache: Cache, info: ResolveInfo) => {
+    //   console.log(
+    //     'Episode.media resolver', parent, args, cache, {...info},
+    //     Object.fromEntries(
+    //       cache
+    //         .inspectFields(info.parentKey)
+    //         .map(item => [
+    //           item.fieldName,
+    //           item.fieldName === 'media'
+    //             ? (
+    //               Object.fromEntries(
+    //                 cache
+    //                   .inspectFields(cache.resolve(info.parentKey, item.fieldName))
+    //                   .map(item2 => [
+    //                     item2.fieldName,
+    //                     cache.resolve(cache.resolve(info.parentKey, item.fieldName), item2.fieldName)
+    //                   ])
+    //               )
+    //             )
+    //             : cache.resolve(info.parentKey, item.fieldName)
+    //         ])
+    //     )
+    //   )
+    //   const parentUri = parent.origin === 'scannarr' ? info.parentKey.replace('Episode:', '') : parent.uri as string | undefined
+    //   if (!parentUri) return parent.media ?? cache.resolve(info.parentKey, 'media')
+    //   const isScannarr = parentUri && isScannarrUri(parentUri)
+    //   if (!isScannarr) return parent.media ?? cache.resolve(info.parentKey, 'media')
+    //   const handles =
+    //     isScannarr &&
+    //     cache.resolve(
+    //       cache.resolve({ __typename: 'Episode', uri: parentUri }, 'handles') as string,
+    //       'edges'
+    //     )
+    //     ?.map(edge => cache.resolve(cache.resolve(edge, 'node'), 'media'))
+    //   const handleUris = handles?.flatMap(handle => cache.resolve(handle, 'uri')) ?? []
+    //   const id = toScannarrId(handleUris)
+    //   const uri = toScannarrUri(handleUris)
 
-      const handleNodes = handles?.map(mediaRef => populateMedia(mediaRef, cache.resolve.bind(cache))) ?? []
-      console.log('Episode.media handles', handles, parent.handles, handleNodes)
+    //   const handleNodes = handles?.map(mediaRef => populateMedia(mediaRef, cache.resolve.bind(cache))) ?? []
+    //   console.log('Episode.media handles', handles, parent.handles, handleNodes)
       
-      const res = populateMedia({
-        origin: 'scannarr',
-        id,
-        uri,
-        url: '',
-        handles: {
-          edges: handleNodes.map(node => ({ node, __typename: 'MediaEdge' })),
-          nodes: handleNodes
-        }
-      }, cache.resolve.bind(cache))
+    //   const res = populateMedia({
+    //     origin: 'scannarr',
+    //     id,
+    //     uri,
+    //     url: '',
+    //     handles: {
+    //       edges: handleNodes.map(node => ({ node, __typename: 'MediaEdge' })),
+    //       nodes: handleNodes
+    //     }
+    //   }, cache.resolve.bind(cache))
 
-      console.log('res', res, id, uri)
+    //   console.log('res', res, id, uri)
 
-      return res
+    //   return res
 
-      // if (!handles[0]) return parent.media
-      // return cache.keyOfEntity({ __typename: 'Media', uri: handles[0]?.replace('Media:', '') })
-      // return handles[0]
-      // const handleUris = handles?.flatMap(handle => cache.resolve(handle, 'uri')) ?? []
-      // // const id = toScannarrId(handleUris)
-      // const uri = toScannarrUri(handleUris)
-      // return cache.keyOfEntity({ __typename: 'Media', uri })
-    },
+    //   // if (!handles[0]) return parent.media
+    //   // return cache.keyOfEntity({ __typename: 'Media', uri: handles[0]?.replace('Media:', '') })
+    //   // return handles[0]
+    //   // const handleUris = handles?.flatMap(handle => cache.resolve(handle, 'uri')) ?? []
+    //   // // const id = toScannarrId(handleUris)
+    //   // const uri = toScannarrUri(handleUris)
+    //   // return cache.keyOfEntity({ __typename: 'Media', uri })
+    // },
 
 
     // media: (parent, args, cache, info) => {

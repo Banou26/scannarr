@@ -1,4 +1,4 @@
-import { Client, fetchExchange } from 'urql';
+import { Client, fetchExchange, gql } from 'urql';
 import { cacheExchange } from '@urql/exchange-graphcache'
 import { YogaServerInstance } from 'graphql-yoga'
 import { devtoolsExchange } from '@urql/devtools'
@@ -64,6 +64,52 @@ export const makeScannarrClient = (
       MediaCoverImage: () => null,
       MediaTitle: () => null,
       FuzzyDate: () => null,
+    },
+    updates: {
+      // EpisodeConnection: {
+      //   edges: (result, args, cache, info) => {
+      //     console.log('EpisodeConnection.edges UPDATE', result, args, cache, {...info})
+      //   }
+      // },
+      Episode: {
+        handles: (result, args, cache, info) => {
+          console.log('Episode.handles UPDATE', result, args, cache, {...info})
+          const handleUris = result.handles?.edges?.flatMap(edge => edge.node.uri) ?? []
+          const uri = toScannarrUri(handleUris)
+          const previousUri = info.parentKey.replace('Episode:', '')
+
+          const handleMediaUris = result.handles?.edges?.flatMap(edge => edge.node.media.uri) ?? []
+          const mediaUri = toScannarrUri(handleMediaUris)
+
+
+          if (handleMediaUris?.length) {
+            console.log('WRITING', { __typename: 'Episode', uri, media: { __typename: 'Media', uri: mediaUri } })
+            // cache.writeFragment(
+            //   gql`
+            //     fragment EpisodeFragment on Episode {
+            //       uri
+            //       media {
+            //         uri
+            //       }
+            //     }
+            //   `,
+            //   { __typename: 'Episode', uri, media: { __typename: 'Media', uri: mediaUri } }
+            // )
+            cache.writeFragment(
+              gql`
+                fragment MediaFragment on Media {
+                  uri
+                  title {
+                    romanized
+                  }
+                }
+              `,
+              { __typename: 'Media', uri, title: { __typename: 'MediaTitle', romanized: 'test' } }
+            )
+            cache.link(info.parentKey, 'media', cache.keyOfEntity({ __typename: 'Media', uri: mediaUri }))
+          }
+        }
+      }
     },
     resolvers: {
       ...makeMediaCacheResolvers({ context }),
