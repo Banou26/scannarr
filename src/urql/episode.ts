@@ -174,7 +174,22 @@ export const cacheResolvers = ({ origins, context }: { origins: OriginWithResolv
     //   )
     // },
 
-
+    media: (parent: DataFields, args: Variables, cache: Cache, info: ResolveInfo) => {
+      const parentUri = parent.origin === 'scannarr' ? info.parentKey.replace('Episode:', '') : parent.uri as string | undefined
+      if (!parentUri) return parent.media ?? cache.resolve(info.parentKey, 'media')
+      const isScannarr = parentUri && isScannarrUri(parentUri)
+      if (!isScannarr) return parent.media ?? cache.resolve(info.parentKey, 'media')
+      const handles =
+        isScannarr &&
+        cache.resolve(
+          cache.resolve({ __typename: 'Episode', uri: parentUri }, 'handles') as string,
+          'edges'
+        )
+        ?.map(edge => cache.resolve(cache.resolve(edge, 'node'), 'media'))
+      const handleUris = handles?.flatMap(handle => cache.resolve(handle, 'uri')) ?? []
+      const uri = toScannarrUri(handleUris)
+      return { __typename: 'Media', uri }
+    },
 
     // media: (parent: DataFields, args: Variables, cache: Cache, info: ResolveInfo) => {
     //   console.log(

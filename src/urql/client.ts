@@ -6,7 +6,7 @@ import { devtoolsExchange } from '@urql/devtools'
 import { OriginWithResolvers } from '../server'
 
 
-import { toScannarrUri} from '../utils/uri2'
+import { isScannarrUri, toScannarrUri} from '../utils/uri2'
 
 import { Episode, Media, MediaExternalLink, MediaTrailer, PlaybackSource } from '../generated/graphql'
 import { cacheResolvers as makeMediaCacheResolvers } from './media'
@@ -73,42 +73,141 @@ export const makeScannarrClient = (
       // },
       Episode: {
         handles: (result, args, cache, info) => {
+          const parentUri =
+            result.origin === 'scannarr'
+              ? info.parentKey.replace('Episode:', '')
+              : result.uri as string | undefined
+          const isScannarr = parentUri && isScannarrUri(parentUri)
+          if (!isScannarr) return
           console.log('Episode.handles UPDATE', result, args, cache, {...info})
+          const query = gql`
+            fragment MediaFragment on Media {
+              uri
+            }
+
+            query UpdateMediaHandles ($uri: String!) {
+              Media(uri: $uri) {
+                ...MediaFragment
+                # handles {
+                #   edges {
+                #     node {
+                #       ...EpisodeFragment
+                #     }
+                #   }
+                # }
+              }
+            }
+          `
+
           const handleUris = result.handles?.edges?.flatMap(edge => edge.node.uri) ?? []
           const uri = toScannarrUri(handleUris)
           const previousUri = info.parentKey.replace('Episode:', '')
 
+
           const handleMediaUris = result.handles?.edges?.flatMap(edge => edge.node.media.uri) ?? []
           const mediaUri = toScannarrUri(handleMediaUris)
 
+          cache.link(info.parentKey, 'media', cache.keyOfEntity({ __typename: 'Media', uri: mediaUri }))
 
-          if (handleMediaUris?.length) {
-            console.log('WRITING', { __typename: 'Episode', uri, media: { __typename: 'Media', uri: mediaUri } })
-            // cache.writeFragment(
-            //   gql`
-            //     fragment EpisodeFragment on Episode {
-            //       uri
-            //       media {
-            //         uri
-            //       }
-            //     }
-            //   `,
-            //   { __typename: 'Episode', uri, media: { __typename: 'Media', uri: mediaUri } }
-            // )
-            cache.writeFragment(
-              gql`
-                fragment MediaFragment on Media {
-                  uri
-                  title {
-                    romanized
-                  }
+          cache.updateQuery(
+            { query, variables: { uri: mediaUri } },
+            data => {
+              console.log('updateQuery data', data, mediaUri)
+              if (!data) return {
+                Media: {
+                  __typename: 'Media',
+                  uri: mediaUri
                 }
-              `,
-              { __typename: 'Media', uri, title: { __typename: 'MediaTitle', romanized: 'test' } }
-            )
-            cache.link(info.parentKey, 'media', cache.keyOfEntity({ __typename: 'Media', uri: mediaUri }))
-          }
+              }
+              console.log('updateQuery BEFORE data', {...data})
+              data.handles = result.handles
+              data.uri = uri
+              console.log('updateQuery new data', {...data})
+              return data
+            }
+          )
+
+          cache.link(info.parentKey, 'media', cache.keyOfEntity({ __typename: 'Media', uri: mediaUri }))
+
+          cache.updateQuery(
+            { query, variables: { uri: mediaUri } },
+            data => {
+              console.log('updateQuery data', data, mediaUri)
+              if (!data) return {
+                Media: {
+                  __typename: 'Media',
+                  uri: mediaUri
+                }
+              }
+              console.log('updateQuery BEFORE data', {...data})
+              data.handles = result.handles
+              data.uri = uri
+              console.log('updateQuery new data', {...data})
+              return data
+            }
+          )
+
+          console.log('rESSSSSSSS', cache.readQuery({ query, variables: { uri: mediaUri } }))
+          console.log(
+            'rESSSSSSSS2',
+            previousUri,
+            cache.readQuery({ query: gql`
+            query ($uri: String!) {
+              Episode(uri: $uri) {
+                uri
+                # media {
+                #   uri
+                # }
+              }
+            }`, variables: { uri: previousUri } }),
+            cache.readFragment(gql`
+              fragment _ on Episode {
+                uri
+                media {
+                  uri
+                }
+              }
+            `, { uri: previousUri })
+          )
         }
+
+        // handles: (result, args, cache, info) => {
+        //   console.log('Episode.handles UPDATE', result, args, cache, {...info})
+        //   const handleUris = result.handles?.edges?.flatMap(edge => edge.node.uri) ?? []
+        //   const uri = toScannarrUri(handleUris)
+        //   const previousUri = info.parentKey.replace('Episode:', '')
+
+        //   const handleMediaUris = result.handles?.edges?.flatMap(edge => edge.node.media.uri) ?? []
+        //   const mediaUri = toScannarrUri(handleMediaUris)
+
+
+        //   if (handleMediaUris?.length) {
+        //     console.log('WRITING', { __typename: 'Episode', uri, media: { __typename: 'Media', uri: mediaUri } })
+        //     // cache.writeFragment(
+        //     //   gql`
+        //     //     fragment EpisodeFragment on Episode {
+        //     //       uri
+        //     //       media {
+        //     //         uri
+        //     //       }
+        //     //     }
+        //     //   `,
+        //     //   { __typename: 'Episode', uri, media: { __typename: 'Media', uri: mediaUri } }
+        //     // )
+        //     cache.writeFragment(
+        //       gql`
+        //         fragment MediaFragment on Media {
+        //           uri
+        //           title {
+        //             romanized
+        //           }
+        //         }
+        //       `,
+        //       { __typename: 'Media', uri, title: { __typename: 'MediaTitle', romanized: 'test' } }
+        //     )
+        //     cache.link(info.parentKey, 'media', cache.keyOfEntity({ __typename: 'Media', uri: mediaUri }))
+        //   }
+        // }
       }
     },
     resolvers: {
