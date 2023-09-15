@@ -88,13 +88,13 @@ export const makeScannarrClient = (
             query UpdateMediaHandles ($uri: String!) {
               Media(uri: $uri) {
                 ...MediaFragment
-                # handles {
-                #   edges {
-                #     node {
-                #       ...EpisodeFragment
-                #     }
-                #   }
-                # }
+                handles {
+                  edges {
+                    node {
+                      ...EpisodeFragment
+                    }
+                  }
+                }
               }
             }
           `
@@ -107,44 +107,48 @@ export const makeScannarrClient = (
           const handleMediaUris = result.handles?.edges?.flatMap(edge => edge.node.media.uri) ?? []
           const mediaUri = toScannarrUri(handleMediaUris)
 
-          cache.link(info.parentKey, 'media', cache.keyOfEntity({ __typename: 'Media', uri: mediaUri }))
-
           cache.updateQuery(
             { query, variables: { uri: mediaUri } },
             data => {
               console.log('updateQuery data', data, mediaUri)
-              if (!data) return {
-                Media: {
-                  __typename: 'Media',
-                  uri: mediaUri
+              if (!data) {
+                const res = {
+                  Media: {
+                    __typename: 'Media',
+                    uri: mediaUri,
+                    handles: result.handles
+                  }
                 }
+                console.log('updateQuery new data !111111111', {...res})
+
+                return res
               }
               console.log('updateQuery BEFORE data', {...data})
               data.handles = result.handles
               data.uri = uri
-              console.log('updateQuery new data', {...data})
+              console.log('updateQuery new data 2222222222', {...data})
               return data
             }
           )
 
+          console.log(
+            'SET MEDIA EPISODE LINK',
+            info.parentKey,
+            'media',
+            cache.keyOfEntity({ __typename: 'Media', uri: mediaUri })
+          )
           cache.link(info.parentKey, 'media', cache.keyOfEntity({ __typename: 'Media', uri: mediaUri }))
 
-          cache.updateQuery(
-            { query, variables: { uri: mediaUri } },
-            data => {
-              console.log('updateQuery data', data, mediaUri)
-              if (!data) return {
-                Media: {
-                  __typename: 'Media',
-                  uri: mediaUri
-                }
-              }
-              console.log('updateQuery BEFORE data', {...data})
-              data.handles = result.handles
-              data.uri = uri
-              console.log('updateQuery new data', {...data})
-              return data
-            }
+          console.log(
+            'SET HANDLE LINKS',
+            cache.keyOfEntity({ __typename: 'Media', uri: mediaUri }),
+            'handles.edges',
+            [...handleUris.map(uri => cache.keyOfEntity({ __typename: 'Episode', uri }))]
+          )
+          cache.link(
+            cache.keyOfEntity({ __typename: 'Media', uri: mediaUri }),
+            'handles.edges',
+            [...handleUris.map(uri => cache.keyOfEntity({ __typename: 'Episode', uri }))]
           )
 
           console.log('rESSSSSSSS', cache.readQuery({ query, variables: { uri: mediaUri } }))
