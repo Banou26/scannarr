@@ -391,8 +391,8 @@ type MediaAiringSchedule implements Handle {
   """The associate media of the airing episode"""
   media: Media
 
-  """The associate media uri of the airing episode"""
-  mediaUri: String!
+  # """The associate media uri of the airing episode"""
+  # mediaUri: String!
 
   """Seconds until episode starts airing"""
   timeUntilAiring: Float
