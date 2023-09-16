@@ -36,23 +36,25 @@ export const makeScannarrClient = (
     keys: {
       Page: () => null,
       Media: (media) => {
-        if (media.origin !== 'scannarr') return (media as Media).uri
+        if (!media.uri?.includes('scannarr')) return (media as Media).uri
         const handles = (media as Media).handles?.edges.map(handle => handle.node.uri)
         const uri = (handles && toScannarrUri(handles)) ?? (media as Media).uri
+        console.log('Media uri', media, uri)
         return uri
       },
       MediaConnection: () => null,
       MediaEdge: () => null,
       Episode: (media) => {
-        if (media.origin !== 'scannarr') return (media as Episode).uri
+        if (!media.uri?.includes('scannarr')) return (media as Episode).uri
         const handles = (media as Episode).handles?.edges.map(handle => handle.node.uri)
         const uri = (handles && toScannarrUri(handles)) ?? (media as Episode).uri
+        console.log('Episode uri', media, uri)
         return uri
       },
       EpisodeConnection: () => null,
       EpisodeEdge: () => null,
       PlaybackSource: (playbackSource) => {
-        if (playbackSource.origin !== 'scannarr') return (playbackSource as PlaybackSource).uri
+        if (!playbackSource?.uri?.includes('scannarr')) return (playbackSource as PlaybackSource).uri
         const handles = (playbackSource as PlaybackSource).handles?.edges.map(handle => handle.node.uri)
         const uri = (handles && toScannarrUri(handles)) ?? (playbackSource as PlaybackSource).uri
         return uri
@@ -74,7 +76,7 @@ export const makeScannarrClient = (
       Episode: {
         handles: (result, args, cache, info) => {
           const parentUri =
-            result.origin === 'scannarr'
+            result.uri?.includes('scannarr')
               ? info.parentKey.replace('Episode:', '')
               : result.uri as string | undefined
           const isScannarr = parentUri && isScannarrUri(parentUri)

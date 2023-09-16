@@ -126,7 +126,7 @@ export const cacheResolvers = ({ origins, context }: { origins: OriginWithResolv
       )
     },
     id: (parent: DataFields, args: Variables, cache: Cache, info: ResolveInfo) => {
-      const parentUri = parent.origin === 'scannarr' ? info.parentKey.replace('Episode:', '') : parent.uri as string | undefined
+      const parentUri = parent.uri?.includes('scannarr') ? info.parentKey.replace('Episode:', '') : parent.uri as string | undefined
       if (!parentUri) return parent.id
       const isScannarr = parentUri && isScannarrUri(parentUri)
       const handleUris =
@@ -156,7 +156,7 @@ export const cacheResolvers = ({ origins, context }: { origins: OriginWithResolv
     }),
 
     // mediaUri: (parent: DataFields, args: Variables, cache: Cache, info: ResolveInfo) => {
-    //   const parentUri = parent.origin === 'scannarr' ? info.parentKey.replace('Episode:', '') : parent.uri as string | undefined
+    //   const parentUri = parent?.uri?.includes('scannarr') ? info.parentKey.replace('Episode:', '') : parent.uri as string | undefined
     //   if (!parentUri) return parent.mediaUri
     //   const isScannarr = parentUri && isScannarrUri(parentUri)
     //   const handleUris =
@@ -175,7 +175,7 @@ export const cacheResolvers = ({ origins, context }: { origins: OriginWithResolv
     // },
 
     media: (parent: DataFields, args: Variables, cache: Cache, info: ResolveInfo) => {
-      const parentUri = parent.origin === 'scannarr' ? info.parentKey.replace('Episode:', '') : parent.uri as string | undefined
+      const parentUri = parent?.uri?.includes('scannarr') ? info.parentKey.replace('Episode:', '') : parent.uri as string | undefined
       if (!parentUri) return parent.media ?? cache.resolve(info.parentKey, 'media')
       const isScannarr = parentUri && isScannarrUri(parentUri)
       if (!isScannarr) return parent.media ?? cache.resolve(info.parentKey, 'media')
@@ -214,7 +214,7 @@ export const cacheResolvers = ({ origins, context }: { origins: OriginWithResolv
     //         ])
     //     )
     //   )
-    //   const parentUri = parent.origin === 'scannarr' ? info.parentKey.replace('Episode:', '') : parent.uri as string | undefined
+    //   const parentUri = parent?.uri?.includes('scannarr') ? info.parentKey.replace('Episode:', '') : parent.uri as string | undefined
     //   if (!parentUri) return parent.media ?? cache.resolve(info.parentKey, 'media')
     //   const isScannarr = parentUri && isScannarrUri(parentUri)
     //   if (!isScannarr) return parent.media ?? cache.resolve(info.parentKey, 'media')
@@ -258,7 +258,7 @@ export const cacheResolvers = ({ origins, context }: { origins: OriginWithResolv
 
 
     // media: (parent, args, cache, info) => {
-    //   const parentUri = parent.origin === 'scannarr' ? info.parentKey.replace('Episode:', '') : parent.uri as string | undefined
+    //   const parentUri = parent?.uri?.includes('scannarr') ? info.parentKey.replace('Episode:', '') : parent.uri as string | undefined
     //   if (!parentUri) return parent.media
     //   const isScannarr = parentUri && isScannarrUri(parentUri)
     //   if (!isScannarr) return parent.media
@@ -278,7 +278,7 @@ export const cacheResolvers = ({ origins, context }: { origins: OriginWithResolv
 
     // media: (parent, args, cache, info) => {
     //   console.log('Episode.media resolver', parent, args, cache, {...info})
-    //   const parentUri = parent.origin === 'scannarr' ? info.parentKey.replace('Episode:', '') : parent.uri as string | undefined
+    //   const parentUri = parent?.uri?.includes('scannarr') ? info.parentKey.replace('Episode:', '') : parent.uri as string | undefined
     //   if (!parentUri) return parent.media
     //   const isScannarr = parentUri && isScannarrUri(parentUri)
     //   if (!isScannarr) return parent.media

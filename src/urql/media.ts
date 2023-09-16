@@ -161,7 +161,7 @@ export const cacheResolvers = ({ context }: { context?: () => Promise<ServerCont
       )
     },
     id: (parent: DataFields, args: Variables, cache: Cache, info: ResolveInfo) => {
-      const parentUri = parent.origin === 'scannarr' ? info.parentKey.replace('Media:', '') : parent.uri as string | undefined
+      const parentUri = parent?.uri?.includes('scannarr') ? info.parentKey.replace('Media:', '') : parent.uri as string | undefined
       if (!parentUri) return parent.id
       const isScannarr = parentUri && isScannarrUri(parentUri)
       const handleUris =
