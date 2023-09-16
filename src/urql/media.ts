@@ -95,13 +95,9 @@ export const serverResolvers = ({ origins, context }: { origins: OriginWithResol
         uri: 'scannarr:()',
         handles: {
           __typename: 'MediaConnection',
-          async *edges (...args) {
+          async *edges () {
             for await (const result of results) {
               if (!result.data.Media) continue
-              // console.log('yield', {
-              //   __typename: 'MediaEdge',
-              //   node: populateMedia(result.data.Media)
-              // })
               yield {
                 __typename: 'MediaEdge',
                 node: populateMedia(result.data.Media)
@@ -142,124 +138,91 @@ export const cacheResolvers = ({ context }: { context?: () => Promise<ServerCont
   },
   Media: {
     uri: (parent: DataFields, args: Variables, cache: Cache, info: ResolveInfo) => {
-      const parentUri = parent.uri === 'scannarr:()' ? info.parentKey.replace('Media:', '') : parent.uri as string | undefined
-      // console.log('Media.uri', parent, args, cache, {...info})
-      if (!parentUri) return parent.uri
-      const isScannarr = parentUri && isScannarrUri(parentUri)
-      const handleUris =
-        isScannarr &&
-        cache.resolve(
-          cache.resolve({ __typename: 'Media', uri: parentUri }, 'handles') as string,
-          'edges'
-        )
-        ?.map(edge => cache.resolve(cache.resolve(edge, 'node'), 'uri'))
-
-      return (
-        isScannarr
-          ? toScannarrUri(handleUris)
-          : parent.uri
-      )
+      console.log('RESOLVE Media', parent, args, cache, {...info})
+      if (info.parentKey.includes('scannarr')) return info.parentKey.replace('Media:', '')
+      return parent.uri
     },
-    id: (parent: DataFields, args: Variables, cache: Cache, info: ResolveInfo) => {
-      const parentUri = parent?.uri?.includes('scannarr') ? info.parentKey.replace('Media:', '') : parent.uri as string | undefined
-      if (!parentUri) return parent.id
-      const isScannarr = parentUri && isScannarrUri(parentUri)
-      const handleUris =
-        isScannarr &&
-        cache.resolve(
-          cache.resolve({ __typename: 'Media', uri: parentUri }, 'handles') as string,
-          'edges'
-        )
-        ?.map(edge => cache.resolve(cache.resolve(edge, 'node'), 'uri'))
+    // episodes: (parent: DataFields, args: Variables, cache: Cache, info: ResolveInfo) => {
+    //   const parentUri = parent.uri as string | undefined
+    //   // console.log('episodes', parent, args, cache, {...info})
+    //   if (!parentUri) {
+    //     // console.log('result3', parent.episodes)
+    //     return parent.episodes
+    //   }
+    //   const isScannarr = parentUri && isScannarrUri(parentUri)
 
-      return (
-        isScannarr
-          ? `(${toScannarrId(handleUris)})`
-          : parent.id
-      )
-    },
+    //   if (isScannarr) {
+    //     const handlesEpisodeEdges =
+    //       cache.resolve(
+    //         cache.resolve({ __typename: 'Media', uri: parentUri }, 'handles') as string,
+    //         'edges'
+    //       )
+    //       ?.flatMap(edge => cache.resolve(cache.resolve(cache.resolve(edge, 'node'), 'episodes'), 'edges'))
 
-    episodes: (parent: DataFields, args: Variables, cache: Cache, info: ResolveInfo) => {
-      const parentUri = parent.uri as string | undefined
-      // console.log('episodes', parent, args, cache, {...info})
-      if (!parentUri) {
-        // console.log('result3', parent.episodes)
-        return parent.episodes
-      }
-      const isScannarr = parentUri && isScannarrUri(parentUri)
+    //     // console.log('handlesEpisodeEdges', handlesEpisodeEdges)
 
-      if (isScannarr) {
-        const handlesEpisodeEdges =
-          cache.resolve(
-            cache.resolve({ __typename: 'Media', uri: parentUri }, 'handles') as string,
-            'edges'
-          )
-          ?.flatMap(edge => cache.resolve(cache.resolve(cache.resolve(edge, 'node'), 'episodes'), 'edges'))
+    //     const groupedByNumber = [
+    //       ...groupBy(
+    //         handlesEpisodeEdges,
+    //         (edge) => cache.resolve(cache.resolve(edge, 'node'), 'number')
+    //       ).entries()
+    //     ]
 
-        // console.log('handlesEpisodeEdges', handlesEpisodeEdges)
+    //     // console.log('groupedByNumber', groupedByNumber)
 
-        const groupedByNumber = [
-          ...groupBy(
-            handlesEpisodeEdges,
-            (edge) => cache.resolve(cache.resolve(edge, 'node'), 'number')
-          ).entries()
-        ]
-
-        // console.log('groupedByNumber', groupedByNumber)
-
-        const nodes =
-          groupedByNumber
-            .map(([number, edges]) => {
-              const handleUris = edges?.flatMap(node => cache.resolve(cache.resolve(node, 'node'), 'uri'))
+    //     const nodes =
+    //       groupedByNumber
+    //         .map(([number, edges]) => {
+    //           const handleUris = edges?.flatMap(node => cache.resolve(cache.resolve(node, 'node'), 'uri'))
               
-              const res = populateEpisode({
-                origin: 'scannarr',
-                id: toScannarrId(handleUris),
-                uri: toScannarrUri(handleUris),
-                handles: {
-                  __typename: 'EpisodeConnection',
-                  edges: edges?.map(edge => ({
-                    __typename: 'EpisodeEdge',
-                    node:
-                      populateEpisode(
-                        cache.resolve(edge, 'node'),
-                        (entity: Entity, fieldName: string, args?: FieldArgs) =>
-                          cache.resolve(entity, fieldName, args)
-                      )
-                  }))
-                },
-                number: Number(number),
+    //           const res = populateEpisode({
+    //             origin: 'scannarr',
+    //             id: toScannarrId(handleUris),
+    //             uri: toScannarrUri(handleUris),
+    //             handles: {
+    //               __typename: 'EpisodeConnection',
+    //               edges: edges?.map(edge => ({
+    //                 __typename: 'EpisodeEdge',
+    //                 node:
+    //                   populateEpisode(
+    //                     cache.resolve(edge, 'node'),
+    //                     (entity: Entity, fieldName: string, args?: FieldArgs) =>
+    //                       cache.resolve(entity, fieldName, args)
+    //                   )
+    //               }))
+    //             },
+    //             number: Number(number),
 
-                thumbnail: makeScalarResolver({ __typename: 'Episode', fieldName: 'thumbnail', defaultValue: null })({ uri: toScannarrUri(handleUris) }, undefined, cache, info),
-                timeUntilAiring: makeScalarResolver({ __typename: 'Episode', fieldName: 'timeUntilAiring', defaultValue: null })({ uri: toScannarrUri(handleUris) }, undefined, cache, info),
-                airingAt: makeScalarResolver({ __typename: 'Episode', fieldName: 'airingAt', defaultValue: null })({ uri: toScannarrUri(handleUris) }, undefined, cache, info),
-                description: makeScalarResolver({ __typename: 'Episode', fieldName: 'description', defaultValue: null })({ uri: toScannarrUri(handleUris) }, undefined, cache, info),
-              })
+    //             thumbnail: makeScalarResolver({ __typename: 'Episode', fieldName: 'thumbnail', defaultValue: null })({ uri: toScannarrUri(handleUris) }, undefined, cache, info),
+    //             timeUntilAiring: makeScalarResolver({ __typename: 'Episode', fieldName: 'timeUntilAiring', defaultValue: null })({ uri: toScannarrUri(handleUris) }, undefined, cache, info),
+    //             airingAt: makeScalarResolver({ __typename: 'Episode', fieldName: 'airingAt', defaultValue: null })({ uri: toScannarrUri(handleUris) }, undefined, cache, info),
+    //             description: makeScalarResolver({ __typename: 'Episode', fieldName: 'description', defaultValue: null })({ uri: toScannarrUri(handleUris) }, undefined, cache, info),
+    //           })
 
-              // console.log(
-              //   'episodes handleUris',
-              //   handleUris,
-              //   edges,
-              //   res
-              // )
-              return res
-            })
+    //           // console.log(
+    //           //   'episodes handleUris',
+    //           //   handleUris,
+    //           //   edges,
+    //           //   res
+    //           // )
+    //           return res
+    //         })
 
-        // console.log('nodes', nodes)
+    //     // console.log('nodes', nodes)
 
-        const result = {
-          __typename: 'EpisodeConnection',
-          edges: nodes?.flatMap(node => ({ __typename: 'EpisodeEdge', node })) ?? []
-        }
+    //     const result = {
+    //       __typename: 'EpisodeConnection',
+    //       edges: nodes?.flatMap(node => ({ __typename: 'EpisodeEdge', node })) ?? []
+    //     }
 
-        // console.log('result', result)
+    //     // console.log('result', result)
 
-        return result
-      }
-      // console.log('result2', cache.resolve({ __typename: 'Media', uri: parentUri }, 'episodes'))
+    //     return result
+    //   }
+    //   // console.log('result2', cache.resolve({ __typename: 'Media', uri: parentUri }, 'episodes'))
 
-      return cache.resolve({ __typename: 'Media', uri: parentUri }, 'episodes')
-    },
+    //   return cache.resolve({ __typename: 'Media', uri: parentUri }, 'episodes')
+    // },
 
     title: makeObjectResolver({
       __typename: 'Media',

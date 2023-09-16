@@ -9,7 +9,7 @@ import { OriginWithResolvers } from '../server'
 import { isScannarrUri, toScannarrUri} from '../utils/uri2'
 
 import { Episode, Media, MediaExternalLink, MediaTrailer, PlaybackSource } from '../generated/graphql'
-import { cacheResolvers as makeMediaCacheResolvers } from './media'
+import { cacheResolvers as makeMediaCacheResolvers, populateMedia } from './media'
 import { cacheResolvers as makeEpisodeCacheResolvers } from './episode'
 import { cacheResolvers as makePlaybackSourceCacheResolvers } from './playback-source'
 import introspection from '../generated/graphql.schema.json'
@@ -36,28 +36,25 @@ export const makeScannarrClient = (
     keys: {
       Page: () => null,
       Media: (media) => {
-        if (!media.uri?.includes('scannarr')) return (media as Media).uri
         const handles = (media as Media).handles?.edges.map(handle => handle.node.uri)
-        const uri = (handles && toScannarrUri(handles)) ?? (media as Media).uri
-        console.log('Media uri', media, uri)
-        return uri
+        if (!media.uri?.includes('scannarr')) return (media as Media).uri
+        console.log('KEY Media', toScannarrUri(handles), media)
+        return toScannarrUri(handles ?? [])
       },
       MediaConnection: () => null,
       MediaEdge: () => null,
-      Episode: (media) => {
-        if (!media.uri?.includes('scannarr')) return (media as Episode).uri
-        const handles = (media as Episode).handles?.edges.map(handle => handle.node.uri)
-        const uri = (handles && toScannarrUri(handles)) ?? (media as Episode).uri
-        console.log('Episode uri', media, uri)
-        return uri
+      Episode: (episode) => {
+        const handles = (episode as Episode).handles?.edges.map(handle => handle.node.uri)
+        if (!episode.uri?.includes('scannarr')) return (episode as Episode).uri
+        console.log('KEY Episode', toScannarrUri(handles), episode)
+        return toScannarrUri(handles ?? [])
       },
       EpisodeConnection: () => null,
       EpisodeEdge: () => null,
       PlaybackSource: (playbackSource) => {
-        if (!playbackSource?.uri?.includes('scannarr')) return (playbackSource as PlaybackSource).uri
         const handles = (playbackSource as PlaybackSource).handles?.edges.map(handle => handle.node.uri)
-        const uri = (handles && toScannarrUri(handles)) ?? (playbackSource as PlaybackSource).uri
-        return uri
+        if (!playbackSource?.uri?.includes('scannarr')) return (playbackSource as PlaybackSource).uri
+        return toScannarrUri(handles ?? [])
       },
       PlaybackSourceConnection: () => null,
       PlaybackSourceEdge: () => null,
@@ -68,152 +65,64 @@ export const makeScannarrClient = (
       FuzzyDate: () => null,
     },
     updates: {
-      // EpisodeConnection: {
-      //   edges: (result, args, cache, info) => {
-      //     console.log('EpisodeConnection.edges UPDATE', result, args, cache, {...info})
-      //   }
-      // },
       Episode: {
         handles: (result, args, cache, info) => {
-          const parentUri =
-            result.uri?.includes('scannarr')
-              ? info.parentKey.replace('Episode:', '')
-              : result.uri as string | undefined
-          const isScannarr = parentUri && isScannarrUri(parentUri)
-          if (!isScannarr) return
-          console.log('Episode.handles UPDATE', result, args, cache, {...info})
-          const query = gql`
-            fragment MediaFragment on Media {
-              uri
-            }
-
-            query UpdateMediaHandles ($uri: String!) {
-              Media(uri: $uri) {
-                ...MediaFragment
-                handles {
-                  edges {
-                    node {
-                      ...EpisodeFragment
-                    }
-                  }
-                }
+          if (!info.parentKey.includes('scannarr')) return
+          console.log('UPDATE Episode.handles', result, args, cache, {...info})
+          if (!result.media) {
+            result.media = {
+              __typename: 'Element',
+              uri: info.parentKey.replace('Element:', ''),
+              handles: {
+                __typename: 'MediaConnection',
+                edges: result.handles.edges.map(episodeEdge => ({
+                  __typename: 'MediaEdge',
+                  node: episodeEdge.node.media
+                }))
               }
             }
-          `
+            return
+          }
+          result.media.handles = {
+            __typename: 'MediaConnection',
+            edges: result.handles.edges.map(episodeEdge => ({
+              __typename: 'MediaEdge',
+              node: episodeEdge.node.media
+            }))
+          }
 
-          const handleUris = result.handles?.edges?.flatMap(edge => edge.node.uri) ?? []
-          const uri = toScannarrUri(handleUris)
-          const previousUri = info.parentKey.replace('Episode:', '')
+          // const parentUri =
+          //   result.uri?.includes('scannarr')
+          //     ? info.parentKey.replace('Episode:', '')
+          //     : result.uri as string | undefined
+          // const isScannarr = parentUri && isScannarrUri(parentUri)
+          // if (!isScannarr) return
+          // const handlesMedia = result.handles?.edges.map(episodeEdge => episodeEdge.node.media)
+          // if (handlesMedia.length === 0) return
+          // console.log('Episode.handles', result, args, cache, {...info})
+          // const handleMediaUris = handlesMedia.map(media => media.uri)
+          // const scannarrUri = toScannarrUri(handleMediaUris)
 
+          // console.log('scannarrUri', scannarrUri, cache.resolve(info.parentKey, 'media'))
 
-          const handleMediaUris = result.handles?.edges?.flatMap(edge => edge.node.media.uri) ?? []
-          const mediaUri = toScannarrUri(handleMediaUris)
+          
 
-          cache.updateQuery(
-            { query, variables: { uri: mediaUri } },
-            data => {
-              console.log('updateQuery data', data, mediaUri)
-              if (!data) {
-                const res = {
-                  Media: {
-                    __typename: 'Media',
-                    uri: mediaUri,
-                    handles: result.handles
-                  }
-                }
-                console.log('updateQuery new data !111111111', {...res})
-
-                return res
-              }
-              console.log('updateQuery BEFORE data', {...data})
-              data.handles = result.handles
-              data.uri = uri
-              console.log('updateQuery new data 2222222222', {...data})
-              return data
-            }
-          )
-
-          console.log(
-            'SET MEDIA EPISODE LINK',
-            info.parentKey,
-            'media',
-            cache.keyOfEntity({ __typename: 'Media', uri: mediaUri })
-          )
-          cache.link(info.parentKey, 'media', cache.keyOfEntity({ __typename: 'Media', uri: mediaUri }))
-
-          console.log(
-            'SET HANDLE LINKS',
-            cache.keyOfEntity({ __typename: 'Media', uri: mediaUri }),
-            'handles.edges',
-            [...handleUris.map(uri => cache.keyOfEntity({ __typename: 'Episode', uri }))]
-          )
-          cache.link(
-            cache.keyOfEntity({ __typename: 'Media', uri: mediaUri }),
-            'handles.edges',
-            [...handleUris.map(uri => cache.keyOfEntity({ __typename: 'Episode', uri }))]
-          )
-
-          console.log('rESSSSSSSS', cache.readQuery({ query, variables: { uri: mediaUri } }))
-          console.log(
-            'rESSSSSSSS2',
-            previousUri,
-            cache.readQuery({ query: gql`
-            query ($uri: String!) {
-              Episode(uri: $uri) {
-                uri
-                # media {
-                #   uri
-                # }
-              }
-            }`, variables: { uri: previousUri } }),
-            cache.readFragment(gql`
-              fragment _ on Episode {
-                uri
-                media {
-                  uri
-                }
-              }
-            `, { uri: previousUri })
-          )
+          // if (!result.media) {
+          //   result.media = {
+          //     __typename: 'Media',
+          //     uri: scannarrUri,
+          //     handles: {
+          //       __typename: 'MediaConnection',
+          //       edges: handlesMedia.map(media => ({
+          //         __typename: 'MediaEdge',
+          //         node: media
+          //       }))
+          //     }
+          //   }
+          // } else {
+          //   result.media.handles.edges = result.handles?.edges.map(episode => episode.media) ?? []
+          // }
         }
-
-        // handles: (result, args, cache, info) => {
-        //   console.log('Episode.handles UPDATE', result, args, cache, {...info})
-        //   const handleUris = result.handles?.edges?.flatMap(edge => edge.node.uri) ?? []
-        //   const uri = toScannarrUri(handleUris)
-        //   const previousUri = info.parentKey.replace('Episode:', '')
-
-        //   const handleMediaUris = result.handles?.edges?.flatMap(edge => edge.node.media.uri) ?? []
-        //   const mediaUri = toScannarrUri(handleMediaUris)
-
-
-        //   if (handleMediaUris?.length) {
-        //     console.log('WRITING', { __typename: 'Episode', uri, media: { __typename: 'Media', uri: mediaUri } })
-        //     // cache.writeFragment(
-        //     //   gql`
-        //     //     fragment EpisodeFragment on Episode {
-        //     //       uri
-        //     //       media {
-        //     //         uri
-        //     //       }
-        //     //     }
-        //     //   `,
-        //     //   { __typename: 'Episode', uri, media: { __typename: 'Media', uri: mediaUri } }
-        //     // )
-        //     cache.writeFragment(
-        //       gql`
-        //         fragment MediaFragment on Media {
-        //           uri
-        //           title {
-        //             romanized
-        //           }
-        //         }
-        //       `,
-        //       { __typename: 'Media', uri, title: { __typename: 'MediaTitle', romanized: 'test' } }
-        //     )
-        //     cache.link(info.parentKey, 'media', cache.keyOfEntity({ __typename: 'Media', uri: mediaUri }))
-        //   }
-        // }
       }
     },
     resolvers: {
