@@ -841,6 +841,14 @@
             "args": []
           },
           {
+            "name": "mediaUri",
+            "type": {
+              "kind": "SCALAR",
+              "name": "Any"
+            },
+            "args": []
+          },
+          {
             "name": "origin",
             "type": {
               "kind": "NON_NULL",

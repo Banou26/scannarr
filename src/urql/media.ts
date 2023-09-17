@@ -141,87 +141,108 @@ export const cacheResolvers = ({ context }: { context?: () => Promise<ServerCont
       if (info.parentKey.includes('scannarr')) return info.parentKey.replace('Media:', '')
       return data.uri
     },
-    // episodes: (parent: DataFields, args: Variables, cache: Cache, info: ResolveInfo) => {
-    //   const parentUri = parent.uri as string | undefined
-    //   // console.log('episodes', parent, args, cache, {...info})
-    //   if (!parentUri) {
-    //     // console.log('result3', parent.episodes)
-    //     return parent.episodes
-    //   }
-    //   const isScannarr = parentUri && isScannarrUri(parentUri)
+    id: (data, args, cache, info) => {
+      if (info.parentKey.includes('scannarr')) return fromScannarrUri(info.parentKey.replace('Media:', ''))?.id
+      return data.id
+    },
+    origin: (data, args, cache, info) => {
+      if (info.parentKey.includes('scannarr')) return fromScannarrUri(info.parentKey.replace('Media:', ''))?.origin
+      return data.origin
+    },
+    episodes: (parent: DataFields, args: Variables, cache: Cache, info: ResolveInfo) => {
+      const parentUri = parent.uri as string | undefined
+      console.log('episodes', parent, args, cache, {...info})
+      if (!parentUri) {
+        // console.log('result3', parent.episodes)
+        return parent.episodes
+      }
+      const isScannarr = info.parentKey.includes('scannarr') // parentUri && isScannarrUri(parentUri)
 
-    //   if (isScannarr) {
-    //     const handlesEpisodeEdges =
-    //       cache.resolve(
-    //         cache.resolve({ __typename: 'Media', uri: parentUri }, 'handles') as string,
-    //         'edges'
-    //       )
-    //       ?.flatMap(edge => cache.resolve(cache.resolve(cache.resolve(edge, 'node'), 'episodes'), 'edges'))
+      if (isScannarr) {
+        const handlesEpisodeEdges =
+          // cache.resolve(
+          //   cache.resolve({ __typename: 'Media', uri: parentUri }, 'handles') as string,
+          //   'edges'
+          // )
+            // ?.flatMap(edge => cache.resolve(cache.resolve(cache.resolve(edge, 'node'), 'episodes'), 'edges'))
+          parent
+            .handles
+            ?.edges
+            .flatMap(edge => edge.node.episodes.edges)
 
-    //     // console.log('handlesEpisodeEdges', handlesEpisodeEdges)
+        console.log('handlesEpisodeEdges', handlesEpisodeEdges)
 
-    //     const groupedByNumber = [
-    //       ...groupBy(
-    //         handlesEpisodeEdges,
-    //         (edge) => cache.resolve(cache.resolve(edge, 'node'), 'number')
-    //       ).entries()
-    //     ]
+        // const groupedByNumber = [
+        //   ...groupBy(
+        //     handlesEpisodeEdges,
+        //     (edge) => cache.resolve(cache.resolve(edge, 'node'), 'number')
+        //   ).entries()
+        // ]
 
-    //     // console.log('groupedByNumber', groupedByNumber)
+        const groupedByNumber = [
+          ...groupBy(
+            handlesEpisodeEdges,
+            (edge) => edge.node.number
+          ).entries()
+        ]
 
-    //     const nodes =
-    //       groupedByNumber
-    //         .map(([number, edges]) => {
-    //           const handleUris = edges?.flatMap(node => cache.resolve(cache.resolve(node, 'node'), 'uri'))
+        console.log('groupedByNumber', groupedByNumber)
+
+        const nodes =
+          groupedByNumber
+            .map(([number, edges]) => {
+              const handleUris = edges?.flatMap(edge => edge.node.uri)
+              // const handleUris = edges?.flatMap(edge => cache.resolve(cache.resolve(edge, 'node'), 'uri'))
               
-    //           const res = populateEpisode({
-    //             origin: 'scannarr',
-    //             id: toScannarrId(handleUris),
-    //             uri: toScannarrUri(handleUris),
-    //             handles: {
-    //               __typename: 'EpisodeConnection',
-    //               edges: edges?.map(edge => ({
-    //                 __typename: 'EpisodeEdge',
-    //                 node:
-    //                   populateEpisode(
-    //                     cache.resolve(edge, 'node'),
-    //                     (entity: Entity, fieldName: string, args?: FieldArgs) =>
-    //                       cache.resolve(entity, fieldName, args)
-    //                   )
-    //               }))
-    //             },
-    //             number: Number(number),
+              const res = populateEpisode({
+                origin: 'scannarr',
+                id: toScannarrId(handleUris),
+                uri: toScannarrUri(handleUris),
+                handles: {
+                  __typename: 'EpisodeConnection',
+                  edges: edges?.map(edge => ({
+                    __typename: 'EpisodeEdge',
+                    node:
+                      populateEpisode(
+                        // cache.resolve(edge, 'node'),
+                        edge.node,
+                        (entity: Entity, fieldName: string, args?: FieldArgs) =>
+                          cache.resolve(entity, fieldName, args)
+                      )
+                  }))
+                },
+                number: Number(number),
 
-    //             thumbnail: makeScalarResolver({ __typename: 'Episode', fieldName: 'thumbnail', defaultValue: null })({ uri: toScannarrUri(handleUris) }, undefined, cache, info),
-    //             timeUntilAiring: makeScalarResolver({ __typename: 'Episode', fieldName: 'timeUntilAiring', defaultValue: null })({ uri: toScannarrUri(handleUris) }, undefined, cache, info),
-    //             airingAt: makeScalarResolver({ __typename: 'Episode', fieldName: 'airingAt', defaultValue: null })({ uri: toScannarrUri(handleUris) }, undefined, cache, info),
-    //             description: makeScalarResolver({ __typename: 'Episode', fieldName: 'description', defaultValue: null })({ uri: toScannarrUri(handleUris) }, undefined, cache, info),
-    //           })
+                thumbnail: makeScalarResolver({ __typename: 'Episode', fieldName: 'thumbnail', defaultValue: null })({ uri: toScannarrUri(handleUris) }, undefined, cache, info),
+                timeUntilAiring: makeScalarResolver({ __typename: 'Episode', fieldName: 'timeUntilAiring', defaultValue: null })({ uri: toScannarrUri(handleUris) }, undefined, cache, info),
+                airingAt: makeScalarResolver({ __typename: 'Episode', fieldName: 'airingAt', defaultValue: null })({ uri: toScannarrUri(handleUris) }, undefined, cache, info),
+                description: makeScalarResolver({ __typename: 'Episode', fieldName: 'description', defaultValue: null })({ uri: toScannarrUri(handleUris) }, undefined, cache, info),
+              })
 
-    //           // console.log(
-    //           //   'episodes handleUris',
-    //           //   handleUris,
-    //           //   edges,
-    //           //   res
-    //           // )
-    //           return res
-    //         })
+              // console.log(
+              //   'episodes handleUris',
+              //   handleUris,
+              //   edges,
+              //   res
+              // )
+              return res
+            })
 
-    //     // console.log('nodes', nodes)
+        // console.log('nodes', nodes)
 
-    //     const result = {
-    //       __typename: 'EpisodeConnection',
-    //       edges: nodes?.flatMap(node => ({ __typename: 'EpisodeEdge', node })) ?? []
-    //     }
+        const result = {
+          __typename: 'EpisodeConnection',
+          edges: nodes?.flatMap(node => ({ __typename: 'EpisodeEdge', node })) ?? []
+        }
 
-    //     // console.log('result', result)
+        // console.log('result', result)
 
-    //     return result
-    //   }
-    //   // console.log('result2', cache.resolve({ __typename: 'Media', uri: parentUri }, 'episodes'))
+        return result
+      }
+      // console.log('result2', cache.resolve({ __typename: 'Media', uri: parentUri }, 'episodes'))
 
-    //   return cache.resolve({ __typename: 'Media', uri: parentUri }, 'episodes')
-    // },
+      return cache.resolve({ __typename: 'Media', uri: parentUri }, 'episodes')
+    },
 
     title: makeObjectResolver({
       __typename: 'Media',

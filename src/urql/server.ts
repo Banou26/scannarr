@@ -55,41 +55,6 @@ export const makeScannarrServer = (
 
   const schema = createSchema({
     typeDefs,
-    // resolvers: {
-    //   Query: {
-    //     Page: () => ({})
-    //   },
-    //   Page: {
-    //     episode: async (parent, args, ctx, info) => ([
-    //       {
-    //         __typename: 'Episode',
-    //         uri: 'scannarr:()',
-    //         handles: {
-    //           __typename: 'EpisodeConnection',
-    //           edges: [{
-    //             node: {
-    //               __typename: 'Episode',
-    //               uri: '2',
-    //               bar: 'bar',
-    //               handles: {
-    //                 __typename: 'EpisodeConnection',
-    //                 edges: []
-    //               },
-    //               media: {
-    //                 __typename: 'Media',
-    //                 uri: '12',
-    //                 handles: {
-    //                   __typename: 'MediaConnection',
-    //                   edges: []
-    //                 }
-    //               }
-    //             }
-    //           }]
-    //         }
-    //       }
-    //     ])
-    //   }
-    // }
     resolvers: {
       ...mediaResolvers,
       ...episodeResolvers,

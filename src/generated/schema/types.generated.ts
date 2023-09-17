@@ -253,6 +253,8 @@ export type MediaAiringSchedule = Handle & {
   id: Scalars['String']['output'];
   /** The associate media of the airing episode */
   media?: Maybe<Media>;
+  /** The associate media uri of the airing episode */
+  mediaUri?: Maybe<Scalars['String']['output']>;
   origin: Scalars['String']['output'];
   /** The url for the thumbnail image of the video */
   thumbnail?: Maybe<Scalars['String']['output']>;
@@ -1108,6 +1110,7 @@ export type MediaAiringScheduleResolvers<ContextType = any, ParentType extends R
   handles?: Resolver<ResolversTypes['HandleConnection'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   media?: Resolver<Maybe<ResolversTypes['Media']>, ParentType, ContextType>;
+  mediaUri?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   origin?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   thumbnail?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   timeUntilAiring?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;

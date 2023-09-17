@@ -1,6 +1,6 @@
 import { Cache, DataFields, ResolveInfo, Variables } from '@urql/exchange-graphcache'
 import { Episode } from '../generated/graphql'
-import { isScannarrUri, toScannarrId, toScannarrUri } from '../utils/uri2'
+import { fromScannarrUri, isScannarrUri, toScannarrId, toScannarrUri } from '../utils/uri2'
 import { getOriginResults, getOriginResultsStreamed, groupRelatedHandles, makeArrayResolver, makeObjectResolver, makeScalarResolver, makeScannarrHandle } from './utils'
 import { populateMedia } from './media'
 
@@ -64,111 +64,31 @@ export const populateEpisode = (episode: Episode, resolve?: (ref: any, str: stri
 
 export const serverResolvers = ({ origins, context }: { origins: OriginWithResolvers[], context?: () => Promise<ServerContext> }) => ({
   Page: {
-    // episode: async (parent, args, ctx, info) => {
-    //   const results = await getOriginResults({ ctx, origins, context })
-    //   const { scannarrHandles } = groupRelatedHandles({
-    //     typename: 'Episode',
-    //     results: (results?.flatMap(results => results.data.Page.episode ?? []) ?? []) as Episode[]
-    //   })
-    //   const res =
-    //     scannarrHandles
-    //       .slice(0, 1)
-    //       .map(episode => populateEpisode({
-    //         ...episode,
-    //         handles: {
-    //           __typename: 'EpisodeConnection',
-    //           async *edges () {
-    //             for await (const edge of episode.handles.edges) {
-    //               yield {
-    //                 __typename: 'EpisodeEdge',
-    //                 node: edge.node
-    //               }
-    //             }
-    //           }
-    //         }
-    //       }))
-    //   console.log('Page.episode res', res)
-    //   return res
-    // }
-
-    episode: async (parent, args, ctx, info) => ([
-      {
-        __typename: 'Episode',
-        uri: 'scannarr:()',
-        handles: {
-          __typename: 'EpisodeConnection',
-          edges: [{
-            node: {
-              __typename: 'Episode',
-              uri: '2',
-              handles: {
-                __typename: 'EpisodeConnection',
-                edges: []
-              },
-              media: {
-                __typename: 'Media',
-                uri: '12',
-                handles: {
-                  __typename: 'MediaConnection',
-                  edges: []
+    episode: async (parent, args, ctx, info) => {
+      const results = await getOriginResults({ ctx, origins, context })
+      const { scannarrHandles } = groupRelatedHandles({
+        typename: 'Episode',
+        results: (results?.flatMap(results => results.data.Page.episode ?? []) ?? []) as Episode[]
+      })
+        
+      return (
+        scannarrHandles
+          .map(episode => populateEpisode({
+            ...episode,
+            handles: {
+              __typename: 'EpisodeConnection',
+              async *edges () {
+                for await (const edge of episode.handles.edges) {
+                  yield {
+                    __typename: 'EpisodeEdge',
+                    node: edge.node
+                  }
                 }
               }
             }
-          }]
-        }
-      }
-    ])
-
-    // episode: async (parent, args, ctx, info) => ([
-    //   {
-    //     __typename: 'Episode',
-    //     uri: 'scannarr:()',
-    //     handles: {
-    //       __typename: 'EpisodeConnection',
-    //       // edges: [{
-    //       //   node: {
-    //       //     __typename: 'Episode',
-    //       //     uri: '2',
-    //       //     bar: 'bar',
-    //       //     handles: {
-    //       //       __typename: 'EpisodeConnection',
-    //       //       edges: []
-    //       //     },
-    //       //     media: {
-    //       //       __typename: 'Media',
-    //       //       uri: '12',
-    //       //       handles: {
-    //       //         __typename: 'MediaConnection',
-    //       //         edges: []
-    //       //       }
-    //       //     }
-    //       //   }
-    //       // }]
-    //       async *edges () {
-    //         await new Promise((resolve) => setTimeout(resolve, 1000))
-    //         yield {
-    //           node: {
-    //             __typename: 'Episode',
-    //             uri: '2',
-    //             bar: 'bar',
-    //             handles: {
-    //               __typename: 'EpisodeConnection',
-    //               edges: []
-    //             },
-    //             media: {
-    //               __typename: 'Media',
-    //               uri: '12',
-    //               handles: {
-    //                 __typename: 'MediaConnection',
-    //                 edges: []
-    //               }
-    //             }
-    //           }
-    //         }
-    //       }
-    //     }
-    //   }
-    // ])
+          }))
+      )
+    }
   },
   Query: {
     Episode: (parent, args, ctx, info) => {
@@ -199,6 +119,14 @@ export const cacheResolvers = ({ origins, context }: { origins: OriginWithResolv
       if (info.parentKey.includes('scannarr')) return info.parentKey.replace('Episode:', '')
       return data.uri
     },
+    id: (data, args, cache, info) => {
+      if (info.parentKey.includes('scannarr')) return fromScannarrUri(info.parentKey.replace('Episode:', ''))?.id
+      return data.id
+    },
+    origin: (data, args, cache, info) => {
+      if (info.parentKey.includes('scannarr')) return fromScannarrUri(info.parentKey.replace('Episode:', ''))?.origin
+      return data.origin
+    },
     title: makeObjectResolver({
       __typename: 'Episode',
       fieldName: 'title',
@@ -217,3 +145,4 @@ export const cacheResolvers = ({ origins, context }: { origins: OriginWithResolv
     description: makeScalarResolver({ __typename: 'Episode', fieldName: 'description', defaultValue: null }),
   }
 })
+                                                                   

@@ -35,23 +35,33 @@ export const makeScannarrClient = (
     schema: introspection,
     keys: {
       Page: () => null,
+      // Media: (media) => {
+      //   const handlesIds = media.handles?.edges.map(mediaEdge => mediaEdge.node.uri)
+      //   if (handlesIds?.length) {
+      //     return `scannarr:(${handlesIds.join(',')})`
+      //   }
+      //   return media.uri
+      // },
       Media: (media) => {
-        const handlesIds = media.handles?.edges.map(mediaEdge => mediaEdge.node.uri)
-        if (handlesIds?.length) {
-            console.log('KEY Media', `scannarr:(${handlesIds.join(',')})`, media)
-            return `scannarr:(${handlesIds.join(',')})`
-        }
-        return media.uri
+        const handles = (media as Media).handles?.edges.map(handle => handle.node.uri)
+        if (!media.uri?.includes('scannarr')) return (media as Media).uri
+        // console.log('KEY Media', toScannarrUri(handles), {...media})
+        return toScannarrUri(handles ?? [])
       },
       MediaConnection: () => null,
       MediaEdge: () => null,
+      // Episode: (episode) => {
+      //   const handlesIds = episode.handles?.edges.map(episodeEdge => episodeEdge.node.uri)
+      //     if (handlesIds?.length) {
+      //       return `scannarr:(${handlesIds.join(',')})`
+      //     }
+      //   return episode.uri
+      // },
       Episode: (episode) => {
-        const handlesIds = episode.handles?.edges.map(episodeEdge => episodeEdge.node.uri)
-          if (handlesIds?.length) {
-            console.log('KEY Episode', `scannarr:(${handlesIds.join(',')})`, episode)
-            return `scannarr:(${handlesIds.join(',')})`
-          }
-        return episode.uri
+        const handles = (episode as Episode).handles?.edges.map(handle => handle.node.uri)
+        if (!episode.uri?.includes('scannarr')) return (episode as Episode).uri
+        // console.log('KEY Episode', toScannarrUri(handles), {...episode})
+        return toScannarrUri(handles ?? [])
       },
       EpisodeConnection: () => null,
       EpisodeEdge: () => null,
@@ -73,26 +83,39 @@ export const makeScannarrClient = (
         handles: (result, args, cache, info) => {
           if (!info.parentKey.includes('scannarr')) return
           if (!result.media && result.handles?.edges.length) {
-            result.media = {
+            result.media = populateMedia({
               __typename: 'Media',
               uri: info.parentKey.replace('Media:', ''),
               handles: {
                 __typename: 'MediaConnection',
                 edges: result.handles.edges.map(episodeEdge => ({
                   __typename: 'MediaEdge',
-                  node: episodeEdge.node.media
+                  node: populateMedia(episodeEdge.node.media)
                 }))
               }
-            }
+            })
             return
           }
           if (result.media) {
-            result.media.handles.edges =
-              result.handles?.edges.map(episodeEdge => ({
-                __typename: 'MediaEdge',
-                node: episodeEdge.node.media
-              }))
-              ?? []
+            // if (!result.media.handles) {
+            //   console.log('result', result, args, cache, {...info})
+            // }
+            result.media = populateMedia({
+              ...result.media,
+              handles: {
+                __typename: 'MediaConnection',
+                edges:
+                  result.handles?.edges.map(episodeEdge => ({
+                    __typename: 'MediaEdge',
+                    node: populateMedia(episodeEdge.node.media)
+                  }))
+                  ?? []
+                // edges: result.media.handles.edges.map(episodeEdge => ({
+                //   __typename: 'MediaEdge',
+                //   node: populateMedia(episodeEdge.node.media)
+                // }))
+              }
+            })
           }
         }
       }
