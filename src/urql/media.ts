@@ -169,6 +169,7 @@ export const cacheResolvers = ({ context }: { context?: () => Promise<ServerCont
             .handles
             ?.edges
             .flatMap(edge => edge.node.episodes.edges)
+          ?? []
 
         console.log('handlesEpisodeEdges', handlesEpisodeEdges)
 

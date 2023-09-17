@@ -2,7 +2,7 @@ import { Cache, DataFields, ResolveInfo, Variables } from '@urql/exchange-graphc
 import { ServerContext } from '.'
 import { PlaybackSource } from '../generated/graphql'
 import { OriginWithResolvers } from '../server'
-import { isScannarrUri, toScannarrId, toScannarrUri } from '../utils/uri2'
+import { fromScannarrUri, isScannarrUri, toScannarrId, toScannarrUri } from '../utils/uri2'
 import { getOriginResults, getOriginResultsStreamed, groupRelatedHandles, makeArrayResolver, makeObjectResolver, makeScalarResolver } from './utils'
 
 export const populatePlaybackSource = (playbackSource: PlaybackSource, resolve?: (ref: any, str: string) => any) => ({
@@ -103,42 +103,19 @@ export const serverResolvers = ({ origins, context }: { origins: OriginWithResol
 
 export const cacheResolvers = ({ origins, context }: { origins: OriginWithResolvers[], context?: () => Promise<ServerContext> }) => ({
   PlaybackSource: {
-    uri: (parent: DataFields, args: Variables, cache: Cache, info: ResolveInfo) => {
-      const parentUri = parent.uri === 'scannarr:()' ? info.parentKey.replace('PlaybackSource:', '') : parent.uri as string | undefined
-      if (!parentUri) return parent.uri
-      const isScannarr = parentUri && isScannarrUri(parentUri)
-      const handleUris =
-        isScannarr &&
-        cache.resolve(
-          cache.resolve({ __typename: 'PlaybackSource', uri: parentUri }, 'handles') as string,
-          'edges'
-        )
-        ?.map(edge => cache.resolve(cache.resolve(edge, 'node'), 'uri'))
-
-      return (
-        isScannarr
-          ? toScannarrUri(handleUris)
-          : parent.uri
-      )
+    uri: (data, args, cache, info) => {
+      if (info.parentKey.includes('scannarr')) return info.parentKey.replace('PlaybackSource:', '')
+      return data.uri
     },
-    id: (parent, args, cache, info) => {
-      const parentUri = parent.origin === 'scannarr' ? info.parentKey.replace('PlaybackSource:', '') : parent.uri as string | undefined
-      if (!parentUri) return parent.id
-      const isScannarr = parentUri && isScannarrUri(parentUri)
-      const handleUris =
-        isScannarr &&
-        cache.resolve(
-          cache.resolve({ __typename: 'PlaybackSource', uri: parentUri }, 'handles') as string,
-          'edges'
-        )
-        ?.map(edge => cache.resolve(cache.resolve(edge, 'node'), 'uri'))
-
-      return (
-        isScannarr
-          ? `(${toScannarrId(handleUris)})`
-          : parent.id
-      )
+    id: (data, args, cache, info) => {
+      if (info.parentKey.includes('scannarr')) return fromScannarrUri(info.parentKey.replace('PlaybackSource:', ''))?.id
+      return data.id
     },
+    origin: (data, args, cache, info) => {
+      if (info.parentKey.includes('scannarr')) return fromScannarrUri(info.parentKey.replace('PlaybackSource:', ''))?.origin
+      return data.origin
+    },
+
     title: makeObjectResolver({
       __typename: 'PlaybackSource',
       fieldName: 'title',
