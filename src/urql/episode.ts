@@ -70,10 +70,74 @@ export const serverResolvers = ({ origins, context }: { origins: OriginWithResol
         typename: 'Episode',
         results: (results?.flatMap(results => results.data.Page.episode ?? []) ?? []) as Episode[]
       })
-      const res = scannarrHandles.slice(0, 1).map(episode => populateEpisode(episode))
+      const res = scannarrHandles.slice(0, 1).map(episode => populateEpisode({
+        ...episode,
+        handles: {
+          __typename: 'EpisodeConnection',
+          async *edges () {
+            await new Promise((resolve) => setTimeout(resolve, 10))
+            for await (const edge of episode.handles.edges) {
+              yield {
+                __typename: 'EpisodeEdge',
+                node: edge.node
+              }
+            }
+          }
+        }
+      }))
       console.log('Page.episode res', res)
       return res
     }
+    // episode: async (parent, args, ctx, info) => ([
+    //   {
+    //     __typename: 'Episode',
+    //     uri: 'scannarr:()',
+    //     handles: {
+    //       __typename: 'EpisodeConnection',
+    //       // edges: [{
+    //       //   node: {
+    //       //     __typename: 'Episode',
+    //       //     uri: '2',
+    //       //     bar: 'bar',
+    //       //     handles: {
+    //       //       __typename: 'EpisodeConnection',
+    //       //       edges: []
+    //       //     },
+    //       //     media: {
+    //       //       __typename: 'Media',
+    //       //       uri: '12',
+    //       //       handles: {
+    //       //         __typename: 'MediaConnection',
+    //       //         edges: []
+    //       //       }
+    //       //     }
+    //       //   }
+    //       // }]
+    //       async *edges () {
+    //         await new Promise((resolve) => setTimeout(resolve, 1000))
+    //         yield {
+    //           node: {
+    //             __typename: 'Episode',
+    //             uri: '2',
+    //             bar: 'bar',
+    //             handles: {
+    //               __typename: 'EpisodeConnection',
+    //               edges: []
+    //             },
+    //             media: {
+    //               __typename: 'Media',
+    //               uri: '12',
+    //               handles: {
+    //                 __typename: 'MediaConnection',
+    //                 edges: []
+    //               }
+    //             }
+    //           }
+    //         }
+    //       }
+    //     }
+    //   }
+    // ])
   },
   Query: {
     Episode: (parent, args, ctx, info) => {
@@ -101,7 +165,7 @@ export const serverResolvers = ({ origins, context }: { origins: OriginWithResol
 export const cacheResolvers = ({ origins, context }: { origins: OriginWithResolvers[], context?: () => Promise<ServerContext> }) => ({
   Episode: {
     uri: (parent: DataFields, args: Variables, cache: Cache, info: ResolveInfo) => {
-      console.log('RESOLVE Episode', parent, args, cache, {...info})
+      // console.log('RESOLVE Episode', parent, args, cache, {...info})
       if (info.parentKey.includes('scannarr')) return info.parentKey.replace('Episode:', '')
       return parent.uri
     },

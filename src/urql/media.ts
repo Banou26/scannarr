@@ -138,7 +138,7 @@ export const cacheResolvers = ({ context }: { context?: () => Promise<ServerCont
   },
   Media: {
     uri: (parent: DataFields, args: Variables, cache: Cache, info: ResolveInfo) => {
-      console.log('RESOLVE Media', parent, args, cache, {...info})
+      // console.log('RESOLVE Media', parent, args, cache, {...info})
       if (info.parentKey.includes('scannarr')) return info.parentKey.replace('Media:', '')
       return parent.uri
     },
