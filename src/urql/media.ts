@@ -151,7 +151,7 @@ export const cacheResolvers = ({ context }: { context?: () => Promise<ServerCont
     },
     episodes: (parent: DataFields, args: Variables, cache: Cache, info: ResolveInfo) => {
       const parentUri = parent.uri as string | undefined
-      console.log('episodes', parent, args, cache, {...info})
+      // console.log('episodes', {...parent}, args, cache, {...info})
       if (!parentUri) {
         // console.log('result3', parent.episodes)
         return parent.episodes
@@ -171,7 +171,14 @@ export const cacheResolvers = ({ context }: { context?: () => Promise<ServerCont
             .flatMap(edge => edge.node.episodes.edges)
           ?? []
 
-        console.log('handlesEpisodeEdges', handlesEpisodeEdges)
+        // console.log(
+        //   'handlesEpisodeEdges',
+        //   handlesEpisodeEdges,
+        //   parent
+        //     .handles
+        //     ?.edges
+        //     .flatMap(edge => edge.node.episodes.edges)
+        // )
 
         // const groupedByNumber = [
         //   ...groupBy(
@@ -187,7 +194,7 @@ export const cacheResolvers = ({ context }: { context?: () => Promise<ServerCont
           ).entries()
         ]
 
-        console.log('groupedByNumber', groupedByNumber)
+        // console.log('groupedByNumber', groupedByNumber)
 
         const nodes =
           groupedByNumber
