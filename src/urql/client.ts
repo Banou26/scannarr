@@ -70,6 +70,11 @@ export const makeScannarrClient = (
         if (!playbackSource?.uri?.includes('scannarr')) return (playbackSource as PlaybackSource).uri
         return toScannarrUri(handles ?? [])
       },
+      Team: (team) => {
+        const handles = (team as Team).handles?.edges.map(handle => handle.node.uri)
+        if (!team?.uri?.includes('scannarr')) return (team as Team).uri
+        return toScannarrUri(handles ?? [])
+      },
       PlaybackSourceConnection: () => null,
       PlaybackSourceEdge: () => null,
       MediaExternalLink: (mediaExternalLink) => (mediaExternalLink as MediaExternalLink).uri,

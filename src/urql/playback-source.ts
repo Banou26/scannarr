@@ -49,7 +49,15 @@ export const populatePlaybackSource = (playbackSource: PlaybackSource, resolve?:
   media: null,
   episode: null,
 
-  team: null,
+  team: resolve ? resolve(playbackSource, 'team') : (playbackSource.team ?? null),
+  // team: playbackSource.team ?? {
+  //   __typename: 'Team',
+  //   origin: resolve ? resolve(resolve(playbackSource, 'team'), 'origin') : (playbackSource?.team?.origin ?? null),
+  //   id: resolve ? resolve(resolve(playbackSource, 'team'), 'id') : (playbackSource?.team?.id ?? null),
+  //   uri: resolve ? resolve(resolve(playbackSource, 'team'), 'uri') : (playbackSource?.team?.uri ?? null),
+  //   url: resolve ? resolve(resolve(playbackSource, 'team'), 'url') : (playbackSource?.team?.url ?? null),
+  //   name: resolve ? resolve(resolve(playbackSource, 'team'), 'name') : (playbackSource?.team?.name ?? null)
+  // },
 
   thumbnails: [],
 
@@ -127,6 +135,41 @@ export const cacheResolvers = ({ origins, context }: { origins: OriginWithResolv
         native: null,
       }
     }),
+
+    team: (data, args, cache, info) => {
+      if (info.parentKey.includes('scannarr')) {
+        const result =
+          fromScannarrUri(info.parentKey.replace('PlaybackSource:', ''))
+            ?.handleUris
+            ?.map(uri => {
+              const fieldRef = cache.resolve({ __typename: 'PlaybackSource', uri }, 'team') as string | undefined
+              return {
+                __typename: 'Team',
+                origin: cache.resolve(fieldRef, 'origin'),
+                id: cache.resolve(fieldRef, 'id'),
+                uri: cache.resolve(fieldRef, 'uri'),
+                url: cache.resolve(fieldRef, 'url'),
+                name: cache.resolve(fieldRef, 'name')
+              }
+            })
+            .reduce((acc, cur) => ({
+              __typename: 'Team',
+              origin: acc.origin ?? cur.origin ?? '',
+              id: acc.id ?? cur.id ?? '',
+              uri: acc.uri ?? cur.uri ?? '',
+              url: acc.url ?? cur.url,
+              name: acc.name ?? cur.name
+            }), {})
+
+        //! ??????????????? WHY DO I NEED THIS
+        // todo: fix this
+        if (!data.team) {
+          data.team = result
+        }
+        return result
+      }
+      return data.team
+    },
 
     thumbnails: makeArrayResolver({ __typename: 'PlaybackSource', fieldName: 'thumbnails' }),
 
