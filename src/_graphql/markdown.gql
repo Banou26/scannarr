@@ -1,6 +1,0 @@
-
-"""Provides the parsed markdown as html"""
-type ParsedMarkdown {
-  """The parsed markdown as html"""
-  html: String
-}

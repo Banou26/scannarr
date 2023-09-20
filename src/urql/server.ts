@@ -1,4 +1,3 @@
-import type { ServerContext } from '.'
 
 import { createYoga, createSchema } from 'graphql-yoga'
 import { useDeferStream } from '@graphql-yoga/plugin-defer-stream'
@@ -8,11 +7,11 @@ import { typeDefs } from '../generated/schema/typeDefs.generated'
 import { serverResolvers as makeMediaServerResolvers } from './media'
 import { serverResolvers as makeEpisodeServerResolvers } from './episode'
 import { serverResolvers as makePlaybackSourceServerResolvers } from './playback-source'
-import { OriginWithResolvers } from '../server'
+import { ServerContext } from './client'
 
 export const makeScannarrServer = (
   { origins: _origins, context }:
-  { origins: OriginWithResolvers[], context?: () => Promise<ServerContext> } =
+  { origins: any[], context?: () => Promise<ServerContext> } =
   { origins: [], context: undefined }
 ) => {
   const origins =
@@ -62,7 +61,9 @@ export const makeScannarrServer = (
 
       Page: {
         origin: () => [],
+        // @ts-expect-error
         episode: () => [],
+        // @ts-expect-error
         playbackSource: () => [],
         ...mediaResolvers.Page,
         ...episodeResolvers.Page,

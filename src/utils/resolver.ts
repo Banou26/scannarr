@@ -154,6 +154,7 @@ export const graphify = (
                       ...handle
                         .handles
                         .nodes
+                        // @ts-expect-error
                         ?.map(handle => handle.node?.[key])
                         .filter((value: any) => !!value)
                     )

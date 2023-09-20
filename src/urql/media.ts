@@ -1,12 +1,11 @@
-import { Cache, DataFields, ResolveInfo, Variables } from '@urql/exchange-graphcache'
-import { ServerContext } from '.'
-import { Media } from '../generated/graphql'
-import { OriginWithResolvers } from '../server'
+import { Cache, DataFields, Entity, FieldArgs, ResolveInfo, Variables } from '@urql/exchange-graphcache'
+import { Media, MediaEdge } from '../generated/graphql'
 import { fromScannarrUri, isScannarrUri, toScannarrId, toScannarrUri } from '../utils/uri2'
 import { getOriginResults, getOriginResultsStreamed, makeArrayResolver, makeObjectResolver, makeScalarResolver } from './utils'
 import { populateEpisode } from './episode'
 import { groupBy } from '../utils/groupBy'
 import { groupRelatedHandles } from './utils'
+import { ServerContext } from './client'
 
 export const populateMedia = (media: Media, resolve?: (ref: any, str: string) => any) => ({
   __typename: 'Media',
@@ -20,6 +19,7 @@ export const populateMedia = (media: Media, resolve?: (ref: any, str: string) =>
       typeof media.handles?.edges === 'function'
         ? (
           async function *() {
+            // @ts-ignore
             for await (const edge of media.handles?.edges()) {
               yield {
                 ...edge,
@@ -75,7 +75,7 @@ export const populateMedia = (media: Media, resolve?: (ref: any, str: string) =>
   episodeCount: resolve ? resolve(media, 'episodeCount') : media.episodeCount ?? null
 })
 
-export const serverResolvers = ({ origins, context }: { origins: OriginWithResolvers[], context?: () => Promise<ServerContext> }) => ({
+export const serverResolvers = ({ origins, context }: { origins: any[], context?: () => Promise<ServerContext> }) => ({
   Page: {
     media: async (parent, args, ctx, info) => {
       const results = await getOriginResults({ ctx, origins, context })
@@ -95,6 +95,7 @@ export const serverResolvers = ({ origins, context }: { origins: OriginWithResol
         uri: 'scannarr:()',
         handles: {
           __typename: 'MediaConnection',
+          // @ts-ignore
           async *edges () {
             for await (const result of results) {
               if (!result.data.Media) continue
@@ -123,7 +124,7 @@ export const cacheResolvers = ({ context }: { context?: () => Promise<ServerCont
             `coverImage`
           )
 
-      const coverImageRef = coverImageRefs?.at(info.parentKey.split('.').at(-1))
+      const coverImageRef = (coverImageRefs as string[])?.at(Number(info.parentKey.split('.').at(-1)))
       
       if (!coverImageRef) return null
 
@@ -165,10 +166,10 @@ export const cacheResolvers = ({ context }: { context?: () => Promise<ServerCont
           //   'edges'
           // )
             // ?.flatMap(edge => cache.resolve(cache.resolve(cache.resolve(edge, 'node'), 'episodes'), 'edges'))
-          parent
+          (parent as Media)
             .handles
             ?.edges
-            .flatMap(edge => edge.node.episodes.edges)
+            .flatMap((edge: MediaEdge) => edge.node.episodes?.edges)
           ?? []
 
         // console.log(
@@ -206,6 +207,7 @@ export const cacheResolvers = ({ context }: { context?: () => Promise<ServerCont
                 origin: 'scannarr',
                 id: toScannarrId(handleUris),
                 uri: toScannarrUri(handleUris),
+                // @ts-ignore
                 handles: {
                   __typename: 'EpisodeConnection',
                   edges: edges?.map(edge => ({

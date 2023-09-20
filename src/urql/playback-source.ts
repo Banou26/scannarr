@@ -1,9 +1,8 @@
 import { Cache, DataFields, ResolveInfo, Variables } from '@urql/exchange-graphcache'
-import { ServerContext } from '.'
-import { PlaybackSource } from '../generated/graphql'
-import { OriginWithResolvers } from '../server'
+import { PlaybackSource, Team } from '../generated/graphql'
 import { fromScannarrUri, isScannarrUri, toScannarrId, toScannarrUri } from '../utils/uri2'
 import { getOriginResults, getOriginResultsStreamed, groupRelatedHandles, makeArrayResolver, makeObjectResolver, makeScalarResolver } from './utils'
+import { ServerContext } from './client'
 
 export const populatePlaybackSource = (playbackSource: PlaybackSource, resolve?: (ref: any, str: string) => any) => ({
   __typename: 'PlaybackSource',
@@ -15,9 +14,10 @@ export const populatePlaybackSource = (playbackSource: PlaybackSource, resolve?:
     (playbackSource.handles ?? {
       __typename: 'PlaybackSourceConnection',
       edges:
-        typeof playbackSource.handles?.edges === 'function'
+        typeof (playbackSource as PlaybackSource).handles?.edges === 'function'
           ? (
             async function *() {
+              // @ts-ignore
               for await (const edge of playbackSource.handles?.edges()) {
                 yield {
                   ...edge,
@@ -28,7 +28,7 @@ export const populatePlaybackSource = (playbackSource: PlaybackSource, resolve?:
             }
           )
           : (
-            playbackSource.handles?.edges.map(edge =>
+            (playbackSource as PlaybackSource).handles?.edges.map(edge =>
               typeof edge.node === 'string'
                 ? ({ node: edge.node, __typename: 'PlaybackSourceEdge' })
                 : ({
@@ -74,7 +74,7 @@ export const populatePlaybackSource = (playbackSource: PlaybackSource, resolve?:
   data: resolve ? resolve(playbackSource, 'data') : (playbackSource.data ?? null)
 })
 
-export const serverResolvers = ({ origins, context }: { origins: OriginWithResolvers[], context?: () => Promise<ServerContext> }) => ({
+export const serverResolvers = ({ origins, context }: { origins: any[], context?: () => Promise<ServerContext> }) => ({
   Page: {
     playbackSource: async (parent, args, ctx, info) => {
       const results = await getOriginResults({ ctx, origins, context })
@@ -94,6 +94,7 @@ export const serverResolvers = ({ origins, context }: { origins: OriginWithResol
         id: '()',
         uri: 'scannarr:()',
         handles: {
+          // @ts-ignore
           async *edges (...args) {
             for await (const result of results) {
               if (!result.data.PlaybackSource) continue
@@ -109,7 +110,7 @@ export const serverResolvers = ({ origins, context }: { origins: OriginWithResol
   }
 })
 
-export const cacheResolvers = ({ origins, context }: { origins: OriginWithResolvers[], context?: () => Promise<ServerContext> }) => ({
+export const cacheResolvers = ({ origins, context }: { origins: any[], context?: () => Promise<ServerContext> }) => ({
   PlaybackSource: {
     uri: (data, args, cache, info) => {
       if (info.parentKey.includes('scannarr')) return info.parentKey.replace('PlaybackSource:', '')
@@ -159,7 +160,7 @@ export const cacheResolvers = ({ origins, context }: { origins: OriginWithResolv
               uri: acc.uri ?? cur.uri ?? '',
               url: acc.url ?? cur.url,
               name: acc.name ?? cur.name
-            }), {})
+            }) as Team, {} as Team)
 
         //! ??????????????? WHY DO I NEED THIS
         // todo: fix this

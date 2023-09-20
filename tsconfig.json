@@ -12,8 +12,9 @@
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "strictNullChecks": true,
-    "noUncheckedIndexedAccess": true
+    "noUncheckedIndexedAccess": true,
+    "resolveJsonModule": true
   },
   "include": ["src"],
-  "exclude": ["node_modules", "bin", "tests"],
+  "exclude": ["node_modules", "bin", "tests", "src/generated"],
 }

@@ -15,7 +15,7 @@
     "types-watch": "tsc --watch",
     "lint": "eslint --fix",
     "_dev": "vite build --watch",
-    "build": "vite build",
+    "build": "vite build && tsc",
     "test": "node _codegen.js && tsx bin/test.ts",
     "test-watch": "tsx watch bin/test.ts"
   },

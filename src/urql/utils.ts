@@ -1,11 +1,11 @@
 import deepmerge from 'deepmerge'
 
-import { fromScannarrUri, fromUri, isScannarrUri, populateHandle, toScannarrId } from '../utils/uri2'
+import { fromScannarrUri, fromUri, isScannarrUri, toScannarrId } from '../utils/uri2'
 import { YogaInitialContext } from 'graphql-yoga'
-import { Handle, HandleRelation, Origin } from '../generated/graphql'
+import { Handle, HandleRelation } from '../generated/graphql'
 import { getEdges } from '../utils/handle'
 import { OriginWithServer, ServerContext } from './client'
-import { OriginWithResolvers } from '../server'
+import { ReadFieldFunction } from '@apollo/client/cache/core/types/common'
 
 
 export const indexHandles = <T extends Handle[]>({ results: _results }: { results: T }) => {
@@ -151,7 +151,7 @@ export const makeScannarrHandle = ({ typename, handles, readField }: { typename:
 
 export const getOriginResults = async (
   { ctx, origins, context }:
-  { ctx: YogaInitialContext, origins: OriginWithServer[], context?: () => Promise<ServerContext> }
+  { ctx: YogaInitialContext, origins: any[], context?: () => Promise<ServerContext> }
 ) => {
   const rootUri = ctx.params.variables?.uri
   const uris =
@@ -167,7 +167,7 @@ export const getOriginResults = async (
             .filter(({ origin }) => uri ? origin.supportedUris?.includes(fromUri(uri).origin) : true)
             .map(async ({ origin, server }) => {
               let resolve, reject
-              const promise = new Promise<{ data: any, origin: OriginWithResolvers }>((res, rej) => {
+              const promise = new Promise<{ data: any, origin: any }>((res, rej) => {
                 resolve = res
                 reject = rej
               })
@@ -223,7 +223,7 @@ export const getOriginResults = async (
 
 export async function *getOriginResultsStreamed (
   { ctx, origins, context }:
-  { ctx: YogaInitialContext, origins: OriginWithServer[], context?: () => Promise<ServerContext> }
+  { ctx: YogaInitialContext, origins: any[], context?: () => Promise<ServerContext> }
 ) {
   const rootUri = ctx.params.variables?.uri
   const uris =
@@ -238,7 +238,7 @@ export async function *getOriginResultsStreamed (
           .filter(({ origin }) => uri ? origin.supportedUris?.includes(fromUri(uri).origin) : true)
           .map(({ origin, server }) => {
             let resolve, reject
-            const promise = new Promise<{ data: any, origin: OriginWithResolvers }>((res, rej) => {
+            const promise = new Promise<{ data: any, origin: any }>((res, rej) => {
               resolve = res
               reject = rej
             })
@@ -328,6 +328,7 @@ export const makeScalarResolver =
             ?.handleUris
             ?.map(uri => cache.resolve({ __typename, uri }, fieldName) as string | undefined)
             .reduce(
+              // @ts-ignore
               (acc, fieldValue) => fieldValue ?? acc,
               defaultValue
             )

@@ -3,6 +3,7 @@ import { Episode } from '../generated/graphql'
 import { fromScannarrUri, isScannarrUri, toScannarrId, toScannarrUri } from '../utils/uri2'
 import { getOriginResults, getOriginResultsStreamed, groupRelatedHandles, makeArrayResolver, makeObjectResolver, makeScalarResolver, makeScannarrHandle } from './utils'
 import { populateMedia } from './media'
+import { ServerContext } from './client'
 
 export const populateEpisode = (episode: Episode, resolve?: (ref: any, str: string) => any) => ({
   __typename: 'Episode',
@@ -14,10 +15,11 @@ export const populateEpisode = (episode: Episode, resolve?: (ref: any, str: stri
     (episode.handles ?? {
       __typename: 'EpisodeConnection',
       edges:
-        typeof episode.handles?.edges === 'function'
+        typeof (episode as Episode).handles?.edges === 'function'
           ? (
             async function *() {
-              for await (const edge of episode.handles?.edges()) {
+              // @ts-ignore
+              for await (const edge of (episode as Episode).handles?.edges()) {
                 yield {
                   ...edge,
                   node: populateEpisode(edge.node),
@@ -27,7 +29,7 @@ export const populateEpisode = (episode: Episode, resolve?: (ref: any, str: stri
             }
           )
           : (
-            episode.handles?.edges.map(edge =>
+            (episode as Episode).handles?.edges.map(edge =>
               typeof edge.node === 'string'
                 ? ({ node: edge.node, __typename: 'EpisodeEdge' })
                 : ({
@@ -62,7 +64,7 @@ export const populateEpisode = (episode: Episode, resolve?: (ref: any, str: stri
   airingAt: resolve ? resolve(episode, 'airingAt') : ( episode.airingAt ?? null)
 })
 
-export const serverResolvers = ({ origins, context }: { origins: OriginWithResolvers[], context?: () => Promise<ServerContext> }) => ({
+export const serverResolvers = ({ origins, context }: { origins: any[], context?: () => Promise<ServerContext> }) => ({
   Page: {
     episode: async (parent, args, ctx, info) => {
       const results = await getOriginResults({ ctx, origins, context })
@@ -98,6 +100,7 @@ export const serverResolvers = ({ origins, context }: { origins: OriginWithResol
         id: '()',
         uri: 'scannarr:()',
         handles: {
+          // @ts-ignore
           async *edges (...args) {
             for await (const result of results) {
               if (!result.data.Episode) continue
@@ -113,7 +116,7 @@ export const serverResolvers = ({ origins, context }: { origins: OriginWithResol
   }
 })
 
-export const cacheResolvers = ({ origins, context }: { origins: OriginWithResolvers[], context?: () => Promise<ServerContext> }) => ({
+export const cacheResolvers = ({ origins, context }: { origins: any[], context?: () => Promise<ServerContext> }) => ({
   Episode: {
     uri: (data, args, cache, info) => {
       if (info.parentKey.includes('scannarr')) return info.parentKey.replace('Episode:', '')

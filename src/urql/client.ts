@@ -3,12 +3,10 @@ import { cacheExchange } from '@urql/exchange-graphcache'
 import { YogaServerInstance } from 'graphql-yoga'
 import { devtoolsExchange } from '@urql/devtools'
 
-import { OriginWithResolvers } from '../server'
 
+import { Uri, isScannarrUri, toScannarrUri} from '../utils/uri2'
 
-import { isScannarrUri, toScannarrUri} from '../utils/uri2'
-
-import { Episode, Media, MediaExternalLink, MediaTrailer, PlaybackSource } from '../generated/graphql'
+import { Episode, HandleEdge, Media, MediaExternalLink, MediaTrailer, PlaybackSource, Team } from '../generated/graphql'
 import { cacheResolvers as makeMediaCacheResolvers, populateMedia } from './media'
 import { cacheResolvers as makeEpisodeCacheResolvers } from './episode'
 import { cacheResolvers as makePlaybackSourceCacheResolvers } from './playback-source'
@@ -23,7 +21,6 @@ export type UserContext = {
 }
 
 export type OriginWithServer = {
-  origin: OriginWithResolvers
   server: YogaServerInstance<{}, {}>
 }
 
@@ -44,7 +41,7 @@ export const makeScannarrClient = (
       // },
       Media: (media) => {
         const handles = (media as Media).handles?.edges.map(handle => handle.node.uri)
-        if (!media.uri?.includes('scannarr')) return (media as Media).uri
+        if (!(media.uri as string)?.includes('scannarr')) return (media as Media).uri
         // console.log('KEY Media', toScannarrUri(handles), {...media})
         return toScannarrUri(handles ?? [])
       },
@@ -59,7 +56,7 @@ export const makeScannarrClient = (
       // },
       Episode: (episode) => {
         const handles = (episode as Episode).handles?.edges.map(handle => handle.node.uri)
-        if (!episode.uri?.includes('scannarr')) return (episode as Episode).uri
+        if (!(episode.uri as string)?.includes('scannarr')) return (episode as Episode).uri
         // console.log('KEY Episode', toScannarrUri(handles), {...episode})
         return toScannarrUri(handles ?? [])
       },
@@ -67,12 +64,12 @@ export const makeScannarrClient = (
       EpisodeEdge: () => null,
       PlaybackSource: (playbackSource) => {
         const handles = (playbackSource as PlaybackSource).handles?.edges.map(handle => handle.node.uri)
-        if (!playbackSource?.uri?.includes('scannarr')) return (playbackSource as PlaybackSource).uri
+        if (!(playbackSource?.uri as string)?.includes('scannarr')) return (playbackSource as PlaybackSource).uri
         return toScannarrUri(handles ?? [])
       },
       Team: (team) => {
         const handles = (team as Team).handles?.edges.map(handle => handle.node.uri)
-        if (!team?.uri?.includes('scannarr')) return (team as Team).uri
+        if (!(team?.uri as string)?.includes('scannarr')) return (team as Team).uri
         return toScannarrUri(handles ?? [])
       },
       PlaybackSourceConnection: () => null,
@@ -87,15 +84,16 @@ export const makeScannarrClient = (
       Episode: {
         handles: (result, args, cache, info) => {
           if (!info.parentKey.includes('scannarr')) return
-          if (!result.media && result.handles?.edges.length) {
+          if (!result.media && (result as Episode).handles?.edges.length) {
             result.media = populateMedia({
               __typename: 'Media',
-              uri: info.parentKey.replace('Media:', ''),
+              uri: info.parentKey.replace('Media:', '') as Uri,
               handles: {
                 __typename: 'MediaConnection',
-                edges: result.handles.edges.map(episodeEdge => ({
+                // @ts-ignore
+                edges: (result as Media).handles.edges.map(episodeEdge => ({
                   __typename: 'MediaEdge',
-                  node: populateMedia(episodeEdge.node.media)
+                  node: populateMedia((episodeEdge.node as Episode).media!)
                 }))
               }
             })
@@ -106,10 +104,12 @@ export const makeScannarrClient = (
             //   console.log('result', result, args, cache, {...info})
             // }
             result.media = populateMedia({
+              // @ts-ignore
               ...result.media,
               handles: {
                 __typename: 'MediaConnection',
                 edges:
+                  // @ts-ignore
                   result.handles?.edges.map(episodeEdge => ({
                     __typename: 'MediaEdge',
                     node: populateMedia(episodeEdge.node.media)
@@ -127,7 +127,9 @@ export const makeScannarrClient = (
     },
     resolvers: {
       ...makeMediaCacheResolvers({ context }),
+      // @ts-ignore
       ...makeEpisodeCacheResolvers({ context }),
+      // @ts-ignore
       ...makePlaybackSourceCacheResolvers({ context })
     }
   })

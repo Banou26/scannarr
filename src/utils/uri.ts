@@ -8,18 +8,14 @@ type Separated<S extends string> = `${S}${''|`,${S}`}`
 export type Uris = Separated<Separated<Uri>>
 
 export type UriValues = {
-  handler?: string
   origin: string
   id: string
 }
 
 export const fromUri = (uri: Uri): UriValues => {
-  const splits = uri.split(':') as [string, string, string] | [string, string]
-  const [handler, origin, id] =
-    splits.length <= 2
-      ? [undefined, ...splits]
-      : splits as [string, string, string]
-  return { handler, origin, id }
+  const splits = uri.split(':') as [string, string]
+  const [origin, id] = splits as [string, string]
+  return { origin, id }
 }
 
 export const fromUris = <T extends string | undefined = undefined>(uriString: Uris, schemeSearch?: T): T extends string ? UriValues : UriValues[] => {
@@ -30,11 +26,11 @@ export const fromUris = <T extends string | undefined = undefined>(uriString: Ur
 }
 
 export const toUri = (
-  { handler, origin, id }:
-  { handler?: string, origin: string, id: string }
-): Uri => `${handler ? `${handler}:` : ''}${origin}:${id}`
+  { origin, id }:
+  { origin: string, id: string }
+): Uri => `${origin}:${id}`
 
-export const joinUris = (uris: Uri[]): Uri => uris.join(',')
+export const joinUris = (uris: Uri[]): Uri => uris.join(',') as Uri
 
 export const isUri = (uri: string): uri is Uri => {
   const parts =
@@ -50,10 +46,9 @@ export const isUris = (uri: string): uri is Uris =>
     .split(',')
     .every(isUri)
 
-export const populateHandle = <T extends Partial<Pick<Handle, 'uri' | 'handler'>> & Omit<Handle, 'uri' | 'handler'>>(handle: T): T & Handle => ({
+export const populateHandle = <T extends Partial<Pick<Handle, 'uri'>> & Omit<Handle, 'uri'>>(handle: T): T & Handle => ({
   ...handle,
-  handler: handle.handler ? handle.handler : 'fkn',
-  uri: toUri({ handler: handle.handler, origin: handle.origin, id: handle.id }),
+  uri: toUri({ origin: handle.origin, id: handle.id }),
   url: handle.url
 })
 

@@ -21,7 +21,7 @@ const config: CodegenConfig = {
       ],
       config: {
         useTypeImports: true,
-        contextType: '../server#Context',
+        contextType: '../urql/client#ServerContext',
         scalars: {
           Uri: 'Uri'
         }
