@@ -1,5 +1,12 @@
-import { Handle } from '../generated/graphql'
+import { Handle as GraphQLHandle, HandleEdge } from '../generated/graphql'
 import { groupBy } from './groupBy'
+
+export type Handle = Omit<GraphQLHandle, 'handles'> & {
+  handles: {
+    edges: HandleEdge[]
+    nodes?: Handle[]
+  }
+}
 
 export type Uri = `${string}:${string}`
 
@@ -51,13 +58,13 @@ export const isUris = (uri: string): uri is Uris =>
     .split(',')
     .every(isUri)
 
-export const populateHandle = <T extends Partial<Pick<Handle, 'uri'>> & Omit<Handle, 'uri'>>(handle: T): T & Handle => ({
+export const populateHandle = <T extends Partial<Pick<Handle, 'uri' | 'handles'>> & Omit<Handle, 'uri' | 'handles'>>(handle: T): T & GraphQLHandle => ({
   uri: toUri({ origin: handle.origin, id: handle.id }),
   url: handle.url ?? null,
   ...handle,
-  handles: handle.handles ?? {
-    edges: [],
-    nodes: []
+  handles: {
+    edges: handle.handles?.edges ?? [],
+    nodes: handle.handles?.edges.map(({ node }) => node) ?? []
   }
 })
 
