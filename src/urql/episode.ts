@@ -1,7 +1,6 @@
-import { Cache, DataFields, ResolveInfo, Variables } from '@urql/exchange-graphcache'
 import { Episode } from '../generated/graphql'
-import { fromScannarrUri, isScannarrUri, toScannarrId, toScannarrUri } from '../utils/uri2'
-import { getOriginResults, getOriginResultsStreamed, groupRelatedHandles, makeArrayResolver, makeObjectResolver, makeScalarResolver, makeScannarrHandle } from './utils'
+import { fromScannarrUri } from '../utils/uri2'
+import { getOriginResults, getOriginResultsStreamed, groupRelatedHandles, makeObjectResolver, makeScalarResolver } from './utils'
 import { populateMedia } from './media'
 import { ServerContext } from './client'
 

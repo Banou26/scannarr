@@ -2,7 +2,8 @@
 import { createYoga, createSchema } from 'graphql-yoga'
 import { useDeferStream } from '@graphql-yoga/plugin-defer-stream'
 
-import { typeDefs } from '../generated/schema/typeDefs.generated'
+// import { typeDefs } from '../generated/schema/typeDefs.generated'
+import typeDefs from '../graphql'
 
 import { serverResolvers as makeMediaServerResolvers } from './media'
 import { serverResolvers as makeEpisodeServerResolvers } from './episode'

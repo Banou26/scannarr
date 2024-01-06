@@ -4,9 +4,7 @@ import { fromScannarrUri, fromUri, isScannarrUri, toScannarrId } from '../utils/
 import { YogaInitialContext } from 'graphql-yoga'
 import { Handle, HandleRelation } from '../generated/graphql'
 import { getEdges } from '../utils/handle'
-import { OriginWithServer, ServerContext } from './client'
-import { ReadFieldFunction } from '@apollo/client/cache/core/types/common'
-
+import { ServerContext } from './client'
 
 export const indexHandles = <T extends Handle[]>({ results: _results }: { results: T }) => {
   let results = [...new Map(_results.map(item => [item.uri, item])).values()]
@@ -104,7 +102,7 @@ export const groupRelatedHandles = <T extends Handle>({ typename, results: _resu
   }
 }
 
-export const makeScannarrHandle = ({ typename, handles, readField }: { typename: string, handles: Handle[], readField?: ReadFieldFunction }) => {
+export const makeScannarrHandle = ({ typename, handles, readField }: { typename: string, handles: Handle[], readField?: any }) => {
   const getRecursiveHandles = (handle: Handle) => {
     const identicalHandles = getEdges(handle.handles) ?? []
     return [
