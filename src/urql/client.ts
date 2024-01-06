@@ -25,11 +25,19 @@ export type OriginWithServer = {
 }
 
 export const makeScannarrClient = (
-  { context, handleRequest }:
-  { context?: () => Promise<ServerContext>, handleRequest: (input: RequestInfo | URL, init?: RequestInit | undefined) => Response | Promise<Response> }
+  {
+    context,
+    handleRequest,
+    introspectionSchema
+  }:
+  {
+    context?: () => Promise<ServerContext>,
+    handleRequest: (input: RequestInfo | URL, init?: RequestInit | undefined) => Response | Promise<Response>
+    introspectionSchema: any
+  }
 ) => {
   const cache = cacheExchange({
-    // schema: introspection,
+    schema: introspectionSchema,
     keys: {
       Page: () => null,
       // Media: (media) => {
