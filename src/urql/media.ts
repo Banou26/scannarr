@@ -76,18 +76,8 @@ export const populateMedia = (media: Media, resolve?: (ref: any, str: string) =>
 })
 
 export const serverResolvers = ({ origins, context }: { origins: any[], context?: () => Promise<ServerContext> }) => ({
-  Page: {
-    media: async (parent, args, ctx, info) => {
-      const results = await getOriginResults({ ctx, origins, context })
-      const { scannarrHandles } = groupRelatedHandles({
-        typename: 'Media',
-        results: (results?.flatMap(results => results.data.Page.media ?? []) ?? []) as Media[]
-      })
-      return scannarrHandles.map(media => populateMedia(media))
-    }
-  },
   Query: {
-    Media: (parent, args, ctx, info) => {
+    media: (parent, args, ctx, info) => {
       const results = getOriginResultsStreamed({ ctx, origins, context })
       return populateMedia({
         origin: 'scannarr',
@@ -108,6 +98,14 @@ export const serverResolvers = ({ origins, context }: { origins: any[], context?
         }
       })
     }
+  },
+  mediaPage: async (parent, args, ctx, info) => {
+    const results = await getOriginResults({ ctx, origins, context })
+    const { scannarrHandles } = groupRelatedHandles({
+      typename: 'Media',
+      results: (results?.flatMap(results => results.data.mediaPage.nodes ?? []) ?? []) as Media[]
+    })
+    return scannarrHandles.map(media => populateMedia(media))
   }
 })
 

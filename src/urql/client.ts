@@ -39,7 +39,6 @@ export const makeScannarrClient = (
   const cache = cacheExchange({
     schema: introspectionSchema,
     keys: {
-      Page: () => null,
       // Media: (media) => {
       //   const handlesIds = media.handles?.edges.map(mediaEdge => mediaEdge.node.uri)
       //   if (handlesIds?.length) {

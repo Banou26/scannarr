@@ -1,104 +1,99 @@
-export const MediaParameters = `#graphql
-    """Filter by the media id"""
-    id: String
-    """Filter by the media origin"""
-    origin: String
-    """Filter by the media uri"""
-    uri: String
-    """Filter by search terms"""
-    search: String
-    """Filter by search terms"""
-    season: MediaSeason
-    """
-    The year of the season (Winter 2017 would also include December 2016 releases). Requires season argument
-    """
-    seasonYear: Int
-
-    """Filter by the media's current release status"""
-    status: MediaStatus
-
-    """Filter by the media's current release status"""
-    status_in: [MediaStatus]
-
-    """Filter by the media's current release status"""
-    status_not: MediaStatus
-
-    """Filter by the media's current release status"""
-    status_not_in: [MediaStatus]
-
-    """Filter by the start date of the media"""
-    startDate: FuzzyDateInt
-
-    """Filter by the start date of the media"""
-    startDate_greater: FuzzyDateInt
-
-    """Filter by the start date of the media"""
-    startDate_lesser: FuzzyDateInt
-
-    """Filter by the start date of the media"""
-    startDate_like: String
-
-    """Filter by the end date of the media"""
-    endDate: FuzzyDateInt
-
-    """Filter by the end date of the media"""
-    endDate_greater: FuzzyDateInt
-
-    """Filter by the end date of the media"""
-    endDate_lesser: FuzzyDateInt
-
-    """Filter by the end date of the media"""
-    endDate_like: String
-
-    """The order the results will be returned in"""
-    sort: [MediaSort]
-`
-
-export const EpisodeParameters = `#graphql
-    """Filter by the media id"""
-    id: String
-    """Filter by the media origin"""
-    origin: String
-    """Filter by the media uri"""
-    uri: String
-    """Filter by search terms"""
-    search: String
-
-    """The order the results will be returned in"""
-    sort: [EpisodeSort]
-`
-
-export const PlaybackSourceParameters = `#graphql
-    """Filter by the media id"""
-    id: String
-    """Filter by the media origin"""
-    origin: String
-    """Filter by the media uri"""
-    uri: String
-    """Filter by search terms"""
-    search: String
-
-    name: String
-
-    names: [String!]
-
-    season: Int
-
-    number: Float
-
-    resolution: String
-
-    quality: String
-
-    trusted: Boolean
-`
-
 export const schema = `#graphql
+input MediaPageInput {
+  """Filter by the media id"""
+  ids: [String!]
+
+  """Filter by the media origin"""
+  origins: [String!]
+
+  """Filter by the media uri"""
+  uris: [String!]
+
+  """Filter by search terms"""
+  search: String
+
+  """Filter by media season"""
+  season: MediaSeason
+
+  """Filter by the year of the media season"""
+  seasonYear: Int
+
+  """Filter by the media's current release status"""
+  status: MediaStatus
+
+  """Filter by the start date of the media"""
+  startDate: FuzzyDateInt
+
+  """Filter by the end date of the media"""
+  endDate: FuzzyDateInt
+
+  """The order the results will be returned in"""
+  sorts: [MediaSort!]
+
+
+  # Pagination
+
+  """Cursor from where to start"""
+  at: String
+
+  """How many pages before the cursor to return"""
+  before: Int
+
+  """How many pages after the cursor to return"""
+  after: Int
+}
+
+type MediaPage {
+  """The current page"""
+  previousPageCursor: String
+
+  """The current page"""
+  currentPageCursor: String
+
+  """The current page"""
+  nextPageCursor: String
+
+  """The first page"""
+  firstPageCursor: String
+
+  """The last page cursor"""
+  lastPageCursor: String
+
+  """Total number of items on the current page"""
+  inPage: Int
+
+  """
+  The total number of items. Note: This value is not guaranteed to be accurate, do not rely on this for logic
+  """
+  total: Int
+
+  """Total number of items before the current page. Note: This value is not guaranteed to be accurate, do not rely on this for logic"""
+  totalBefore: Int
+
+  """Total number of items after the current page. Note: This value is not guaranteed to be accurate, do not rely on this for logic"""
+  totalAfter: Int
+
+  """The media page nodes"""
+  nodes: [Media!]!
+}
 
 extend type Query {
-  Media(${MediaParameters}): Media
-  Episode(${EpisodeParameters}): Episode
-  PlaybackSource(${PlaybackSourceParameters}): PlaybackSource
+  mediaPage(input: MediaPageInput): MediaPage
+}
+
+input MediaInput {
+  """Filter by the media id"""
+  id: String
+
+  """Filter by the media origin"""
+  origin: String
+
+  """Filter by the media uri"""
+  uri: String
+}
+
+extend type Query {
+  media(input: MediaInput): Media
 }
 
 """
@@ -199,6 +194,84 @@ type Media implements Handle {
   # ): MediaAiringScheduleConnection
 }
 
+input EpisodePageInput {
+  """Filter by the media id"""
+  ids: [String!]
+  """Filter by the media origin"""
+  origins: [String!]
+  """Filter by the media uri"""
+  uris: [String!]
+  """Filter by search terms"""
+  search: String
+
+  """The order the results will be returned in"""
+  sorts: [EpisodeSort!]
+
+  # Pagination
+
+  """Cursor from where to start"""
+  at: String
+
+  """How many pages before the cursor to return"""
+  before: Int
+
+  """How many pages after the cursor to return"""
+  after: Int
+}
+
+type EpisodePage {
+  """The current page"""
+  previousPageCursor: String
+
+  """The current page"""
+  currentPageCursor: String
+
+  """The current page"""
+  nextPageCursor: String
+
+  """The first page"""
+  firstPageCursor: String
+
+  """The last page cursor"""
+  lastPageCursor: String
+
+  """Total number of items on the current page"""
+  inPage: Int
+
+  """
+  The total number of items. Note: This value is not guaranteed to be accurate, do not rely on this for logic
+  """
+  total: Int
+
+  """Total number of items before the current page. Note: This value is not guaranteed to be accurate, do not rely on this for logic"""
+  totalBefore: Int
+
+  """Total number of items after the current page. Note: This value is not guaranteed to be accurate, do not rely on this for logic"""
+  totalAfter: Int
+
+  """The media page nodes"""
+  nodes: [Episode!]!
+}
+
+extend type Query {
+  episodePage(input: EpisodePageInput): EpisodePage
+}
+
+input EpisodeInput {
+  """Filter by the media id"""
+  id: String
+
+  """Filter by the media origin"""
+  origin: String
+
+  """Filter by the media uri"""
+  uri: String
+}
+
+extend type Query {
+  episode(input: EpisodeInput): Episode
+}
+
 type Episode implements Handle  {
   # Handle properties
   origin: String!
@@ -251,6 +324,81 @@ type Episode implements Handle  {
 #   uri: Int
 #   node: PlaybackSource
 # }
+
+input PlaybackSourcePageInput {
+  """Filter by the media id"""
+  ids: [String!]
+  """Filter by the media origin"""
+  origins: [String!]
+  """Filter by the media uri"""
+  uris: [String!]
+  """Filter by search terms"""
+  search: String
+
+  # Pagination
+
+  """Cursor from where to start"""
+  at: String
+
+  """How many pages before the cursor to return"""
+  before: Int
+
+  """How many pages after the cursor to return"""
+  after: Int
+}
+
+type PlaybackSourcePage {
+  """The current page"""
+  previousPageCursor: String
+
+  """The current page"""
+  currentPageCursor: String
+
+  """The current page"""
+  nextPageCursor: String
+
+  """The first page"""
+  firstPageCursor: String
+
+  """The last page cursor"""
+  lastPageCursor: String
+
+  """Total number of items on the current page"""
+  inPage: Int
+
+  """
+  The total number of items. Note: This value is not guaranteed to be accurate, do not rely on this for logic
+  """
+  total: Int
+
+  """Total number of items before the current page. Note: This value is not guaranteed to be accurate, do not rely on this for logic"""
+  totalBefore: Int
+
+  """Total number of items after the current page. Note: This value is not guaranteed to be accurate, do not rely on this for logic"""
+  totalAfter: Int
+
+  """The media page nodes"""
+  nodes: [PlaybackSource!]!
+}
+
+extend type Query {
+  playbackSourcePage(input: PlaybackSourcePageInput): PlaybackSourcePage
+}
+
+input PlaybackSourceInput {
+  """Filter by the media id"""
+  id: String
+
+  """Filter by the media origin"""
+  origin: String
+
+  """Filter by the media uri"""
+  uri: String
+}
+
+extend type Query {
+  playbackSource(input: PlaybackSourceInput): PlaybackSource
+}
 
 enum PlaybackSourceType {
   IFRAME
@@ -347,17 +495,11 @@ type PlaybackSourceEdge implements HandleEdge {
 type PlaybackSourceConnection implements HandleConnection {
   edges: [PlaybackSourceEdge!]!
   nodes: [PlaybackSource!]!
-
-  """The pagination information"""
-  pageInfo: PageInfo
 }
 
 type EpisodeConnection implements HandleConnection {
   edges: [EpisodeEdge!]!
   nodes: [Episode!]!
-
-  """The pagination information"""
-  pageInfo: PageInfo
 }
 
 """Episode connection edge"""
@@ -410,9 +552,6 @@ type MediaAiringSchedule implements Handle {
 type MediaAiringScheduleConnection {
   edges: [MediaAiringScheduleEdge]
   nodes: [MediaAiringSchedule]
-
-  """The pagination information"""
-  pageInfo: PageInfo
 }
 
 """MediaAiringSchedule connection edge"""
@@ -432,9 +571,6 @@ type MediaEdge implements HandleEdge {
 type MediaConnection implements HandleConnection {
   edges: [MediaEdge!]!
   nodes: [Media!]!
-
-  """The pagination information"""
-  pageInfo: PageInfo
 }
 
 """The cover images of the media"""

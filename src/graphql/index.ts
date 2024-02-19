@@ -4,7 +4,6 @@ import { schema as externalLinkSchema } from './external-link'
 import { schema as handleSchema } from './handle'
 import { schema as mediaSchema } from './media'
 import { schema as originSchema } from './origin'
-import { schema as pageSchema } from './page'
 import { schema as resourceSchema } from './resource'
 import { schema as fuzzyDateSchema } from './fuzzy-date'
 import { schema as scalarsSchema } from './scalars'
@@ -16,7 +15,6 @@ export const schemas = [
   ['handle', handleSchema],
   ['media', mediaSchema],
   ['origin', originSchema],
-  ['page', pageSchema],
   ['resource', resourceSchema],
   ['fuzzyDate', fuzzyDateSchema],
   ['scalars', scalarsSchema]

@@ -64,35 +64,8 @@ export const populateEpisode = (episode: Episode, resolve?: (ref: any, str: stri
 })
 
 export const serverResolvers = ({ origins, context }: { origins: any[], context?: () => Promise<ServerContext> }) => ({
-  Page: {
-    episode: async (parent, args, ctx, info) => {
-      const results = await getOriginResults({ ctx, origins, context })
-      const { scannarrHandles } = groupRelatedHandles({
-        typename: 'Episode',
-        results: (results?.flatMap(results => results.data.Page.episode ?? []) ?? []) as Episode[]
-      })
-        
-      return (
-        scannarrHandles
-          .map(episode => populateEpisode({
-            ...episode,
-            handles: {
-              __typename: 'EpisodeConnection',
-              async *edges () {
-                for await (const edge of episode.handles.edges) {
-                  yield {
-                    __typename: 'EpisodeEdge',
-                    node: edge.node
-                  }
-                }
-              }
-            }
-          }))
-      )
-    }
-  },
   Query: {
-    Episode: (parent, args, ctx, info) => {
+    episode: (parent, args, ctx, info) => {
       const results = getOriginResultsStreamed({ ctx, origins, context })
       return populateEpisode({
         origin: 'scannarr',
@@ -111,6 +84,31 @@ export const serverResolvers = ({ origins, context }: { origins: any[], context?
           }
         }
       })
+    },
+    episodePage: async (parent, args, ctx, info) => {
+      const results = await getOriginResults({ ctx, origins, context })
+      const { scannarrHandles } = groupRelatedHandles({
+        typename: 'Episode',
+        results: (results?.flatMap(results => results.data.episodePage.nodes ?? []) ?? []) as Episode[]
+      })
+
+      return (
+        scannarrHandles
+          .map(episode => populateEpisode({
+            ...episode,
+            handles: {
+              __typename: 'EpisodeConnection',
+              async *edges () {
+                for await (const edge of episode.handles.edges) {
+                  yield {
+                    __typename: 'EpisodeEdge',
+                    node: edge.node
+                  }
+                }
+              }
+            }
+          }))
+      )
     }
   }
 })
@@ -147,4 +145,3 @@ export const cacheResolvers = ({ origins, context }: { origins: any[], context?:
     description: makeScalarResolver({ __typename: 'Episode', fieldName: 'description', defaultValue: null }),
   }
 })
-                                                                   

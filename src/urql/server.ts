@@ -26,14 +26,7 @@ export const makeScannarrServer = (
               resolvers: {
                 ...origin.resolvers,
                 Query: {
-                  Page: () => ({}),
                   ...origin.resolvers.Query
-                },
-                Page: {
-                  episode: () => [],
-                  media: () => [],
-                  playbackSource: () => [],
-                  ...origin.resolvers.Page
                 },
                 EpisodeConnection: {
                   // this breaks episodes on media
@@ -60,19 +53,7 @@ export const makeScannarrServer = (
       ...episodeResolvers,
       ...playbackSourceResolvers,
 
-      Page: {
-        origin: () => [],
-        // @ts-expect-error
-        episode: () => [],
-        // @ts-expect-error
-        playbackSource: () => [],
-        ...mediaResolvers.Page,
-        ...episodeResolvers.Page,
-        ...playbackSourceResolvers.Page
-      },
-
       Query: {
-        Page: () => ({}),
         ...mediaResolvers.Query,
         ...episodeResolvers.Query,
         ...playbackSourceResolvers.Query

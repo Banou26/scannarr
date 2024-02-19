@@ -75,19 +75,8 @@ export const populatePlaybackSource = (playbackSource: PlaybackSource, resolve?:
 })
 
 export const serverResolvers = ({ origins, context }: { origins: any[], context?: () => Promise<ServerContext> }) => ({
-  Page: {
-    playbackSource: async (parent, args, ctx, info) => {
-      const results = await getOriginResults({ ctx, origins, context })
-      console.log('results', results)
-      const { scannarrHandles } = groupRelatedHandles({
-        typename: 'PlaybackSource',
-        results: (results?.flatMap(results => results.data.Page.playbackSource ?? []) ?? []) as PlaybackSource[]
-      })
-      return scannarrHandles.map((handle) => populatePlaybackSource(handle))
-    }
-  },
   Query: {
-    PlaybackSource: (parent, args, ctx, info) => {
+    playbackSource: (parent, args, ctx, info) => {
       const results = getOriginResultsStreamed({ ctx, origins, context })
       return populatePlaybackSource({
         origin: 'scannarr',
@@ -106,6 +95,15 @@ export const serverResolvers = ({ origins, context }: { origins: any[], context?
           }
         }
       })
+    },
+    playbackSourcePage: async (parent, args, ctx, info) => {
+      const results = await getOriginResults({ ctx, origins, context })
+      console.log('results', results)
+      const { scannarrHandles } = groupRelatedHandles({
+        typename: 'PlaybackSource',
+        results: (results?.flatMap(results => results.data.playbackSourcePage.nodes ?? []) ?? []) as PlaybackSource[]
+      })
+      return scannarrHandles.map((handle) => populatePlaybackSource(handle))
     }
   }
 })
