@@ -77,10 +77,6 @@ type MediaPage {
   nodes: [Media!]!
 }
 
-extend type Query {
-  mediaPage(input: MediaPageInput): MediaPage
-}
-
 input MediaInput {
   """Filter by the media id"""
   id: String
@@ -93,7 +89,12 @@ input MediaInput {
 }
 
 extend type Query {
+  mediaPage(input: MediaPageInput!): MediaPage
   media(input: MediaInput): Media
+  episodePage(input: EpisodePageInput): EpisodePage
+  episode(input: EpisodeInput): Episode
+  playbackSourcePage(input: PlaybackSourcePageInput): PlaybackSourcePage
+  playbackSource(input: PlaybackSourceInput): PlaybackSource
 }
 
 """
@@ -253,10 +254,6 @@ type EpisodePage {
   nodes: [Episode!]!
 }
 
-extend type Query {
-  episodePage(input: EpisodePageInput): EpisodePage
-}
-
 input EpisodeInput {
   """Filter by the media id"""
   id: String
@@ -266,10 +263,6 @@ input EpisodeInput {
 
   """Filter by the media uri"""
   uri: String
-}
-
-extend type Query {
-  episode(input: EpisodeInput): Episode
 }
 
 type Episode implements Handle  {
@@ -381,10 +374,6 @@ type PlaybackSourcePage {
   nodes: [PlaybackSource!]!
 }
 
-extend type Query {
-  playbackSourcePage(input: PlaybackSourcePageInput): PlaybackSourcePage
-}
-
 input PlaybackSourceInput {
   """Filter by the media id"""
   id: String
@@ -394,10 +383,6 @@ input PlaybackSourceInput {
 
   """Filter by the media uri"""
   uri: String
-}
-
-extend type Query {
-  playbackSource(input: PlaybackSourceInput): PlaybackSource
 }
 
 enum PlaybackSourceType {

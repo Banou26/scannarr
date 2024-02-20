@@ -7,6 +7,7 @@ export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
 export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
 export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
+export type RequireFields<T, K extends keyof T> = Omit<T, K> & { [P in K]-?: NonNullable<T[P]> };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
   ID: string;
@@ -688,6 +689,32 @@ export type Origin = {
   url?: Maybe<Scalars['String']>;
 };
 
+export type OriginInput = {
+  /** Filter by origin categories */
+  categories?: InputMaybe<Array<MediaType>>;
+  /** Filter by the media id */
+  id?: InputMaybe<Scalars['String']>;
+  /** Filter by if the origin only returns metadata */
+  metadataOnly?: InputMaybe<Scalars['Boolean']>;
+  /** Filter by the media origin */
+  name?: InputMaybe<Scalars['String']>;
+  /** Filter by if the origin is official */
+  official?: InputMaybe<Scalars['Boolean']>;
+};
+
+export type OriginPageInput = {
+  /** Filter by origin categories */
+  categories?: InputMaybe<Array<MediaType>>;
+  /** Filter by the media id */
+  ids?: InputMaybe<Array<Scalars['String']>>;
+  /** Filter by if the origin only returns metadata */
+  metadataOnly?: InputMaybe<Scalars['Boolean']>;
+  /** Filter by the media origin */
+  names?: InputMaybe<Array<Scalars['String']>>;
+  /** Filter by if the origin is official */
+  official?: InputMaybe<Scalars['Boolean']>;
+};
+
 export type PlaybackSource = Handle & {
   __typename?: 'PlaybackSource';
   bytes?: Maybe<Scalars['Float']>;
@@ -795,23 +822,15 @@ export enum PlaybackSourceType {
 
 export type Query = {
   __typename?: 'Query';
-  Origin?: Maybe<Origin>;
   dummy?: Maybe<Scalars['String']>;
   episode?: Maybe<Episode>;
   episodePage?: Maybe<EpisodePage>;
   media?: Maybe<Media>;
   mediaPage?: Maybe<MediaPage>;
+  origin?: Maybe<Origin>;
+  originPage: Array<Origin>;
   playbackSource?: Maybe<PlaybackSource>;
   playbackSourcePage?: Maybe<PlaybackSourcePage>;
-};
-
-
-export type QueryOriginArgs = {
-  categories?: InputMaybe<Array<MediaType>>;
-  id?: InputMaybe<Scalars['String']>;
-  metadataOnly?: InputMaybe<Scalars['Boolean']>;
-  name?: InputMaybe<Scalars['String']>;
-  official?: InputMaybe<Scalars['Boolean']>;
 };
 
 
@@ -831,7 +850,17 @@ export type QueryMediaArgs = {
 
 
 export type QueryMediaPageArgs = {
-  input?: InputMaybe<MediaPageInput>;
+  input: MediaPageInput;
+};
+
+
+export type QueryOriginArgs = {
+  input: OriginInput;
+};
+
+
+export type QueryOriginPageArgs = {
+  input: OriginPageInput;
 };
 
 
@@ -992,6 +1021,8 @@ export type ResolversTypes = {
   MediaType: MediaType;
   Mutation: ResolverTypeWrapper<{}>;
   Origin: ResolverTypeWrapper<Origin>;
+  OriginInput: OriginInput;
+  OriginPageInput: OriginPageInput;
   PlaybackSource: ResolverTypeWrapper<PlaybackSource>;
   PlaybackSourceConnection: ResolverTypeWrapper<PlaybackSourceConnection>;
   PlaybackSourceEdge: ResolverTypeWrapper<PlaybackSourceEdge>;
@@ -1045,6 +1076,8 @@ export type ResolversParentTypes = {
   MediaTrailer: MediaTrailer;
   Mutation: {};
   Origin: Origin;
+  OriginInput: OriginInput;
+  OriginPageInput: OriginPageInput;
   PlaybackSource: PlaybackSource;
   PlaybackSourceConnection: PlaybackSourceConnection;
   PlaybackSourceEdge: PlaybackSourceEdge;
@@ -1355,12 +1388,13 @@ export type PlaybackSourcePageResolvers<ContextType = ServerContext, ParentType 
 };
 
 export type QueryResolvers<ContextType = ServerContext, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
-  Origin?: Resolver<Maybe<ResolversTypes['Origin']>, ParentType, ContextType, Partial<QueryOriginArgs>>;
   dummy?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   episode?: Resolver<Maybe<ResolversTypes['Episode']>, ParentType, ContextType, Partial<QueryEpisodeArgs>>;
   episodePage?: Resolver<Maybe<ResolversTypes['EpisodePage']>, ParentType, ContextType, Partial<QueryEpisodePageArgs>>;
   media?: Resolver<Maybe<ResolversTypes['Media']>, ParentType, ContextType, Partial<QueryMediaArgs>>;
-  mediaPage?: Resolver<Maybe<ResolversTypes['MediaPage']>, ParentType, ContextType, Partial<QueryMediaPageArgs>>;
+  mediaPage?: Resolver<Maybe<ResolversTypes['MediaPage']>, ParentType, ContextType, RequireFields<QueryMediaPageArgs, 'input'>>;
+  origin?: Resolver<Maybe<ResolversTypes['Origin']>, ParentType, ContextType, RequireFields<QueryOriginArgs, 'input'>>;
+  originPage?: Resolver<Array<ResolversTypes['Origin']>, ParentType, ContextType, RequireFields<QueryOriginPageArgs, 'input'>>;
   playbackSource?: Resolver<Maybe<ResolversTypes['PlaybackSource']>, ParentType, ContextType, Partial<QueryPlaybackSourceArgs>>;
   playbackSourcePage?: Resolver<Maybe<ResolversTypes['PlaybackSourcePage']>, ParentType, ContextType, Partial<QueryPlaybackSourcePageArgs>>;
 };

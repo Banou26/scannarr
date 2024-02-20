@@ -27,12 +27,13 @@ import    { PlaybackSource } from './resolvers/PlaybackSource';
 import    { PlaybackSourceConnection } from './resolvers/PlaybackSourceConnection';
 import    { PlaybackSourceEdge } from './resolvers/PlaybackSourceEdge';
 import    { PlaybackSourcePage } from './resolvers/PlaybackSourcePage';
-import    { Origin as Query_Origin } from './resolvers/Query/Origin';
 import    { dummy as Query_dummy } from './resolvers/Query/dummy';
 import    { episode as Query_episode } from './resolvers/Query/episode';
 import    { episodePage as Query_episodePage } from './resolvers/Query/episodePage';
 import    { media as Query_media } from './resolvers/Query/media';
 import    { mediaPage as Query_mediaPage } from './resolvers/Query/mediaPage';
+import    { origin as Query_origin } from './resolvers/Query/origin';
+import    { originPage as Query_originPage } from './resolvers/Query/originPage';
 import    { playbackSource as Query_playbackSource } from './resolvers/Query/playbackSource';
 import    { playbackSourcePage as Query_playbackSourcePage } from './resolvers/Query/playbackSourcePage';
 import    { Resource } from './resolvers/Resource';
@@ -41,7 +42,7 @@ import    { ResourceEdge } from './resolvers/ResourceEdge';
 import    { Team } from './resolvers/Team';
 import    { Uri } from './resolvers/Uri';
     export const resolvers: Resolvers = {
-      Query: { Origin: Query_Origin,dummy: Query_dummy,episode: Query_episode,episodePage: Query_episodePage,media: Query_media,mediaPage: Query_mediaPage,playbackSource: Query_playbackSource,playbackSourcePage: Query_playbackSourcePage },
+      Query: { dummy: Query_dummy,episode: Query_episode,episodePage: Query_episodePage,media: Query_media,mediaPage: Query_mediaPage,origin: Query_origin,originPage: Query_originPage,playbackSource: Query_playbackSource,playbackSourcePage: Query_playbackSourcePage },
       Mutation: { dummy: Mutation_dummy },
       
       CountryCode: CountryCode,

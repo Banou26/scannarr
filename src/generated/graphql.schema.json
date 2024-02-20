@@ -2071,57 +2071,6 @@
         "name": "Query",
         "fields": [
           {
-            "name": "Origin",
-            "type": {
-              "kind": "OBJECT",
-              "name": "Origin",
-              "ofType": null
-            },
-            "args": [
-              {
-                "name": "categories",
-                "type": {
-                  "kind": "LIST",
-                  "ofType": {
-                    "kind": "NON_NULL",
-                    "ofType": {
-                      "kind": "SCALAR",
-                      "name": "Any"
-                    }
-                  }
-                }
-              },
-              {
-                "name": "id",
-                "type": {
-                  "kind": "SCALAR",
-                  "name": "Any"
-                }
-              },
-              {
-                "name": "metadataOnly",
-                "type": {
-                  "kind": "SCALAR",
-                  "name": "Any"
-                }
-              },
-              {
-                "name": "name",
-                "type": {
-                  "kind": "SCALAR",
-                  "name": "Any"
-                }
-              },
-              {
-                "name": "official",
-                "type": {
-                  "kind": "SCALAR",
-                  "name": "Any"
-                }
-              }
-            ]
-          },
-          {
             "name": "dummy",
             "type": {
               "kind": "SCALAR",
@@ -2191,8 +2140,60 @@
               {
                 "name": "input",
                 "type": {
-                  "kind": "SCALAR",
-                  "name": "Any"
+                  "kind": "NON_NULL",
+                  "ofType": {
+                    "kind": "SCALAR",
+                    "name": "Any"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "name": "origin",
+            "type": {
+              "kind": "OBJECT",
+              "name": "Origin",
+              "ofType": null
+            },
+            "args": [
+              {
+                "name": "input",
+                "type": {
+                  "kind": "NON_NULL",
+                  "ofType": {
+                    "kind": "SCALAR",
+                    "name": "Any"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "name": "originPage",
+            "type": {
+              "kind": "NON_NULL",
+              "ofType": {
+                "kind": "LIST",
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "ofType": {
+                    "kind": "OBJECT",
+                    "name": "Origin",
+                    "ofType": null
+                  }
+                }
+              }
+            },
+            "args": [
+              {
+                "name": "input",
+                "type": {
+                  "kind": "NON_NULL",
+                  "ofType": {
+                    "kind": "SCALAR",
+                    "name": "Any"
+                  }
                 }
               }
             ]
