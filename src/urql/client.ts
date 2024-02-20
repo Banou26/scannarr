@@ -46,6 +46,7 @@ export const makeScannarrClient = (
       //   }
       //   return media.uri
       // },
+      MediaPage: () => null,
       Media: (media) => {
         const handles = (media as Media).handles?.edges.map(handle => handle.node.uri)
         if (!(media.uri as string)?.includes('scannarr')) return (media as Media).uri
@@ -61,6 +62,7 @@ export const makeScannarrClient = (
       //     }
       //   return episode.uri
       // },
+      EpisodePage: () => null,
       Episode: (episode) => {
         const handles = (episode as Episode).handles?.edges.map(handle => handle.node.uri)
         if (!(episode.uri as string)?.includes('scannarr')) return (episode as Episode).uri
@@ -69,6 +71,7 @@ export const makeScannarrClient = (
       },
       EpisodeConnection: () => null,
       EpisodeEdge: () => null,
+      PlaybackSourcePage: () => null,
       PlaybackSource: (playbackSource) => {
         const handles = (playbackSource as PlaybackSource).handles?.edges.map(handle => handle.node.uri)
         if (!(playbackSource?.uri as string)?.includes('scannarr')) return (playbackSource as PlaybackSource).uri

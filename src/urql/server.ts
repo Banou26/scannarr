@@ -26,6 +26,9 @@ export const makeScannarrServer = (
               resolvers: {
                 ...origin.resolvers,
                 Query: {
+                  mediaPage: () => ({ nodes: [] }),
+                  playbackSourcePage: () => ({ nodes: [] }),
+                  episodePage: () => ({ nodes: [] }),
                   ...origin.resolvers.Query
                 },
                 EpisodeConnection: {

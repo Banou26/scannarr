@@ -102,9 +102,11 @@ export const serverResolvers = ({ origins, context }: { origins: any[], context?
       const results = await getOriginResults({ ctx, origins, context })
       const { scannarrHandles } = groupRelatedHandles({
         typename: 'Media',
-        results: (results?.flatMap(results => results.data.mediaPage.nodes ?? []) ?? []) as Media[]
+        results: (results?.flatMap(results => results.data.mediaPage?.nodes ?? []) ?? []) as Media[]
       })
-      return scannarrHandles.map(media => populateMedia(media))
+      return {
+        nodes: scannarrHandles.map(media => populateMedia(media))
+      }
     }
   }
 })
