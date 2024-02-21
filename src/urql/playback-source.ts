@@ -86,6 +86,7 @@ export const serverResolvers = ({ origins, context }: { origins: any[], context?
           // @ts-ignore
           async *edges (...args) {
             for await (const result of results) {
+              if (result.error) console.error(result.error)
               if (!result.data.playbackSource) continue
               yield {
                 __typename: 'PlaybackSourceEdge',
@@ -98,11 +99,17 @@ export const serverResolvers = ({ origins, context }: { origins: any[], context?
     },
     playbackSourcePage: async (parent, args, ctx, info) => {
       const results = await getOriginResults({ ctx, origins, context })
+      for (const result of results) {
+        if (!result.error) continue
+        console.error(result.error)
+      }
       const { scannarrHandles } = groupRelatedHandles({
         typename: 'PlaybackSource',
-        results: (results?.flatMap(results => results.data.playbackSourcePage.nodes ?? []) ?? []) as PlaybackSource[]
+        results: (results?.flatMap(results => results.data?.playbackSourcePage?.nodes ?? []) ?? []) as PlaybackSource[]
       })
-      return scannarrHandles.map((handle) => populatePlaybackSource(handle))
+      return {
+        nodes: scannarrHandles.map((handle) => populatePlaybackSource(handle))
+      }
     }
   }
 })

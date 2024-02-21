@@ -88,6 +88,7 @@ export const serverResolvers = ({ origins, context }: { origins: any[], context?
           // @ts-ignore
           async *edges () {
             for await (const result of results) {
+              if (result.error) console.error(result.error)
               if (!result.data.media) continue
               yield {
                 __typename: 'MediaEdge',
@@ -100,6 +101,10 @@ export const serverResolvers = ({ origins, context }: { origins: any[], context?
     },
     mediaPage: async (parent, args, ctx, info) => {
       const results = await getOriginResults({ ctx, origins, context })
+      for (const result of results) {
+        if (!result.error) continue
+        console.error(result.error)
+      }
       const { scannarrHandles } = groupRelatedHandles({
         typename: 'Media',
         results: (results?.flatMap(results => results.data.mediaPage?.nodes ?? []) ?? []) as Media[]

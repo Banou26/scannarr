@@ -1,13 +1,13 @@
 export const schema = `#graphql
 input MediaPageInput {
   """Filter by the media id"""
-  ids: [String!]
+  id: String
 
   """Filter by the media origin"""
-  origins: [String!]
+  origin: String
 
   """Filter by the media uri"""
-  uris: [String!]
+  uri: String
 
   """Filter by search terms"""
   search: String
@@ -197,11 +197,11 @@ type Media implements Handle {
 
 input EpisodePageInput {
   """Filter by the media id"""
-  ids: [String!]
+  id: String
   """Filter by the media origin"""
-  origins: [String!]
+  origin: String
   """Filter by the media uri"""
-  uris: [String!]
+  uri: String
   """Filter by search terms"""
   search: String
 
@@ -320,13 +320,15 @@ type Episode implements Handle  {
 
 input PlaybackSourcePageInput {
   """Filter by the media id"""
-  ids: [String!]
+  id: String
   """Filter by the media origin"""
-  origins: [String!]
+  origin: String
   """Filter by the media uri"""
-  uris: [String!]
+  uri: String
   """Filter by search terms"""
   search: String
+
+  number: Int
 
   # Pagination
 

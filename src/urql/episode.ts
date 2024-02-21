@@ -75,6 +75,7 @@ export const serverResolvers = ({ origins, context }: { origins: any[], context?
           // @ts-ignore
           async *edges (...args) {
             for await (const result of results) {
+              if (result.error) console.error(result.error)
               if (!result.data.episode) continue
               yield {
                 __typename: 'EpisodeEdge',
@@ -87,28 +88,35 @@ export const serverResolvers = ({ origins, context }: { origins: any[], context?
     },
     episodePage: async (parent, args, ctx, info) => {
       const results = await getOriginResults({ ctx, origins, context })
+      for (const result of results) {
+        if (!result.error) continue
+        console.error(result.error)
+      }
+
       const { scannarrHandles } = groupRelatedHandles({
         typename: 'Episode',
         results: (results?.flatMap(results => results.data.episodePage.nodes ?? []) ?? []) as Episode[]
       })
 
-      return (
-        scannarrHandles
-          .map(episode => populateEpisode({
-            ...episode,
-            handles: {
-              __typename: 'EpisodeConnection',
-              async *edges () {
-                for await (const edge of episode.handles.edges) {
-                  yield {
-                    __typename: 'EpisodeEdge',
-                    node: edge.node
+      return {
+        nodes: (
+          scannarrHandles
+            .map(episode => populateEpisode({
+              ...episode,
+              handles: {
+                __typename: 'EpisodeConnection',
+                async *edges () {
+                  for await (const edge of episode.handles.edges) {
+                    yield {
+                      __typename: 'EpisodeEdge',
+                      node: edge.node
+                    }
                   }
                 }
               }
-            }
-          }))
-      )
+            }))
+        )
+      }
     }
   }
 })

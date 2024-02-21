@@ -110,15 +110,15 @@ export type EpisodePageInput = {
   /** How many pages before the cursor to return */
   before?: InputMaybe<Scalars['Int']['input']>;
   /** Filter by the media id */
-  ids?: InputMaybe<Array<Scalars['String']['input']>>;
+  id?: InputMaybe<Scalars['String']['input']>;
   /** Filter by the media origin */
-  origins?: InputMaybe<Array<Scalars['String']['input']>>;
+  origin?: InputMaybe<Scalars['String']['input']>;
   /** Filter by search terms */
   search?: InputMaybe<Scalars['String']['input']>;
   /** The order the results will be returned in */
   sorts?: InputMaybe<Array<EpisodeSort>>;
   /** Filter by the media uri */
-  uris?: InputMaybe<Array<Scalars['String']['input']>>;
+  uri?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type EpisodeSort =
@@ -447,9 +447,9 @@ export type MediaPageInput = {
   /** Filter by the end date of the media */
   endDate?: InputMaybe<Scalars['FuzzyDateInt']['input']>;
   /** Filter by the media id */
-  ids?: InputMaybe<Array<Scalars['String']['input']>>;
+  id?: InputMaybe<Scalars['String']['input']>;
   /** Filter by the media origin */
-  origins?: InputMaybe<Array<Scalars['String']['input']>>;
+  origin?: InputMaybe<Scalars['String']['input']>;
   /** Filter by search terms */
   search?: InputMaybe<Scalars['String']['input']>;
   /** Filter by media season */
@@ -463,7 +463,7 @@ export type MediaPageInput = {
   /** Filter by the media's current release status */
   status?: InputMaybe<MediaStatus>;
   /** Filter by the media uri */
-  uris?: InputMaybe<Array<Scalars['String']['input']>>;
+  uri?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type MediaSeason =
@@ -792,13 +792,14 @@ export type PlaybackSourcePageInput = {
   /** How many pages before the cursor to return */
   before?: InputMaybe<Scalars['Int']['input']>;
   /** Filter by the media id */
-  ids?: InputMaybe<Array<Scalars['String']['input']>>;
+  id?: InputMaybe<Scalars['String']['input']>;
+  number?: InputMaybe<Scalars['Int']['input']>;
   /** Filter by the media origin */
-  origins?: InputMaybe<Array<Scalars['String']['input']>>;
+  origin?: InputMaybe<Scalars['String']['input']>;
   /** Filter by search terms */
   search?: InputMaybe<Scalars['String']['input']>;
   /** Filter by the media uri */
-  uris?: InputMaybe<Array<Scalars['String']['input']>>;
+  uri?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type PlaybackSourceType =
