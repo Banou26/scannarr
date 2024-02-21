@@ -88,10 +88,10 @@ export const serverResolvers = ({ origins, context }: { origins: any[], context?
           // @ts-ignore
           async *edges () {
             for await (const result of results) {
-              if (!result.data.Media) continue
+              if (!result.data.media) continue
               yield {
                 __typename: 'MediaEdge',
-                node: populateMedia(result.data.Media)
+                node: populateMedia(result.data.media)
               }
             }
           }

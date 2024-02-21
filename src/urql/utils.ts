@@ -151,7 +151,7 @@ export const getOriginResults = async (
   { ctx, origins, context }:
   { ctx: YogaInitialContext, origins: any[], context?: () => Promise<ServerContext> }
 ) => {
-  const rootUri = ctx.params.variables?.uri
+  const rootUri = ctx.params.variables?.input?.uri
   const uris =
     rootUri && isScannarrUri(rootUri)
       ? fromScannarrUri(rootUri)?.handleUris
@@ -183,10 +183,12 @@ export const getOriginResults = async (
                             variables:
                               uri
                                 ? ({
-                                  ...ctx.params.variables,
-                                  uri,
-                                  id: fromUri(uri).id,
-                                  origin: fromUri(uri).origin
+                                  input: {
+                                    ...ctx.params.variables?.input,
+                                    uri,
+                                    id: fromUri(uri).id,
+                                    origin: fromUri(uri).origin
+                                  }
                                 })
                                 : ctx.params.variables
                           }),
@@ -223,7 +225,7 @@ export async function *getOriginResultsStreamed (
   { ctx, origins, context }:
   { ctx: YogaInitialContext, origins: any[], context?: () => Promise<ServerContext> }
 ) {
-  const rootUri = ctx.params.variables?.uri
+  const rootUri = ctx.params.variables?.input?.uri
   const uris =
     rootUri && isScannarrUri(rootUri)
       ? fromScannarrUri(rootUri)?.handleUris
@@ -254,10 +256,12 @@ export async function *getOriginResultsStreamed (
                           variables:
                             uri
                               ? ({
-                                ...ctx.params.variables,
-                                uri,
-                                id: fromUri(uri).id,
-                                origin: fromUri(uri).origin
+                                input: {
+                                  ...ctx.params.variables?.input,
+                                  uri,
+                                  id: fromUri(uri).id,
+                                  origin: fromUri(uri).origin
+                                }
                               })
                               : ctx.params.variables
                         }),

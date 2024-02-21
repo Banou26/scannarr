@@ -75,10 +75,10 @@ export const serverResolvers = ({ origins, context }: { origins: any[], context?
           // @ts-ignore
           async *edges (...args) {
             for await (const result of results) {
-              if (!result.data.Episode) continue
+              if (!result.data.episode) continue
               yield {
                 __typename: 'EpisodeEdge',
-                node: populateEpisode(result.data.Episode)
+                node: populateEpisode(result.data.episode)
               }
             }
           }
