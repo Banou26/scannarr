@@ -1,0 +1,2 @@
+import type   { QueryResolvers } from './../../types.generated';
+        export const originPage: NonNullable<QueryResolvers['originPage']> = async (_parent, _arg, _ctx) => { /* Implement Query.originPage resolver logic here */ };

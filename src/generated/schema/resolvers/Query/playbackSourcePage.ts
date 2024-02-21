@@ -1,0 +1,2 @@
+import type   { QueryResolvers } from './../../types.generated';
+        export const playbackSourcePage: NonNullable<QueryResolvers['playbackSourcePage']> = async (_parent, _arg, _ctx) => { /* Implement Query.playbackSourcePage resolver logic here */ };

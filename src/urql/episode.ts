@@ -64,35 +64,8 @@ export const populateEpisode = (episode: Episode, resolve?: (ref: any, str: stri
 })
 
 export const serverResolvers = ({ origins, context }: { origins: any[], context?: () => Promise<ServerContext> }) => ({
-  Page: {
-    episode: async (parent, args, ctx, info) => {
-      const results = await getOriginResults({ ctx, origins, context })
-      const { scannarrHandles } = groupRelatedHandles({
-        typename: 'Episode',
-        results: (results?.flatMap(results => results.data.Page.episode ?? []) ?? []) as Episode[]
-      })
-        
-      return (
-        scannarrHandles
-          .map(episode => populateEpisode({
-            ...episode,
-            handles: {
-              __typename: 'EpisodeConnection',
-              async *edges () {
-                for await (const edge of episode.handles.edges) {
-                  yield {
-                    __typename: 'EpisodeEdge',
-                    node: edge.node
-                  }
-                }
-              }
-            }
-          }))
-      )
-    }
-  },
   Query: {
-    Episode: (parent, args, ctx, info) => {
+    episode: (parent, args, ctx, info) => {
       const results = getOriginResultsStreamed({ ctx, origins, context })
       return populateEpisode({
         origin: 'scannarr',
@@ -102,15 +75,48 @@ export const serverResolvers = ({ origins, context }: { origins: any[], context?
           // @ts-ignore
           async *edges (...args) {
             for await (const result of results) {
-              if (!result.data.Episode) continue
+              if (result.error) console.error(result.error)
+              if (!result.data.episode) continue
               yield {
                 __typename: 'EpisodeEdge',
-                node: populateEpisode(result.data.Episode)
+                node: populateEpisode(result.data.episode)
               }
             }
           }
         }
       })
+    },
+    episodePage: async (parent, args, ctx, info) => {
+      const results = await getOriginResults({ ctx, origins, context })
+      for (const result of results) {
+        if (!result.error) continue
+        console.error(result.error)
+      }
+
+      const { scannarrHandles } = groupRelatedHandles({
+        typename: 'Episode',
+        results: (results?.flatMap(results => results.data.episodePage.nodes ?? []) ?? []) as Episode[]
+      })
+
+      return {
+        nodes: (
+          scannarrHandles
+            .map(episode => populateEpisode({
+              ...episode,
+              handles: {
+                __typename: 'EpisodeConnection',
+                async *edges () {
+                  for await (const edge of episode.handles.edges) {
+                    yield {
+                      __typename: 'EpisodeEdge',
+                      node: edge.node
+                    }
+                  }
+                }
+              }
+            }))
+        )
+      }
     }
   }
 })
@@ -147,4 +153,3 @@ export const cacheResolvers = ({ origins, context }: { origins: any[], context?:
     description: makeScalarResolver({ __typename: 'Episode', fieldName: 'description', defaultValue: null }),
   }
 })
-                                                                   

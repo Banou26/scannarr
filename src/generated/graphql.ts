@@ -7,6 +7,7 @@ export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
 export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
 export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
+export type RequireFields<T, K extends keyof T> = Omit<T, K> & { [P in K]-?: NonNullable<T[P]> };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
   ID: string;
@@ -57,8 +58,6 @@ export type EpisodeConnection = HandleConnection & {
   __typename?: 'EpisodeConnection';
   edges: Array<EpisodeEdge>;
   nodes: Array<Episode>;
-  /** The pagination information */
-  pageInfo?: Maybe<PageInfo>;
 };
 
 /** Episode connection edge */
@@ -69,6 +68,58 @@ export type EpisodeEdge = HandleEdge & {
   node: Episode;
   /** The uri of the connection */
   uri?: Maybe<Scalars['Int']>;
+};
+
+export type EpisodeInput = {
+  /** Filter by the media id */
+  id?: InputMaybe<Scalars['String']>;
+  /** Filter by the media origin */
+  origin?: InputMaybe<Scalars['String']>;
+  /** Filter by the media uri */
+  uri?: InputMaybe<Scalars['String']>;
+};
+
+export type EpisodePage = {
+  __typename?: 'EpisodePage';
+  /** The current page */
+  currentPageCursor?: Maybe<Scalars['String']>;
+  /** The first page */
+  firstPageCursor?: Maybe<Scalars['String']>;
+  /** Total number of items on the current page */
+  inPage?: Maybe<Scalars['Int']>;
+  /** The last page cursor */
+  lastPageCursor?: Maybe<Scalars['String']>;
+  /** The current page */
+  nextPageCursor?: Maybe<Scalars['String']>;
+  /** The media page nodes */
+  nodes: Array<Episode>;
+  /** The current page */
+  previousPageCursor?: Maybe<Scalars['String']>;
+  /** The total number of items. Note: This value is not guaranteed to be accurate, do not rely on this for logic */
+  total?: Maybe<Scalars['Int']>;
+  /** Total number of items after the current page. Note: This value is not guaranteed to be accurate, do not rely on this for logic */
+  totalAfter?: Maybe<Scalars['Int']>;
+  /** Total number of items before the current page. Note: This value is not guaranteed to be accurate, do not rely on this for logic */
+  totalBefore?: Maybe<Scalars['Int']>;
+};
+
+export type EpisodePageInput = {
+  /** How many pages after the cursor to return */
+  after?: InputMaybe<Scalars['Int']>;
+  /** Cursor from where to start */
+  at?: InputMaybe<Scalars['String']>;
+  /** How many pages before the cursor to return */
+  before?: InputMaybe<Scalars['Int']>;
+  /** Filter by the media id */
+  id?: InputMaybe<Scalars['String']>;
+  /** Filter by the media origin */
+  origin?: InputMaybe<Scalars['String']>;
+  /** Filter by search terms */
+  search?: InputMaybe<Scalars['String']>;
+  /** The order the results will be returned in */
+  sorts?: InputMaybe<Array<EpisodeSort>>;
+  /** Filter by the media uri */
+  uri?: InputMaybe<Scalars['String']>;
 };
 
 export enum EpisodeSort {
@@ -152,8 +203,6 @@ export type Handle = {
 export type HandleConnection = {
   edges: Array<HandleEdge>;
   nodes: Array<Handle>;
-  /** The pagination information */
-  pageInfo?: Maybe<PageInfo>;
 };
 
 export type HandleEdge = {
@@ -275,8 +324,6 @@ export type MediaAiringScheduleConnection = {
   __typename?: 'MediaAiringScheduleConnection';
   edges?: Maybe<Array<Maybe<MediaAiringScheduleEdge>>>;
   nodes?: Maybe<Array<Maybe<MediaAiringSchedule>>>;
-  /** The pagination information */
-  pageInfo?: Maybe<PageInfo>;
 };
 
 /** MediaAiringSchedule connection edge */
@@ -291,8 +338,6 @@ export type MediaConnection = HandleConnection & {
   __typename?: 'MediaConnection';
   edges: Array<MediaEdge>;
   nodes: Array<Media>;
-  /** The pagination information */
-  pageInfo?: Maybe<PageInfo>;
 };
 
 /** The cover images of the media */
@@ -364,6 +409,68 @@ export enum MediaFormat {
   /** Anime which are under 15 minutes in length and broadcast on television */
   TvShort = 'TV_SHORT'
 }
+
+export type MediaInput = {
+  /** Filter by the media id */
+  id?: InputMaybe<Scalars['String']>;
+  /** Filter by the media origin */
+  origin?: InputMaybe<Scalars['String']>;
+  /** Filter by the media uri */
+  uri?: InputMaybe<Scalars['String']>;
+};
+
+export type MediaPage = {
+  __typename?: 'MediaPage';
+  /** The current page */
+  currentPageCursor?: Maybe<Scalars['String']>;
+  /** The first page */
+  firstPageCursor?: Maybe<Scalars['String']>;
+  /** Total number of items on the current page */
+  inPage?: Maybe<Scalars['Int']>;
+  /** The last page cursor */
+  lastPageCursor?: Maybe<Scalars['String']>;
+  /** The current page */
+  nextPageCursor?: Maybe<Scalars['String']>;
+  /** The media page nodes */
+  nodes: Array<Media>;
+  /** The current page */
+  previousPageCursor?: Maybe<Scalars['String']>;
+  /** The total number of items. Note: This value is not guaranteed to be accurate, do not rely on this for logic */
+  total?: Maybe<Scalars['Int']>;
+  /** Total number of items after the current page. Note: This value is not guaranteed to be accurate, do not rely on this for logic */
+  totalAfter?: Maybe<Scalars['Int']>;
+  /** Total number of items before the current page. Note: This value is not guaranteed to be accurate, do not rely on this for logic */
+  totalBefore?: Maybe<Scalars['Int']>;
+};
+
+export type MediaPageInput = {
+  /** How many pages after the cursor to return */
+  after?: InputMaybe<Scalars['Int']>;
+  /** Cursor from where to start */
+  at?: InputMaybe<Scalars['String']>;
+  /** How many pages before the cursor to return */
+  before?: InputMaybe<Scalars['Int']>;
+  /** Filter by the end date of the media */
+  endDate?: InputMaybe<Scalars['FuzzyDateInt']>;
+  /** Filter by the media id */
+  id?: InputMaybe<Scalars['String']>;
+  /** Filter by the media origin */
+  origin?: InputMaybe<Scalars['String']>;
+  /** Filter by search terms */
+  search?: InputMaybe<Scalars['String']>;
+  /** Filter by media season */
+  season?: InputMaybe<MediaSeason>;
+  /** Filter by the year of the media season */
+  seasonYear?: InputMaybe<Scalars['Int']>;
+  /** The order the results will be returned in */
+  sorts?: InputMaybe<Array<MediaSort>>;
+  /** Filter by the start date of the media */
+  startDate?: InputMaybe<Scalars['FuzzyDateInt']>;
+  /** Filter by the media's current release status */
+  status?: InputMaybe<MediaStatus>;
+  /** Filter by the media uri */
+  uri?: InputMaybe<Scalars['String']>;
+};
 
 export enum MediaSeason {
   /** Months September to November */
@@ -582,91 +689,30 @@ export type Origin = {
   url?: Maybe<Scalars['String']>;
 };
 
-export type Page = {
-  __typename?: 'Page';
-  episode: Array<Episode>;
-  media: Array<Media>;
-  origin: Array<Origin>;
-  pageInfo: PageInfo;
-  playbackSource: Array<PlaybackSource>;
-};
-
-
-export type PageEpisodeArgs = {
-  id?: InputMaybe<Scalars['String']>;
-  origin?: InputMaybe<Scalars['String']>;
-  search?: InputMaybe<Scalars['String']>;
-  sort?: InputMaybe<Array<InputMaybe<EpisodeSort>>>;
-  uri?: InputMaybe<Scalars['String']>;
-};
-
-
-export type PageMediaArgs = {
-  endDate?: InputMaybe<Scalars['FuzzyDateInt']>;
-  endDate_greater?: InputMaybe<Scalars['FuzzyDateInt']>;
-  endDate_lesser?: InputMaybe<Scalars['FuzzyDateInt']>;
-  endDate_like?: InputMaybe<Scalars['String']>;
-  id?: InputMaybe<Scalars['String']>;
-  origin?: InputMaybe<Scalars['String']>;
-  search?: InputMaybe<Scalars['String']>;
-  season?: InputMaybe<MediaSeason>;
-  seasonYear?: InputMaybe<Scalars['Int']>;
-  sort?: InputMaybe<Array<InputMaybe<MediaSort>>>;
-  startDate?: InputMaybe<Scalars['FuzzyDateInt']>;
-  startDate_greater?: InputMaybe<Scalars['FuzzyDateInt']>;
-  startDate_lesser?: InputMaybe<Scalars['FuzzyDateInt']>;
-  startDate_like?: InputMaybe<Scalars['String']>;
-  status?: InputMaybe<MediaStatus>;
-  status_in?: InputMaybe<Array<InputMaybe<MediaStatus>>>;
-  status_not?: InputMaybe<MediaStatus>;
-  status_not_in?: InputMaybe<Array<InputMaybe<MediaStatus>>>;
-  uri?: InputMaybe<Scalars['String']>;
-};
-
-
-export type PageOriginArgs = {
+export type OriginInput = {
+  /** Filter by origin categories */
   categories?: InputMaybe<Array<MediaType>>;
-  ids?: InputMaybe<Array<Scalars['String']>>;
+  /** Filter by the media id */
+  id?: InputMaybe<Scalars['String']>;
+  /** Filter by if the origin only returns metadata */
   metadataOnly?: InputMaybe<Scalars['Boolean']>;
-  names?: InputMaybe<Array<Scalars['String']>>;
+  /** Filter by the media origin */
+  name?: InputMaybe<Scalars['String']>;
+  /** Filter by if the origin is official */
   official?: InputMaybe<Scalars['Boolean']>;
 };
 
-
-export type PagePlaybackSourceArgs = {
-  id?: InputMaybe<Scalars['String']>;
-  name?: InputMaybe<Scalars['String']>;
+export type OriginPageInput = {
+  /** Filter by origin categories */
+  categories?: InputMaybe<Array<MediaType>>;
+  /** Filter by the media id */
+  ids?: InputMaybe<Array<Scalars['String']>>;
+  /** Filter by if the origin only returns metadata */
+  metadataOnly?: InputMaybe<Scalars['Boolean']>;
+  /** Filter by the media origin */
   names?: InputMaybe<Array<Scalars['String']>>;
-  number?: InputMaybe<Scalars['Float']>;
-  origin?: InputMaybe<Scalars['String']>;
-  quality?: InputMaybe<Scalars['String']>;
-  resolution?: InputMaybe<Scalars['String']>;
-  search?: InputMaybe<Scalars['String']>;
-  season?: InputMaybe<Scalars['Int']>;
-  trusted?: InputMaybe<Scalars['Boolean']>;
-  uri?: InputMaybe<Scalars['String']>;
-};
-
-export type PageInfo = {
-  __typename?: 'PageInfo';
-  /** The current page */
-  currentPageCursor?: Maybe<Scalars['String']>;
-  /** The first page */
-  firstPageCursor?: Maybe<Scalars['String']>;
-  /** Total number of items on the current page */
-  inPage?: Maybe<Scalars['Int']>;
-  /** The last page cursor */
-  lastPageCursor?: Maybe<Scalars['String']>;
-  /** The current page */
-  nextPageCursor?: Maybe<Scalars['String']>;
-  /** The current page */
-  previousPageCursor?: Maybe<Scalars['String']>;
-  /** The total number of items. Note: This value is not guaranteed to be accurate, do not rely on this for logic */
-  total?: Maybe<Scalars['Int']>;
-  /** Total number of items after the current page. Note: This value is not guaranteed to be accurate, do not rely on this for logic */
-  totalAfter?: Maybe<Scalars['Int']>;
-  /** Total number of items before the current page. Note: This value is not guaranteed to be accurate, do not rely on this for logic */
-  totalBefore?: Maybe<Scalars['Int']>;
+  /** Filter by if the origin is official */
+  official?: InputMaybe<Scalars['Boolean']>;
 };
 
 export type PlaybackSource = Handle & {
@@ -700,8 +746,6 @@ export type PlaybackSourceConnection = HandleConnection & {
   __typename?: 'PlaybackSourceConnection';
   edges: Array<PlaybackSourceEdge>;
   nodes: Array<PlaybackSource>;
-  /** The pagination information */
-  pageInfo?: Maybe<PageInfo>;
 };
 
 /** PlaybackSource connection edge */
@@ -719,6 +763,57 @@ export enum PlaybackSourceFileStructure {
   Single = 'SINGLE'
 }
 
+export type PlaybackSourceInput = {
+  /** Filter by the media id */
+  id?: InputMaybe<Scalars['String']>;
+  /** Filter by the media origin */
+  origin?: InputMaybe<Scalars['String']>;
+  /** Filter by the media uri */
+  uri?: InputMaybe<Scalars['String']>;
+};
+
+export type PlaybackSourcePage = {
+  __typename?: 'PlaybackSourcePage';
+  /** The current page */
+  currentPageCursor?: Maybe<Scalars['String']>;
+  /** The first page */
+  firstPageCursor?: Maybe<Scalars['String']>;
+  /** Total number of items on the current page */
+  inPage?: Maybe<Scalars['Int']>;
+  /** The last page cursor */
+  lastPageCursor?: Maybe<Scalars['String']>;
+  /** The current page */
+  nextPageCursor?: Maybe<Scalars['String']>;
+  /** The media page nodes */
+  nodes: Array<PlaybackSource>;
+  /** The current page */
+  previousPageCursor?: Maybe<Scalars['String']>;
+  /** The total number of items. Note: This value is not guaranteed to be accurate, do not rely on this for logic */
+  total?: Maybe<Scalars['Int']>;
+  /** Total number of items after the current page. Note: This value is not guaranteed to be accurate, do not rely on this for logic */
+  totalAfter?: Maybe<Scalars['Int']>;
+  /** Total number of items before the current page. Note: This value is not guaranteed to be accurate, do not rely on this for logic */
+  totalBefore?: Maybe<Scalars['Int']>;
+};
+
+export type PlaybackSourcePageInput = {
+  /** How many pages after the cursor to return */
+  after?: InputMaybe<Scalars['Int']>;
+  /** Cursor from where to start */
+  at?: InputMaybe<Scalars['String']>;
+  /** How many pages before the cursor to return */
+  before?: InputMaybe<Scalars['Int']>;
+  /** Filter by the media id */
+  id?: InputMaybe<Scalars['String']>;
+  number?: InputMaybe<Scalars['Int']>;
+  /** Filter by the media origin */
+  origin?: InputMaybe<Scalars['String']>;
+  /** Filter by search terms */
+  search?: InputMaybe<Scalars['String']>;
+  /** Filter by the media uri */
+  uri?: InputMaybe<Scalars['String']>;
+};
+
 export enum PlaybackSourceType {
   Custom = 'CUSTOM',
   Iframe = 'IFRAME',
@@ -728,75 +823,55 @@ export enum PlaybackSourceType {
 
 export type Query = {
   __typename?: 'Query';
-  Episode?: Maybe<Episode>;
-  Media?: Maybe<Media>;
-  Origin?: Maybe<Origin>;
-  Page: Page;
-  PlaybackSource?: Maybe<PlaybackSource>;
   dummy?: Maybe<Scalars['String']>;
+  episode?: Maybe<Episode>;
+  episodePage?: Maybe<EpisodePage>;
+  media?: Maybe<Media>;
+  mediaPage?: Maybe<MediaPage>;
+  origin?: Maybe<Origin>;
+  originPage: Array<Origin>;
+  playbackSource?: Maybe<PlaybackSource>;
+  playbackSourcePage?: Maybe<PlaybackSourcePage>;
 };
 
 
 export type QueryEpisodeArgs = {
-  id?: InputMaybe<Scalars['String']>;
-  origin?: InputMaybe<Scalars['String']>;
-  search?: InputMaybe<Scalars['String']>;
-  sort?: InputMaybe<Array<InputMaybe<EpisodeSort>>>;
-  uri?: InputMaybe<Scalars['String']>;
+  input?: InputMaybe<EpisodeInput>;
+};
+
+
+export type QueryEpisodePageArgs = {
+  input?: InputMaybe<EpisodePageInput>;
 };
 
 
 export type QueryMediaArgs = {
-  endDate?: InputMaybe<Scalars['FuzzyDateInt']>;
-  endDate_greater?: InputMaybe<Scalars['FuzzyDateInt']>;
-  endDate_lesser?: InputMaybe<Scalars['FuzzyDateInt']>;
-  endDate_like?: InputMaybe<Scalars['String']>;
-  id?: InputMaybe<Scalars['String']>;
-  origin?: InputMaybe<Scalars['String']>;
-  search?: InputMaybe<Scalars['String']>;
-  season?: InputMaybe<MediaSeason>;
-  seasonYear?: InputMaybe<Scalars['Int']>;
-  sort?: InputMaybe<Array<InputMaybe<MediaSort>>>;
-  startDate?: InputMaybe<Scalars['FuzzyDateInt']>;
-  startDate_greater?: InputMaybe<Scalars['FuzzyDateInt']>;
-  startDate_lesser?: InputMaybe<Scalars['FuzzyDateInt']>;
-  startDate_like?: InputMaybe<Scalars['String']>;
-  status?: InputMaybe<MediaStatus>;
-  status_in?: InputMaybe<Array<InputMaybe<MediaStatus>>>;
-  status_not?: InputMaybe<MediaStatus>;
-  status_not_in?: InputMaybe<Array<InputMaybe<MediaStatus>>>;
-  uri?: InputMaybe<Scalars['String']>;
+  input?: InputMaybe<MediaInput>;
+};
+
+
+export type QueryMediaPageArgs = {
+  input: MediaPageInput;
 };
 
 
 export type QueryOriginArgs = {
-  categories?: InputMaybe<Array<MediaType>>;
-  id?: InputMaybe<Scalars['String']>;
-  metadataOnly?: InputMaybe<Scalars['Boolean']>;
-  name?: InputMaybe<Scalars['String']>;
-  official?: InputMaybe<Scalars['Boolean']>;
+  input: OriginInput;
 };
 
 
-export type QueryPageArgs = {
-  after?: InputMaybe<Scalars['Int']>;
-  at?: InputMaybe<Scalars['String']>;
-  before?: InputMaybe<Scalars['Int']>;
+export type QueryOriginPageArgs = {
+  input: OriginPageInput;
 };
 
 
 export type QueryPlaybackSourceArgs = {
-  id?: InputMaybe<Scalars['String']>;
-  name?: InputMaybe<Scalars['String']>;
-  names?: InputMaybe<Array<Scalars['String']>>;
-  number?: InputMaybe<Scalars['Float']>;
-  origin?: InputMaybe<Scalars['String']>;
-  quality?: InputMaybe<Scalars['String']>;
-  resolution?: InputMaybe<Scalars['String']>;
-  search?: InputMaybe<Scalars['String']>;
-  season?: InputMaybe<Scalars['Int']>;
-  trusted?: InputMaybe<Scalars['Boolean']>;
-  uri?: InputMaybe<Scalars['String']>;
+  input?: InputMaybe<PlaybackSourceInput>;
+};
+
+
+export type QueryPlaybackSourcePageArgs = {
+  input?: InputMaybe<PlaybackSourcePageInput>;
 };
 
 export type Resource = Handle & {
@@ -814,8 +889,6 @@ export type ResourceConnection = HandleConnection & {
   __typename?: 'ResourceConnection';
   edges: Array<ResourceEdge>;
   nodes: Array<Resource>;
-  /** The pagination information */
-  pageInfo?: Maybe<PageInfo>;
 };
 
 export type ResourceEdge = HandleEdge & {
@@ -911,6 +984,9 @@ export type ResolversTypes = {
   Episode: ResolverTypeWrapper<Episode>;
   EpisodeConnection: ResolverTypeWrapper<EpisodeConnection>;
   EpisodeEdge: ResolverTypeWrapper<EpisodeEdge>;
+  EpisodeInput: EpisodeInput;
+  EpisodePage: ResolverTypeWrapper<EpisodePage>;
+  EpisodePageInput: EpisodePageInput;
   EpisodeSort: EpisodeSort;
   ExternalLinkMediaType: ExternalLinkMediaType;
   ExternalLinkType: ExternalLinkType;
@@ -933,6 +1009,9 @@ export type ResolversTypes = {
   MediaEdge: ResolverTypeWrapper<MediaEdge>;
   MediaExternalLink: ResolverTypeWrapper<MediaExternalLink>;
   MediaFormat: MediaFormat;
+  MediaInput: MediaInput;
+  MediaPage: ResolverTypeWrapper<MediaPage>;
+  MediaPageInput: MediaPageInput;
   MediaSeason: MediaSeason;
   MediaSort: MediaSort;
   MediaSource: MediaSource;
@@ -943,12 +1022,15 @@ export type ResolversTypes = {
   MediaType: MediaType;
   Mutation: ResolverTypeWrapper<{}>;
   Origin: ResolverTypeWrapper<Origin>;
-  Page: ResolverTypeWrapper<Page>;
-  PageInfo: ResolverTypeWrapper<PageInfo>;
+  OriginInput: OriginInput;
+  OriginPageInput: OriginPageInput;
   PlaybackSource: ResolverTypeWrapper<PlaybackSource>;
   PlaybackSourceConnection: ResolverTypeWrapper<PlaybackSourceConnection>;
   PlaybackSourceEdge: ResolverTypeWrapper<PlaybackSourceEdge>;
   PlaybackSourceFileStructure: PlaybackSourceFileStructure;
+  PlaybackSourceInput: PlaybackSourceInput;
+  PlaybackSourcePage: ResolverTypeWrapper<PlaybackSourcePage>;
+  PlaybackSourcePageInput: PlaybackSourcePageInput;
   PlaybackSourceType: PlaybackSourceType;
   Query: ResolverTypeWrapper<{}>;
   Resource: ResolverTypeWrapper<Resource>;
@@ -967,6 +1049,9 @@ export type ResolversParentTypes = {
   Episode: Episode;
   EpisodeConnection: EpisodeConnection;
   EpisodeEdge: EpisodeEdge;
+  EpisodeInput: EpisodeInput;
+  EpisodePage: EpisodePage;
+  EpisodePageInput: EpisodePageInput;
   Float: Scalars['Float'];
   FuzzyDate: FuzzyDate;
   FuzzyDateInput: FuzzyDateInput;
@@ -984,16 +1069,22 @@ export type ResolversParentTypes = {
   MediaCoverImage: MediaCoverImage;
   MediaEdge: MediaEdge;
   MediaExternalLink: MediaExternalLink;
+  MediaInput: MediaInput;
+  MediaPage: MediaPage;
+  MediaPageInput: MediaPageInput;
   MediaSynonym: MediaSynonym;
   MediaTitle: MediaTitle;
   MediaTrailer: MediaTrailer;
   Mutation: {};
   Origin: Origin;
-  Page: Page;
-  PageInfo: PageInfo;
+  OriginInput: OriginInput;
+  OriginPageInput: OriginPageInput;
   PlaybackSource: PlaybackSource;
   PlaybackSourceConnection: PlaybackSourceConnection;
   PlaybackSourceEdge: PlaybackSourceEdge;
+  PlaybackSourceInput: PlaybackSourceInput;
+  PlaybackSourcePage: PlaybackSourcePage;
+  PlaybackSourcePageInput: PlaybackSourcePageInput;
   Query: {};
   Resource: Resource;
   ResourceConnection: ResourceConnection;
@@ -1032,7 +1123,6 @@ export type EpisodeResolvers<ContextType = ServerContext, ParentType extends Res
 export type EpisodeConnectionResolvers<ContextType = ServerContext, ParentType extends ResolversParentTypes['EpisodeConnection'] = ResolversParentTypes['EpisodeConnection']> = {
   edges?: Resolver<Array<ResolversTypes['EpisodeEdge']>, ParentType, ContextType>;
   nodes?: Resolver<Array<ResolversTypes['Episode']>, ParentType, ContextType>;
-  pageInfo?: Resolver<Maybe<ResolversTypes['PageInfo']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -1040,6 +1130,20 @@ export type EpisodeEdgeResolvers<ContextType = ServerContext, ParentType extends
   handleRelationType?: Resolver<ResolversTypes['HandleRelation'], ParentType, ContextType>;
   node?: Resolver<ResolversTypes['Episode'], ParentType, ContextType>;
   uri?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type EpisodePageResolvers<ContextType = ServerContext, ParentType extends ResolversParentTypes['EpisodePage'] = ResolversParentTypes['EpisodePage']> = {
+  currentPageCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  firstPageCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  inPage?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  lastPageCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  nextPageCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  nodes?: Resolver<Array<ResolversTypes['Episode']>, ParentType, ContextType>;
+  previousPageCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  total?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  totalAfter?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  totalBefore?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -1067,7 +1171,6 @@ export type HandleConnectionResolvers<ContextType = ServerContext, ParentType ex
   __resolveType: TypeResolveFn<'EpisodeConnection' | 'MediaConnection' | 'PlaybackSourceConnection' | 'ResourceConnection', ParentType, ContextType>;
   edges?: Resolver<Array<ResolversTypes['HandleEdge']>, ParentType, ContextType>;
   nodes?: Resolver<Array<ResolversTypes['Handle']>, ParentType, ContextType>;
-  pageInfo?: Resolver<Maybe<ResolversTypes['PageInfo']>, ParentType, ContextType>;
 };
 
 export type HandleEdgeResolvers<ContextType = ServerContext, ParentType extends ResolversParentTypes['HandleEdge'] = ResolversParentTypes['HandleEdge']> = {
@@ -1129,7 +1232,6 @@ export type MediaAiringScheduleResolvers<ContextType = ServerContext, ParentType
 export type MediaAiringScheduleConnectionResolvers<ContextType = ServerContext, ParentType extends ResolversParentTypes['MediaAiringScheduleConnection'] = ResolversParentTypes['MediaAiringScheduleConnection']> = {
   edges?: Resolver<Maybe<Array<Maybe<ResolversTypes['MediaAiringScheduleEdge']>>>, ParentType, ContextType>;
   nodes?: Resolver<Maybe<Array<Maybe<ResolversTypes['MediaAiringSchedule']>>>, ParentType, ContextType>;
-  pageInfo?: Resolver<Maybe<ResolversTypes['PageInfo']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -1142,7 +1244,6 @@ export type MediaAiringScheduleEdgeResolvers<ContextType = ServerContext, Parent
 export type MediaConnectionResolvers<ContextType = ServerContext, ParentType extends ResolversParentTypes['MediaConnection'] = ResolversParentTypes['MediaConnection']> = {
   edges?: Resolver<Array<ResolversTypes['MediaEdge']>, ParentType, ContextType>;
   nodes?: Resolver<Array<ResolversTypes['Media']>, ParentType, ContextType>;
-  pageInfo?: Resolver<Maybe<ResolversTypes['PageInfo']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -1174,6 +1275,20 @@ export type MediaExternalLinkResolvers<ContextType = ServerContext, ParentType e
   type?: Resolver<Maybe<ResolversTypes['ExternalLinkType']>, ParentType, ContextType>;
   uri?: Resolver<ResolversTypes['Uri'], ParentType, ContextType>;
   url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type MediaPageResolvers<ContextType = ServerContext, ParentType extends ResolversParentTypes['MediaPage'] = ResolversParentTypes['MediaPage']> = {
+  currentPageCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  firstPageCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  inPage?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  lastPageCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  nextPageCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  nodes?: Resolver<Array<ResolversTypes['Media']>, ParentType, ContextType>;
+  previousPageCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  total?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  totalAfter?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  totalBefore?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -1221,28 +1336,6 @@ export type OriginResolvers<ContextType = ServerContext, ParentType extends Reso
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type PageResolvers<ContextType = ServerContext, ParentType extends ResolversParentTypes['Page'] = ResolversParentTypes['Page']> = {
-  episode?: Resolver<Array<ResolversTypes['Episode']>, ParentType, ContextType, Partial<PageEpisodeArgs>>;
-  media?: Resolver<Array<ResolversTypes['Media']>, ParentType, ContextType, Partial<PageMediaArgs>>;
-  origin?: Resolver<Array<ResolversTypes['Origin']>, ParentType, ContextType, Partial<PageOriginArgs>>;
-  pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
-  playbackSource?: Resolver<Array<ResolversTypes['PlaybackSource']>, ParentType, ContextType, Partial<PagePlaybackSourceArgs>>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
-export type PageInfoResolvers<ContextType = ServerContext, ParentType extends ResolversParentTypes['PageInfo'] = ResolversParentTypes['PageInfo']> = {
-  currentPageCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  firstPageCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  inPage?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
-  lastPageCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  nextPageCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  previousPageCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  total?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
-  totalAfter?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
-  totalBefore?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
 export type PlaybackSourceResolvers<ContextType = ServerContext, ParentType extends ResolversParentTypes['PlaybackSource'] = ResolversParentTypes['PlaybackSource']> = {
   bytes?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   data?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -1271,7 +1364,6 @@ export type PlaybackSourceResolvers<ContextType = ServerContext, ParentType exte
 export type PlaybackSourceConnectionResolvers<ContextType = ServerContext, ParentType extends ResolversParentTypes['PlaybackSourceConnection'] = ResolversParentTypes['PlaybackSourceConnection']> = {
   edges?: Resolver<Array<ResolversTypes['PlaybackSourceEdge']>, ParentType, ContextType>;
   nodes?: Resolver<Array<ResolversTypes['PlaybackSource']>, ParentType, ContextType>;
-  pageInfo?: Resolver<Maybe<ResolversTypes['PageInfo']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -1282,13 +1374,30 @@ export type PlaybackSourceEdgeResolvers<ContextType = ServerContext, ParentType 
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type PlaybackSourcePageResolvers<ContextType = ServerContext, ParentType extends ResolversParentTypes['PlaybackSourcePage'] = ResolversParentTypes['PlaybackSourcePage']> = {
+  currentPageCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  firstPageCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  inPage?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  lastPageCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  nextPageCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  nodes?: Resolver<Array<ResolversTypes['PlaybackSource']>, ParentType, ContextType>;
+  previousPageCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  total?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  totalAfter?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  totalBefore?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type QueryResolvers<ContextType = ServerContext, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
-  Episode?: Resolver<Maybe<ResolversTypes['Episode']>, ParentType, ContextType, Partial<QueryEpisodeArgs>>;
-  Media?: Resolver<Maybe<ResolversTypes['Media']>, ParentType, ContextType, Partial<QueryMediaArgs>>;
-  Origin?: Resolver<Maybe<ResolversTypes['Origin']>, ParentType, ContextType, Partial<QueryOriginArgs>>;
-  Page?: Resolver<ResolversTypes['Page'], ParentType, ContextType, Partial<QueryPageArgs>>;
-  PlaybackSource?: Resolver<Maybe<ResolversTypes['PlaybackSource']>, ParentType, ContextType, Partial<QueryPlaybackSourceArgs>>;
   dummy?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  episode?: Resolver<Maybe<ResolversTypes['Episode']>, ParentType, ContextType, Partial<QueryEpisodeArgs>>;
+  episodePage?: Resolver<Maybe<ResolversTypes['EpisodePage']>, ParentType, ContextType, Partial<QueryEpisodePageArgs>>;
+  media?: Resolver<Maybe<ResolversTypes['Media']>, ParentType, ContextType, Partial<QueryMediaArgs>>;
+  mediaPage?: Resolver<Maybe<ResolversTypes['MediaPage']>, ParentType, ContextType, RequireFields<QueryMediaPageArgs, 'input'>>;
+  origin?: Resolver<Maybe<ResolversTypes['Origin']>, ParentType, ContextType, RequireFields<QueryOriginArgs, 'input'>>;
+  originPage?: Resolver<Array<ResolversTypes['Origin']>, ParentType, ContextType, RequireFields<QueryOriginPageArgs, 'input'>>;
+  playbackSource?: Resolver<Maybe<ResolversTypes['PlaybackSource']>, ParentType, ContextType, Partial<QueryPlaybackSourceArgs>>;
+  playbackSourcePage?: Resolver<Maybe<ResolversTypes['PlaybackSourcePage']>, ParentType, ContextType, Partial<QueryPlaybackSourcePageArgs>>;
 };
 
 export type ResourceResolvers<ContextType = ServerContext, ParentType extends ResolversParentTypes['Resource'] = ResolversParentTypes['Resource']> = {
@@ -1305,7 +1414,6 @@ export type ResourceResolvers<ContextType = ServerContext, ParentType extends Re
 export type ResourceConnectionResolvers<ContextType = ServerContext, ParentType extends ResolversParentTypes['ResourceConnection'] = ResolversParentTypes['ResourceConnection']> = {
   edges?: Resolver<Array<ResolversTypes['ResourceEdge']>, ParentType, ContextType>;
   nodes?: Resolver<Array<ResolversTypes['Resource']>, ParentType, ContextType>;
-  pageInfo?: Resolver<Maybe<ResolversTypes['PageInfo']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -1335,6 +1443,7 @@ export type Resolvers<ContextType = ServerContext> = {
   Episode?: EpisodeResolvers<ContextType>;
   EpisodeConnection?: EpisodeConnectionResolvers<ContextType>;
   EpisodeEdge?: EpisodeEdgeResolvers<ContextType>;
+  EpisodePage?: EpisodePageResolvers<ContextType>;
   FuzzyDate?: FuzzyDateResolvers<ContextType>;
   FuzzyDateInt?: GraphQLScalarType;
   Handle?: HandleResolvers<ContextType>;
@@ -1349,16 +1458,16 @@ export type Resolvers<ContextType = ServerContext> = {
   MediaCoverImage?: MediaCoverImageResolvers<ContextType>;
   MediaEdge?: MediaEdgeResolvers<ContextType>;
   MediaExternalLink?: MediaExternalLinkResolvers<ContextType>;
+  MediaPage?: MediaPageResolvers<ContextType>;
   MediaSynonym?: MediaSynonymResolvers<ContextType>;
   MediaTitle?: MediaTitleResolvers<ContextType>;
   MediaTrailer?: MediaTrailerResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   Origin?: OriginResolvers<ContextType>;
-  Page?: PageResolvers<ContextType>;
-  PageInfo?: PageInfoResolvers<ContextType>;
   PlaybackSource?: PlaybackSourceResolvers<ContextType>;
   PlaybackSourceConnection?: PlaybackSourceConnectionResolvers<ContextType>;
   PlaybackSourceEdge?: PlaybackSourceEdgeResolvers<ContextType>;
+  PlaybackSourcePage?: PlaybackSourcePageResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   Resource?: ResourceResolvers<ContextType>;
   ResourceConnection?: ResourceConnectionResolvers<ContextType>;

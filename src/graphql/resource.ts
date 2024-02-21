@@ -23,9 +23,6 @@ type ResourceEdge implements HandleEdge {
 type ResourceConnection implements HandleConnection {
   edges: [ResourceEdge!]!
   nodes: [Resource!]!
-
-  """The pagination information"""
-  pageInfo: PageInfo
 }
 
 `

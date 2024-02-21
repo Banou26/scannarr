@@ -75,19 +75,8 @@ export const populatePlaybackSource = (playbackSource: PlaybackSource, resolve?:
 })
 
 export const serverResolvers = ({ origins, context }: { origins: any[], context?: () => Promise<ServerContext> }) => ({
-  Page: {
-    playbackSource: async (parent, args, ctx, info) => {
-      const results = await getOriginResults({ ctx, origins, context })
-      console.log('results', results)
-      const { scannarrHandles } = groupRelatedHandles({
-        typename: 'PlaybackSource',
-        results: (results?.flatMap(results => results.data.Page.playbackSource ?? []) ?? []) as PlaybackSource[]
-      })
-      return scannarrHandles.map((handle) => populatePlaybackSource(handle))
-    }
-  },
   Query: {
-    PlaybackSource: (parent, args, ctx, info) => {
+    playbackSource: (parent, args, ctx, info) => {
       const results = getOriginResultsStreamed({ ctx, origins, context })
       return populatePlaybackSource({
         origin: 'scannarr',
@@ -97,15 +86,30 @@ export const serverResolvers = ({ origins, context }: { origins: any[], context?
           // @ts-ignore
           async *edges (...args) {
             for await (const result of results) {
-              if (!result.data.PlaybackSource) continue
+              if (result.error) console.error(result.error)
+              if (!result.data.playbackSource) continue
               yield {
                 __typename: 'PlaybackSourceEdge',
-                node: populatePlaybackSource(result.data.PlaybackSource)
+                node: populatePlaybackSource(result.data.playbackSource)
               }
             }
           }
         }
       })
+    },
+    playbackSourcePage: async (parent, args, ctx, info) => {
+      const results = await getOriginResults({ ctx, origins, context })
+      for (const result of results) {
+        if (!result.error) continue
+        console.error(result.error)
+      }
+      const { scannarrHandles } = groupRelatedHandles({
+        typename: 'PlaybackSource',
+        results: (results?.flatMap(results => results.data?.playbackSourcePage?.nodes ?? []) ?? []) as PlaybackSource[]
+      })
+      return {
+        nodes: scannarrHandles.map((handle) => populatePlaybackSource(handle))
+      }
     }
   }
 })

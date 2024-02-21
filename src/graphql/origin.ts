@@ -1,36 +1,36 @@
-
-
-export const OriginParameters = `#graphql
-    """Filter by the media id"""
-    id: String
-    """Filter by the media origin"""
-    name: String
-    """Filter by if the origin is official"""
-    official: Boolean
-    """Filter by if the origin only returns metadata"""
-    metadataOnly: Boolean
-    """Filter by origin categories"""
-    categories: [MediaType!]
-`
-
-// This is used the origin page query
-export const OriginsParameters = `#graphql
-    """Filter by the media id"""
-    ids: [String!]
-    """Filter by the media origin"""
-    names: [String!]
-    """Filter by if the origin is official"""
-    official: Boolean
-    """Filter by if the origin only returns metadata"""
-    metadataOnly: Boolean
-    """Filter by origin categories"""
-    categories: [MediaType!]
-`
-
 export const schema = `#graphql
 
+input OriginInput {
+  """Filter by the media id"""
+  id: String
+  """Filter by the media origin"""
+  name: String
+  """Filter by if the origin is official"""
+  official: Boolean
+  """Filter by if the origin only returns metadata"""
+  metadataOnly: Boolean
+  """Filter by origin categories"""
+  categories: [MediaType!]
+}
+
+
+input OriginPageInput {
+  """Filter by the media id"""
+  ids: [String!]
+  """Filter by the media origin"""
+  names: [String!]
+  """Filter by if the origin is official"""
+  official: Boolean
+  """Filter by if the origin only returns metadata"""
+  metadataOnly: Boolean
+  """Filter by origin categories"""
+  categories: [MediaType!]
+}
+
 extend type Query {
-  Origin(${OriginParameters}): Origin
+  origin(input: OriginInput!): Origin
+
+  originPage(input: OriginPageInput!): [Origin!]!
 }
 
 """

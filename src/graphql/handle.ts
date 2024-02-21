@@ -32,9 +32,6 @@ interface HandleEdge {
 interface HandleConnection {
   edges: [HandleEdge!]!
   nodes: [Handle!]!
-
-  """The pagination information"""
-  pageInfo: PageInfo
 }
 
 `
