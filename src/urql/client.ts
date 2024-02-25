@@ -46,6 +46,7 @@ export const makeScannarrClient = (
       //   }
       //   return media.uri
       // },
+      OriginAuthentication: () => null,
       MediaPage: () => null,
       Media: (media) => {
         const handles = (media as Media).handles?.edges.map(handle => handle.node.uri)

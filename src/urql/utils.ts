@@ -147,6 +147,35 @@ export const makeScannarrHandle = ({ typename, handles, readField }: { typename:
   return res
 }
 
+export const getOriginResult = async (
+  { ctx, origin, context }:
+  { ctx: YogaInitialContext, origin: any, context?: () => Promise<ServerContext> }
+) =>
+  origin
+    .server
+    .handleRequest(
+      new Request(
+        ctx.request.url,
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            query: ctx.params.query?.replaceAll('@stream', ''),
+            variables: ctx.params.variables
+          }),
+          headers: { 'Content-Type': 'application/json' }
+        }
+      ),
+      {
+        ...await context?.(),
+        server: origin.server,
+        origin: {
+          ...origin.origin,
+          id: origin.origin.origin
+        }
+      }
+    )
+    .then(response => response.json())
+
 export const getOriginResults = async (
   { ctx, origins, context }:
   { ctx: YogaInitialContext, origins: any[], context?: () => Promise<ServerContext> }
@@ -198,6 +227,10 @@ export const getOriginResults = async (
                       {
                         ...await context?.(),
                         server,
+                        origin: {
+                          ...origin,
+                          id: origin.origin
+                        },
                         results:
                           resultPromises
                             .filter(({ origin: _origin }) => _origin.origin !== origin.origin)

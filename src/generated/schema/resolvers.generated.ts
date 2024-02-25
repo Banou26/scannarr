@@ -22,7 +22,13 @@ import    { MediaSynonym } from './resolvers/MediaSynonym';
 import    { MediaTitle } from './resolvers/MediaTitle';
 import    { MediaTrailer } from './resolvers/MediaTrailer';
 import    { dummy as Mutation_dummy } from './resolvers/Mutation/dummy';
+import    { originAuthenticate as Mutation_originAuthenticate } from './resolvers/Mutation/originAuthenticate';
 import    { Origin } from './resolvers/Origin';
+import    { OriginAuthenticate } from './resolvers/OriginAuthenticate';
+import    { OriginAuthenticateOauth2 } from './resolvers/OriginAuthenticateOauth2';
+import    { OriginAuthentication } from './resolvers/OriginAuthentication';
+import    { OriginAuthenticationMethod } from './resolvers/OriginAuthenticationMethod';
+import    { OriginAuthenticationMethodHeaderValue } from './resolvers/OriginAuthenticationMethodHeaderValue';
 import    { PlaybackSource } from './resolvers/PlaybackSource';
 import    { PlaybackSourceConnection } from './resolvers/PlaybackSourceConnection';
 import    { PlaybackSourceEdge } from './resolvers/PlaybackSourceEdge';
@@ -33,6 +39,7 @@ import    { episodePage as Query_episodePage } from './resolvers/Query/episodePa
 import    { media as Query_media } from './resolvers/Query/media';
 import    { mediaPage as Query_mediaPage } from './resolvers/Query/mediaPage';
 import    { origin as Query_origin } from './resolvers/Query/origin';
+import    { originAuthentication as Query_originAuthentication } from './resolvers/Query/originAuthentication';
 import    { originPage as Query_originPage } from './resolvers/Query/originPage';
 import    { playbackSource as Query_playbackSource } from './resolvers/Query/playbackSource';
 import    { playbackSourcePage as Query_playbackSourcePage } from './resolvers/Query/playbackSourcePage';
@@ -42,8 +49,8 @@ import    { ResourceEdge } from './resolvers/ResourceEdge';
 import    { Team } from './resolvers/Team';
 import    { Uri } from './resolvers/Uri';
     export const resolvers: Resolvers = {
-      Query: { dummy: Query_dummy,episode: Query_episode,episodePage: Query_episodePage,media: Query_media,mediaPage: Query_mediaPage,origin: Query_origin,originPage: Query_originPage,playbackSource: Query_playbackSource,playbackSourcePage: Query_playbackSourcePage },
-      Mutation: { dummy: Mutation_dummy },
+      Query: { dummy: Query_dummy,episode: Query_episode,episodePage: Query_episodePage,media: Query_media,mediaPage: Query_mediaPage,origin: Query_origin,originAuthentication: Query_originAuthentication,originPage: Query_originPage,playbackSource: Query_playbackSource,playbackSourcePage: Query_playbackSourcePage },
+      Mutation: { dummy: Mutation_dummy,originAuthenticate: Mutation_originAuthenticate },
       
       CountryCode: CountryCode,
 Date: Date,
@@ -67,6 +74,11 @@ MediaSynonym: MediaSynonym,
 MediaTitle: MediaTitle,
 MediaTrailer: MediaTrailer,
 Origin: Origin,
+OriginAuthenticate: OriginAuthenticate,
+OriginAuthenticateOauth2: OriginAuthenticateOauth2,
+OriginAuthentication: OriginAuthentication,
+OriginAuthenticationMethod: OriginAuthenticationMethod,
+OriginAuthenticationMethodHeaderValue: OriginAuthenticationMethodHeaderValue,
 PlaybackSource: PlaybackSource,
 PlaybackSourceConnection: PlaybackSourceConnection,
 PlaybackSourceEdge: PlaybackSourceEdge,

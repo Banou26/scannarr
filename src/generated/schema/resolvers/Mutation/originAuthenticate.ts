@@ -1,0 +1,2 @@
+import type   { MutationResolvers } from './../../types.generated';
+        export const originAuthenticate: NonNullable<MutationResolvers['originAuthenticate']> = async (_parent, _arg, _ctx) => { /* Implement Mutation.originAuthenticate resolver logic here */ };

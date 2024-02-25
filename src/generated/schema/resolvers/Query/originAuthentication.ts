@@ -1,0 +1,2 @@
+import type   { QueryResolvers } from './../../types.generated';
+        export const originAuthentication: NonNullable<QueryResolvers['originAuthentication']> = async (_parent, _arg, _ctx) => { /* Implement Query.originAuthentication resolver logic here */ };

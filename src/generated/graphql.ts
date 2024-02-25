@@ -662,6 +662,12 @@ export enum MediaType {
 export type Mutation = {
   __typename?: 'Mutation';
   dummy?: Maybe<Scalars['String']>;
+  originAuthenticate: OriginAuthenticate;
+};
+
+
+export type MutationOriginAuthenticateArgs = {
+  input: OriginAuthenticateInput;
 };
 
 /**
@@ -688,6 +694,63 @@ export type Origin = {
   /** The origin's URL, e.g "https://www.netflix.com/""  */
   url?: Maybe<Scalars['String']>;
 };
+
+export type OriginAuthenticate = {
+  __typename?: 'OriginAuthenticate';
+  oauth2?: Maybe<OriginAuthenticateOauth2>;
+};
+
+export type OriginAuthenticateInput = {
+  oauth2?: InputMaybe<OriginAuthenticateInputOauth2>;
+  origin: Scalars['String'];
+  type: OriginAuthenticationMethodType;
+};
+
+export type OriginAuthenticateInputOauth2 = {
+  authorizationCode: Scalars['String'];
+  clientId: Scalars['String'];
+  codeVerifier: Scalars['String'];
+  grantType: Scalars['String'];
+  redirectUri: Scalars['String'];
+};
+
+export type OriginAuthenticateOauth2 = {
+  __typename?: 'OriginAuthenticateOauth2';
+  accessToken: Scalars['String'];
+  expiresIn: Scalars['Int'];
+  refreshToken: Scalars['String'];
+  tokenType: Scalars['String'];
+};
+
+export type OriginAuthentication = {
+  __typename?: 'OriginAuthentication';
+  authentication?: Maybe<Scalars['Boolean']>;
+  methods?: Maybe<Array<OriginAuthenticationMethod>>;
+  origin: Origin;
+};
+
+export type OriginAuthenticationMethod = {
+  __typename?: 'OriginAuthenticationMethod';
+  body?: Maybe<Scalars['String']>;
+  headers?: Maybe<Array<OriginAuthenticationMethodHeaderValue>>;
+  type: OriginAuthenticationMethodType;
+  url?: Maybe<Scalars['String']>;
+};
+
+export type OriginAuthenticationMethodHeaderValue = {
+  __typename?: 'OriginAuthenticationMethodHeaderValue';
+  key: Scalars['String'];
+  value: Scalars['String'];
+};
+
+export type OriginAuthenticationMethodHeaderValueInput = {
+  key: Scalars['String'];
+  value: Scalars['String'];
+};
+
+export enum OriginAuthenticationMethodType {
+  Oauth2 = 'OAUTH2'
+}
 
 export type OriginInput = {
   /** Filter by origin categories */
@@ -829,6 +892,7 @@ export type Query = {
   media?: Maybe<Media>;
   mediaPage?: Maybe<MediaPage>;
   origin?: Maybe<Origin>;
+  originAuthentication: Array<OriginAuthentication>;
   originPage: Array<Origin>;
   playbackSource?: Maybe<PlaybackSource>;
   playbackSourcePage?: Maybe<PlaybackSourcePage>;
@@ -1022,6 +1086,15 @@ export type ResolversTypes = {
   MediaType: MediaType;
   Mutation: ResolverTypeWrapper<{}>;
   Origin: ResolverTypeWrapper<Origin>;
+  OriginAuthenticate: ResolverTypeWrapper<OriginAuthenticate>;
+  OriginAuthenticateInput: OriginAuthenticateInput;
+  OriginAuthenticateInputOauth2: OriginAuthenticateInputOauth2;
+  OriginAuthenticateOauth2: ResolverTypeWrapper<OriginAuthenticateOauth2>;
+  OriginAuthentication: ResolverTypeWrapper<OriginAuthentication>;
+  OriginAuthenticationMethod: ResolverTypeWrapper<OriginAuthenticationMethod>;
+  OriginAuthenticationMethodHeaderValue: ResolverTypeWrapper<OriginAuthenticationMethodHeaderValue>;
+  OriginAuthenticationMethodHeaderValueInput: OriginAuthenticationMethodHeaderValueInput;
+  OriginAuthenticationMethodType: OriginAuthenticationMethodType;
   OriginInput: OriginInput;
   OriginPageInput: OriginPageInput;
   PlaybackSource: ResolverTypeWrapper<PlaybackSource>;
@@ -1077,6 +1150,14 @@ export type ResolversParentTypes = {
   MediaTrailer: MediaTrailer;
   Mutation: {};
   Origin: Origin;
+  OriginAuthenticate: OriginAuthenticate;
+  OriginAuthenticateInput: OriginAuthenticateInput;
+  OriginAuthenticateInputOauth2: OriginAuthenticateInputOauth2;
+  OriginAuthenticateOauth2: OriginAuthenticateOauth2;
+  OriginAuthentication: OriginAuthentication;
+  OriginAuthenticationMethod: OriginAuthenticationMethod;
+  OriginAuthenticationMethodHeaderValue: OriginAuthenticationMethodHeaderValue;
+  OriginAuthenticationMethodHeaderValueInput: OriginAuthenticationMethodHeaderValueInput;
   OriginInput: OriginInput;
   OriginPageInput: OriginPageInput;
   PlaybackSource: PlaybackSource;
@@ -1321,6 +1402,7 @@ export type MediaTrailerResolvers<ContextType = ServerContext, ParentType extend
 
 export type MutationResolvers<ContextType = ServerContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   dummy?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  originAuthenticate?: Resolver<ResolversTypes['OriginAuthenticate'], ParentType, ContextType, RequireFields<MutationOriginAuthenticateArgs, 'input'>>;
 };
 
 export type OriginResolvers<ContextType = ServerContext, ParentType extends ResolversParentTypes['Origin'] = ResolversParentTypes['Origin']> = {
@@ -1333,6 +1415,40 @@ export type OriginResolvers<ContextType = ServerContext, ParentType extends Reso
   origin?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   supportedUris?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
   url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type OriginAuthenticateResolvers<ContextType = ServerContext, ParentType extends ResolversParentTypes['OriginAuthenticate'] = ResolversParentTypes['OriginAuthenticate']> = {
+  oauth2?: Resolver<Maybe<ResolversTypes['OriginAuthenticateOauth2']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type OriginAuthenticateOauth2Resolvers<ContextType = ServerContext, ParentType extends ResolversParentTypes['OriginAuthenticateOauth2'] = ResolversParentTypes['OriginAuthenticateOauth2']> = {
+  accessToken?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  expiresIn?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  refreshToken?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  tokenType?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type OriginAuthenticationResolvers<ContextType = ServerContext, ParentType extends ResolversParentTypes['OriginAuthentication'] = ResolversParentTypes['OriginAuthentication']> = {
+  authentication?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  methods?: Resolver<Maybe<Array<ResolversTypes['OriginAuthenticationMethod']>>, ParentType, ContextType>;
+  origin?: Resolver<ResolversTypes['Origin'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type OriginAuthenticationMethodResolvers<ContextType = ServerContext, ParentType extends ResolversParentTypes['OriginAuthenticationMethod'] = ResolversParentTypes['OriginAuthenticationMethod']> = {
+  body?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  headers?: Resolver<Maybe<Array<ResolversTypes['OriginAuthenticationMethodHeaderValue']>>, ParentType, ContextType>;
+  type?: Resolver<ResolversTypes['OriginAuthenticationMethodType'], ParentType, ContextType>;
+  url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type OriginAuthenticationMethodHeaderValueResolvers<ContextType = ServerContext, ParentType extends ResolversParentTypes['OriginAuthenticationMethodHeaderValue'] = ResolversParentTypes['OriginAuthenticationMethodHeaderValue']> = {
+  key?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  value?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -1395,6 +1511,7 @@ export type QueryResolvers<ContextType = ServerContext, ParentType extends Resol
   media?: Resolver<Maybe<ResolversTypes['Media']>, ParentType, ContextType, Partial<QueryMediaArgs>>;
   mediaPage?: Resolver<Maybe<ResolversTypes['MediaPage']>, ParentType, ContextType, RequireFields<QueryMediaPageArgs, 'input'>>;
   origin?: Resolver<Maybe<ResolversTypes['Origin']>, ParentType, ContextType, RequireFields<QueryOriginArgs, 'input'>>;
+  originAuthentication?: Resolver<Array<ResolversTypes['OriginAuthentication']>, ParentType, ContextType>;
   originPage?: Resolver<Array<ResolversTypes['Origin']>, ParentType, ContextType, RequireFields<QueryOriginPageArgs, 'input'>>;
   playbackSource?: Resolver<Maybe<ResolversTypes['PlaybackSource']>, ParentType, ContextType, Partial<QueryPlaybackSourceArgs>>;
   playbackSourcePage?: Resolver<Maybe<ResolversTypes['PlaybackSourcePage']>, ParentType, ContextType, Partial<QueryPlaybackSourcePageArgs>>;
@@ -1464,6 +1581,11 @@ export type Resolvers<ContextType = ServerContext> = {
   MediaTrailer?: MediaTrailerResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   Origin?: OriginResolvers<ContextType>;
+  OriginAuthenticate?: OriginAuthenticateResolvers<ContextType>;
+  OriginAuthenticateOauth2?: OriginAuthenticateOauth2Resolvers<ContextType>;
+  OriginAuthentication?: OriginAuthenticationResolvers<ContextType>;
+  OriginAuthenticationMethod?: OriginAuthenticationMethodResolvers<ContextType>;
+  OriginAuthenticationMethodHeaderValue?: OriginAuthenticationMethodHeaderValueResolvers<ContextType>;
   PlaybackSource?: PlaybackSourceResolvers<ContextType>;
   PlaybackSourceConnection?: PlaybackSourceConnectionResolvers<ContextType>;
   PlaybackSourceEdge?: PlaybackSourceEdgeResolvers<ContextType>;
