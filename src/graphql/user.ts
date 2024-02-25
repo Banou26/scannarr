@@ -56,7 +56,26 @@ type OriginAuthenticate {
   oauth2: OriginAuthenticateOauth2
 }
 
+type OriginUser {
+  id: ID!
+  username: String!
+  email: String
+  avatar: String
+}
+
+input OriginUserInputOauth2 {
+  accessToken: String!
+  tokenType: String!
+}
+
+input OriginUserInput {
+  origin: String!
+  type: OriginAuthenticationMethodType!
+  oauth2: OriginUserInputOauth2
+}
+
 extend type Query {
+  originUser(input: OriginUserInput!): OriginUser!
   originAuthentication: [OriginAuthentication!]!
 }
 

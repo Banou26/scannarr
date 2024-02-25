@@ -778,6 +778,25 @@ export type OriginPageInput = {
   official?: InputMaybe<Scalars['Boolean']>;
 };
 
+export type OriginUser = {
+  __typename?: 'OriginUser';
+  avatar?: Maybe<Scalars['String']>;
+  email?: Maybe<Scalars['String']>;
+  id: Scalars['ID'];
+  username: Scalars['String'];
+};
+
+export type OriginUserInput = {
+  oauth2?: InputMaybe<OriginUserInputOauth2>;
+  origin: Scalars['String'];
+  type: OriginAuthenticationMethodType;
+};
+
+export type OriginUserInputOauth2 = {
+  accessToken: Scalars['String'];
+  tokenType: Scalars['String'];
+};
+
 export type PlaybackSource = Handle & {
   __typename?: 'PlaybackSource';
   bytes?: Maybe<Scalars['Float']>;
@@ -894,6 +913,7 @@ export type Query = {
   origin?: Maybe<Origin>;
   originAuthentication: Array<OriginAuthentication>;
   originPage: Array<Origin>;
+  originUser: OriginUser;
   playbackSource?: Maybe<PlaybackSource>;
   playbackSourcePage?: Maybe<PlaybackSourcePage>;
 };
@@ -926,6 +946,11 @@ export type QueryOriginArgs = {
 
 export type QueryOriginPageArgs = {
   input: OriginPageInput;
+};
+
+
+export type QueryOriginUserArgs = {
+  input: OriginUserInput;
 };
 
 
@@ -1062,6 +1087,7 @@ export type ResolversTypes = {
   HandleConnection: ResolversTypes['EpisodeConnection'] | ResolversTypes['MediaConnection'] | ResolversTypes['PlaybackSourceConnection'] | ResolversTypes['ResourceConnection'];
   HandleEdge: ResolversTypes['EpisodeEdge'] | ResolversTypes['MediaEdge'] | ResolversTypes['PlaybackSourceEdge'] | ResolversTypes['ResourceEdge'];
   HandleRelation: HandleRelation;
+  ID: ResolverTypeWrapper<Scalars['ID']>;
   Int: ResolverTypeWrapper<Scalars['Int']>;
   Json: ResolverTypeWrapper<Scalars['Json']>;
   Media: ResolverTypeWrapper<Media>;
@@ -1097,6 +1123,9 @@ export type ResolversTypes = {
   OriginAuthenticationMethodType: OriginAuthenticationMethodType;
   OriginInput: OriginInput;
   OriginPageInput: OriginPageInput;
+  OriginUser: ResolverTypeWrapper<OriginUser>;
+  OriginUserInput: OriginUserInput;
+  OriginUserInputOauth2: OriginUserInputOauth2;
   PlaybackSource: ResolverTypeWrapper<PlaybackSource>;
   PlaybackSourceConnection: ResolverTypeWrapper<PlaybackSourceConnection>;
   PlaybackSourceEdge: ResolverTypeWrapper<PlaybackSourceEdge>;
@@ -1132,6 +1161,7 @@ export type ResolversParentTypes = {
   Handle: ResolversParentTypes['Episode'] | ResolversParentTypes['Media'] | ResolversParentTypes['MediaAiringSchedule'] | ResolversParentTypes['MediaExternalLink'] | ResolversParentTypes['MediaTrailer'] | ResolversParentTypes['PlaybackSource'] | ResolversParentTypes['Resource'] | ResolversParentTypes['Team'];
   HandleConnection: ResolversParentTypes['EpisodeConnection'] | ResolversParentTypes['MediaConnection'] | ResolversParentTypes['PlaybackSourceConnection'] | ResolversParentTypes['ResourceConnection'];
   HandleEdge: ResolversParentTypes['EpisodeEdge'] | ResolversParentTypes['MediaEdge'] | ResolversParentTypes['PlaybackSourceEdge'] | ResolversParentTypes['ResourceEdge'];
+  ID: Scalars['ID'];
   Int: Scalars['Int'];
   Json: Scalars['Json'];
   Media: Media;
@@ -1160,6 +1190,9 @@ export type ResolversParentTypes = {
   OriginAuthenticationMethodHeaderValueInput: OriginAuthenticationMethodHeaderValueInput;
   OriginInput: OriginInput;
   OriginPageInput: OriginPageInput;
+  OriginUser: OriginUser;
+  OriginUserInput: OriginUserInput;
+  OriginUserInputOauth2: OriginUserInputOauth2;
   PlaybackSource: PlaybackSource;
   PlaybackSourceConnection: PlaybackSourceConnection;
   PlaybackSourceEdge: PlaybackSourceEdge;
@@ -1452,6 +1485,14 @@ export type OriginAuthenticationMethodHeaderValueResolvers<ContextType = ServerC
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type OriginUserResolvers<ContextType = ServerContext, ParentType extends ResolversParentTypes['OriginUser'] = ResolversParentTypes['OriginUser']> = {
+  avatar?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  email?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  username?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type PlaybackSourceResolvers<ContextType = ServerContext, ParentType extends ResolversParentTypes['PlaybackSource'] = ResolversParentTypes['PlaybackSource']> = {
   bytes?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   data?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -1513,6 +1554,7 @@ export type QueryResolvers<ContextType = ServerContext, ParentType extends Resol
   origin?: Resolver<Maybe<ResolversTypes['Origin']>, ParentType, ContextType, RequireFields<QueryOriginArgs, 'input'>>;
   originAuthentication?: Resolver<Array<ResolversTypes['OriginAuthentication']>, ParentType, ContextType>;
   originPage?: Resolver<Array<ResolversTypes['Origin']>, ParentType, ContextType, RequireFields<QueryOriginPageArgs, 'input'>>;
+  originUser?: Resolver<ResolversTypes['OriginUser'], ParentType, ContextType, RequireFields<QueryOriginUserArgs, 'input'>>;
   playbackSource?: Resolver<Maybe<ResolversTypes['PlaybackSource']>, ParentType, ContextType, Partial<QueryPlaybackSourceArgs>>;
   playbackSourcePage?: Resolver<Maybe<ResolversTypes['PlaybackSourcePage']>, ParentType, ContextType, Partial<QueryPlaybackSourcePageArgs>>;
 };
@@ -1586,6 +1628,7 @@ export type Resolvers<ContextType = ServerContext> = {
   OriginAuthentication?: OriginAuthenticationResolvers<ContextType>;
   OriginAuthenticationMethod?: OriginAuthenticationMethodResolvers<ContextType>;
   OriginAuthenticationMethodHeaderValue?: OriginAuthenticationMethodHeaderValueResolvers<ContextType>;
+  OriginUser?: OriginUserResolvers<ContextType>;
   PlaybackSource?: PlaybackSourceResolvers<ContextType>;
   PlaybackSourceConnection?: PlaybackSourceConnectionResolvers<ContextType>;
   PlaybackSourceEdge?: PlaybackSourceEdgeResolvers<ContextType>;

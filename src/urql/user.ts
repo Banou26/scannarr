@@ -21,6 +21,22 @@ export const serverResolvers = ({ origins, context }: { origins: any[], context?
             }
           }))
       )
+    },
+    originUser: async (parent, { input }, ctx, info) => {
+      const origin = origins.find(origin => origin.origin.origin === input.origin)
+      const result = await getOriginResult({ ctx, origin, context })
+      console.log('result', result)
+      if (result.errors) {
+        throw new Error(
+          result
+            .errors
+            .map(error =>
+              `Laserr Error from "${origin.origin.origin}" at ${error.path.join('->')}: ${error.message}`
+            )
+            .join('\n')
+        )
+      }
+      return result?.data?.originUser
     }
   },
   Mutation: {
