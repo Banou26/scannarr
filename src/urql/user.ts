@@ -1,5 +1,7 @@
-import { getOriginResult, getOriginResults } from './utils'
+import { getOriginResult, getOriginResults, groupRelatedHandles } from './utils'
 import { ServerContext } from './client'
+import { populateMedia } from './media'
+import { Media } from '../generated/graphql'
 
 export const serverResolvers = ({ origins, context }: { origins: any[], context?: () => Promise<ServerContext> }) => ({
   Query: {
@@ -25,7 +27,6 @@ export const serverResolvers = ({ origins, context }: { origins: any[], context?
     originUser: async (parent, { input }, ctx, info) => {
       const origin = origins.find(origin => origin.origin.origin === input.origin)
       const result = await getOriginResult({ ctx, origin, context })
-      console.log('result', result)
       if (result.errors) {
         throw new Error(
           result
@@ -37,13 +38,36 @@ export const serverResolvers = ({ origins, context }: { origins: any[], context?
         )
       }
       return result?.data?.originUser
+    },
+
+    originUserMediaPage: async (parent, { input }, ctx, info) => {
+      const results = await getOriginResults({ ctx, origins, context })
+      for (const i in results) {
+        const result = results[i]
+        if (!result.errors) continue
+        const origin = origins[i]
+        console.error(
+          result
+            .errors
+            .map(error =>
+              `Laserr Error from "${origin.origin.origin}" at ${error.path.join('->')}: ${error.message}`
+            )
+            .join('\n')
+        )
+      }
+      const { scannarrHandles } = groupRelatedHandles({
+        typename: 'Media',
+        results: (results?.flatMap(results => results.data.originUserMediaPage?.nodes ?? []) ?? []) as Media[]
+      })
+      return {
+        nodes: scannarrHandles.map(media => populateMedia(media))
+      }
     }
   },
   Mutation: {
     originAuthenticate: async (parent, { input }, ctx, info) => {
       const origin = origins.find(origin => origin.origin.origin === input.origin)
       const result = await getOriginResult({ ctx, origin, context })
-      console.log('result', result)
       if (result.errors) {
         throw new Error(
           result

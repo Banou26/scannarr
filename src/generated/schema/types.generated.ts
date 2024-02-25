@@ -785,6 +785,54 @@ export type OriginUserInputOauth2 = {
   tokenType: Scalars['String']['input'];
 };
 
+export type OriginUserMediaPage = {
+  __typename?: 'OriginUserMediaPage';
+  /** The current page */
+  currentPageCursor?: Maybe<Scalars['String']['output']>;
+  /** The first page */
+  firstPageCursor?: Maybe<Scalars['String']['output']>;
+  /** Total number of items on the current page */
+  inPage?: Maybe<Scalars['Int']['output']>;
+  /** The last page cursor */
+  lastPageCursor?: Maybe<Scalars['String']['output']>;
+  /** The current page */
+  nextPageCursor?: Maybe<Scalars['String']['output']>;
+  /** The media page nodes */
+  nodes: Array<Media>;
+  /** The current page */
+  previousPageCursor?: Maybe<Scalars['String']['output']>;
+  /** The total number of items. Note: This value is not guaranteed to be accurate, do not rely on this for logic */
+  total?: Maybe<Scalars['Int']['output']>;
+  /** Total number of items after the current page. Note: This value is not guaranteed to be accurate, do not rely on this for logic */
+  totalAfter?: Maybe<Scalars['Int']['output']>;
+  /** Total number of items before the current page. Note: This value is not guaranteed to be accurate, do not rely on this for logic */
+  totalBefore?: Maybe<Scalars['Int']['output']>;
+};
+
+export type OriginUserMediaPageInput = {
+  authentications: Array<OriginUserMediaPageInputAuthentication>;
+  status?: InputMaybe<Array<OriginUserMediaStatus>>;
+};
+
+export type OriginUserMediaPageInputAuthentication = {
+  oauth2?: InputMaybe<OriginUserInputOauth2>;
+  origin: Scalars['String']['input'];
+  type: OriginAuthenticationMethodType;
+};
+
+/** The current releasing status of the media */
+export type OriginUserMediaStatus =
+  /** Has completed */
+  | 'COMPLETED'
+  /** Dropped */
+  | 'DROPPED'
+  /** Put on hold */
+  | 'ON_HOLD'
+  /** Planning to watch */
+  | 'PLAN_TO_WATCH'
+  /** Currently watching */
+  | 'WATCHING';
+
 export type PlaybackSource = Handle & {
   __typename?: 'PlaybackSource';
   bytes?: Maybe<Scalars['Float']['output']>;
@@ -900,6 +948,7 @@ export type Query = {
   originAuthentication: Array<OriginAuthentication>;
   originPage: Array<Origin>;
   originUser: OriginUser;
+  originUserMediaPage: OriginUserMediaPage;
   playbackSource?: Maybe<PlaybackSource>;
   playbackSourcePage?: Maybe<PlaybackSourcePage>;
 };
@@ -937,6 +986,11 @@ export type QueryOriginPageArgs = {
 
 export type QueryOriginUserArgs = {
   input: OriginUserInput;
+};
+
+
+export type QueryOriginUserMediaPageArgs = {
+  input: OriginUserMediaPageInput;
 };
 
 
@@ -1120,6 +1174,10 @@ export type ResolversTypes = {
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   OriginUserInput: OriginUserInput;
   OriginUserInputOauth2: OriginUserInputOauth2;
+  OriginUserMediaPage: ResolverTypeWrapper<OriginUserMediaPage>;
+  OriginUserMediaPageInput: OriginUserMediaPageInput;
+  OriginUserMediaPageInputAuthentication: OriginUserMediaPageInputAuthentication;
+  OriginUserMediaStatus: OriginUserMediaStatus;
   PlaybackSource: ResolverTypeWrapper<PlaybackSource>;
   PlaybackSourceConnection: ResolverTypeWrapper<PlaybackSourceConnection>;
   PlaybackSourceEdge: ResolverTypeWrapper<PlaybackSourceEdge>;
@@ -1187,6 +1245,9 @@ export type ResolversParentTypes = {
   ID: Scalars['ID']['output'];
   OriginUserInput: OriginUserInput;
   OriginUserInputOauth2: OriginUserInputOauth2;
+  OriginUserMediaPage: OriginUserMediaPage;
+  OriginUserMediaPageInput: OriginUserMediaPageInput;
+  OriginUserMediaPageInputAuthentication: OriginUserMediaPageInputAuthentication;
   PlaybackSource: PlaybackSource;
   PlaybackSourceConnection: PlaybackSourceConnection;
   PlaybackSourceEdge: PlaybackSourceEdge;
@@ -1486,6 +1547,20 @@ export type OriginUserResolvers<ContextType = any, ParentType extends ResolversP
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type OriginUserMediaPageResolvers<ContextType = any, ParentType extends ResolversParentTypes['OriginUserMediaPage'] = ResolversParentTypes['OriginUserMediaPage']> = {
+  currentPageCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  firstPageCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  inPage?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  lastPageCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  nextPageCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  nodes?: Resolver<Array<ResolversTypes['Media']>, ParentType, ContextType>;
+  previousPageCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  total?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  totalAfter?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  totalBefore?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type PlaybackSourceResolvers<ContextType = any, ParentType extends ResolversParentTypes['PlaybackSource'] = ResolversParentTypes['PlaybackSource']> = {
   bytes?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   data?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -1548,6 +1623,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   originAuthentication?: Resolver<Array<ResolversTypes['OriginAuthentication']>, ParentType, ContextType>;
   originPage?: Resolver<Array<ResolversTypes['Origin']>, ParentType, ContextType, RequireFields<QueryOriginPageArgs, 'input'>>;
   originUser?: Resolver<ResolversTypes['OriginUser'], ParentType, ContextType, RequireFields<QueryOriginUserArgs, 'input'>>;
+  originUserMediaPage?: Resolver<ResolversTypes['OriginUserMediaPage'], ParentType, ContextType, RequireFields<QueryOriginUserMediaPageArgs, 'input'>>;
   playbackSource?: Resolver<Maybe<ResolversTypes['PlaybackSource']>, ParentType, ContextType, Partial<QueryPlaybackSourceArgs>>;
   playbackSourcePage?: Resolver<Maybe<ResolversTypes['PlaybackSourcePage']>, ParentType, ContextType, Partial<QueryPlaybackSourcePageArgs>>;
 };
@@ -1622,6 +1698,7 @@ export type Resolvers<ContextType = any> = {
   OriginAuthenticationMethod?: OriginAuthenticationMethodResolvers<ContextType>;
   OriginAuthenticationMethodHeaderValue?: OriginAuthenticationMethodHeaderValueResolvers<ContextType>;
   OriginUser?: OriginUserResolvers<ContextType>;
+  OriginUserMediaPage?: OriginUserMediaPageResolvers<ContextType>;
   PlaybackSource?: PlaybackSourceResolvers<ContextType>;
   PlaybackSourceConnection?: PlaybackSourceConnectionResolvers<ContextType>;
   PlaybackSourceEdge?: PlaybackSourceEdgeResolvers<ContextType>;

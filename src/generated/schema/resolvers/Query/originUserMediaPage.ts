@@ -1,0 +1,2 @@
+import type   { QueryResolvers } from './../../types.generated';
+        export const originUserMediaPage: NonNullable<QueryResolvers['originUserMediaPage']> = async (_parent, _arg, _ctx) => { /* Implement Query.originUserMediaPage resolver logic here */ };

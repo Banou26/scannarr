@@ -30,6 +30,7 @@ import    { OriginAuthentication } from './resolvers/OriginAuthentication';
 import    { OriginAuthenticationMethod } from './resolvers/OriginAuthenticationMethod';
 import    { OriginAuthenticationMethodHeaderValue } from './resolvers/OriginAuthenticationMethodHeaderValue';
 import    { OriginUser } from './resolvers/OriginUser';
+import    { OriginUserMediaPage } from './resolvers/OriginUserMediaPage';
 import    { PlaybackSource } from './resolvers/PlaybackSource';
 import    { PlaybackSourceConnection } from './resolvers/PlaybackSourceConnection';
 import    { PlaybackSourceEdge } from './resolvers/PlaybackSourceEdge';
@@ -43,6 +44,7 @@ import    { origin as Query_origin } from './resolvers/Query/origin';
 import    { originAuthentication as Query_originAuthentication } from './resolvers/Query/originAuthentication';
 import    { originPage as Query_originPage } from './resolvers/Query/originPage';
 import    { originUser as Query_originUser } from './resolvers/Query/originUser';
+import    { originUserMediaPage as Query_originUserMediaPage } from './resolvers/Query/originUserMediaPage';
 import    { playbackSource as Query_playbackSource } from './resolvers/Query/playbackSource';
 import    { playbackSourcePage as Query_playbackSourcePage } from './resolvers/Query/playbackSourcePage';
 import    { Resource } from './resolvers/Resource';
@@ -51,7 +53,7 @@ import    { ResourceEdge } from './resolvers/ResourceEdge';
 import    { Team } from './resolvers/Team';
 import    { Uri } from './resolvers/Uri';
     export const resolvers: Resolvers = {
-      Query: { dummy: Query_dummy,episode: Query_episode,episodePage: Query_episodePage,media: Query_media,mediaPage: Query_mediaPage,origin: Query_origin,originAuthentication: Query_originAuthentication,originPage: Query_originPage,originUser: Query_originUser,playbackSource: Query_playbackSource,playbackSourcePage: Query_playbackSourcePage },
+      Query: { dummy: Query_dummy,episode: Query_episode,episodePage: Query_episodePage,media: Query_media,mediaPage: Query_mediaPage,origin: Query_origin,originAuthentication: Query_originAuthentication,originPage: Query_originPage,originUser: Query_originUser,originUserMediaPage: Query_originUserMediaPage,playbackSource: Query_playbackSource,playbackSourcePage: Query_playbackSourcePage },
       Mutation: { dummy: Mutation_dummy,originAuthenticate: Mutation_originAuthenticate },
       
       CountryCode: CountryCode,
@@ -82,6 +84,7 @@ OriginAuthentication: OriginAuthentication,
 OriginAuthenticationMethod: OriginAuthenticationMethod,
 OriginAuthenticationMethodHeaderValue: OriginAuthenticationMethodHeaderValue,
 OriginUser: OriginUser,
+OriginUserMediaPage: OriginUserMediaPage,
 PlaybackSource: PlaybackSource,
 PlaybackSourceConnection: PlaybackSourceConnection,
 PlaybackSourceEdge: PlaybackSourceEdge,

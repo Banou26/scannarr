@@ -46,6 +46,7 @@ export const makeScannarrClient = (
       //   }
       //   return media.uri
       // },
+      OriginUserMediaPage: () => null,
       OriginAuthentication: () => null,
       MediaPage: () => null,
       Media: (media) => {
