@@ -50,12 +50,14 @@ import    { playbackSourcePage as Query_playbackSourcePage } from './resolvers/Q
 import    { Resource } from './resolvers/Resource';
 import    { ResourceConnection } from './resolvers/ResourceConnection';
 import    { ResourceEdge } from './resolvers/ResourceEdge';
+import    { dummy as Subscription_dummy } from './resolvers/Subscription/dummy';
+import    { mediaPage as Subscription_mediaPage } from './resolvers/Subscription/mediaPage';
 import    { Team } from './resolvers/Team';
 import    { Uri } from './resolvers/Uri';
     export const resolvers: Resolvers = {
       Query: { dummy: Query_dummy,episode: Query_episode,episodePage: Query_episodePage,media: Query_media,mediaPage: Query_mediaPage,origin: Query_origin,originAuthentication: Query_originAuthentication,originPage: Query_originPage,originUser: Query_originUser,originUserMediaPage: Query_originUserMediaPage,playbackSource: Query_playbackSource,playbackSourcePage: Query_playbackSourcePage },
       Mutation: { dummy: Mutation_dummy,originAuthenticate: Mutation_originAuthenticate },
-      
+      Subscription: { dummy: Subscription_dummy,mediaPage: Subscription_mediaPage },
       CountryCode: CountryCode,
 Date: Date,
 Episode: Episode,

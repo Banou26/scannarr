@@ -97,6 +97,10 @@ extend type Query {
   playbackSource(input: PlaybackSourceInput): PlaybackSource
 }
 
+extend type Subscription {
+  mediaPage(input: MediaPageInput!): MediaPage
+}
+
 """
 Media is a type of handle that represents a media.
 It generally represents a Movie, TV Show, Game, Package, ect...

@@ -6,9 +6,13 @@ type Query {
 type Mutation {
   dummy: String
 }
+type Subscription {
+  dummy: String
+}
 schema {
   query: Query
   mutation: Mutation
+  subscription: Subscription
 }
 
 `

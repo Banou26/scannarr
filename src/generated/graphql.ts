@@ -1042,6 +1042,17 @@ export type ResourceEdge = HandleEdge & {
   node: Resource;
 };
 
+export type Subscription = {
+  __typename?: 'Subscription';
+  dummy?: Maybe<Scalars['String']>;
+  mediaPage?: Maybe<MediaPage>;
+};
+
+
+export type SubscriptionMediaPageArgs = {
+  input: MediaPageInput;
+};
+
 export type Team = Handle & {
   __typename?: 'Team';
   handles: HandleConnection;
@@ -1198,6 +1209,7 @@ export type ResolversTypes = {
   ResourceConnection: ResolverTypeWrapper<ResourceConnection>;
   ResourceEdge: ResolverTypeWrapper<ResourceEdge>;
   String: ResolverTypeWrapper<Scalars['String']>;
+  Subscription: ResolverTypeWrapper<{}>;
   Team: ResolverTypeWrapper<Team>;
   Uri: ResolverTypeWrapper<Scalars['Uri']>;
 };
@@ -1266,6 +1278,7 @@ export type ResolversParentTypes = {
   ResourceConnection: ResourceConnection;
   ResourceEdge: ResourceEdge;
   String: Scalars['String'];
+  Subscription: {};
   Team: Team;
   Uri: Scalars['Uri'];
 };
@@ -1659,6 +1672,11 @@ export type ResourceEdgeResolvers<ContextType = ServerContext, ParentType extend
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type SubscriptionResolvers<ContextType = ServerContext, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
+  dummy?: SubscriptionResolver<Maybe<ResolversTypes['String']>, "dummy", ParentType, ContextType>;
+  mediaPage?: SubscriptionResolver<Maybe<ResolversTypes['MediaPage']>, "mediaPage", ParentType, ContextType, RequireFields<SubscriptionMediaPageArgs, 'input'>>;
+};
+
 export type TeamResolvers<ContextType = ServerContext, ParentType extends ResolversParentTypes['Team'] = ResolversParentTypes['Team']> = {
   handles?: Resolver<ResolversTypes['HandleConnection'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1715,6 +1733,7 @@ export type Resolvers<ContextType = ServerContext> = {
   Resource?: ResourceResolvers<ContextType>;
   ResourceConnection?: ResourceConnectionResolvers<ContextType>;
   ResourceEdge?: ResourceEdgeResolvers<ContextType>;
+  Subscription?: SubscriptionResolvers<ContextType>;
   Team?: TeamResolvers<ContextType>;
   Uri?: GraphQLScalarType;
 };

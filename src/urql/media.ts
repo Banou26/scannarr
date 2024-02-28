@@ -113,6 +113,38 @@ export const serverResolvers = ({ origins, context }: { origins: any[], context?
         nodes: scannarrHandles.map(media => populateMedia(media))
       }
     }
+  },
+  Subscription: {
+    mediaPage: {
+      async *subscribe(parent, args, ctx, info) {
+        const modifiedCtx = {
+          ...ctx,
+          params: {
+            ...ctx.params,
+            query: ctx.params.query.replace('subscription', 'query')
+          }
+        }
+        modifiedCtx.request.headers.set('accept', 'application/graphql-response+json, application/graphql+json, application/json, text/event-stream, multipart/mixed')
+        const _results = getOriginResultsStreamed({ ctx: modifiedCtx, origins, context })
+        let results: any[] = []
+        for await (const result of _results) {
+          if (result.error) console.error(result.error)
+          if (!result.data.mediaPage) continue
+          results = [...results, result]
+  
+          const { scannarrHandles } = groupRelatedHandles({
+            typename: 'Media',
+            results: (results?.flatMap(results => results.data.mediaPage?.nodes ?? []) ?? []) as Media[]
+          })
+
+          yield {
+            mediaPage: {
+              nodes: scannarrHandles.map(media => populateMedia(media))
+            }
+          }
+        }
+      }
+    }
   }
 })
 
