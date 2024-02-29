@@ -148,7 +148,7 @@ export const mergeScannarrUris = (uris: ScannarrUri[]) =>
   )
 
 export const toUriEpisodeId = (uri: Uri, episodeId: string | number) => `${uri}-${episodeId}`
-export const fromUriEpisodeId2 = (uri: Uri) => ({
+export const fromUriEpisodeId = (uri: Uri) => ({
   uri: [...(uri as string)].reverse().join('').split('-').slice(1).join('-').split('').reverse().join('') as Uri,
   episodeId: [...(uri as string)].reverse().join('').split('-').at(0)?.split('').reverse().join('') as string
 })
