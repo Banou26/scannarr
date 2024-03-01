@@ -1,2 +1,2 @@
 import type   { QueryResolvers } from './../../types.generated';
-        export const originUser: NonNullable<QueryResolvers['originUser']> = async (_parent, _arg, _ctx) => { /* Implement Query.originUser resolver logic here */ };
+        export const user: NonNullable<QueryResolvers['user']> = async (_parent, _arg, _ctx) => { /* Implement Query.user resolver logic here */ };

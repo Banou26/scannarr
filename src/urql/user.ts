@@ -5,7 +5,7 @@ import { Media } from '../generated/graphql'
 
 export const serverResolvers = ({ origins, context }: { origins: any[], context?: () => Promise<ServerContext> }) => ({
   Query: {
-    originAuthentication: async (parent, args, ctx, info) => {
+    authentication: async (parent, args, ctx, info) => {
       const results = await getOriginResults({ ctx, origins, context })
       for (const result of results) {
         if (!result.error) continue
@@ -14,9 +14,9 @@ export const serverResolvers = ({ origins, context }: { origins: any[], context?
 
       return (
         results
-          .filter(result => result.data?.originAuthentication?.[0])
+          .filter(result => result.data?.authentication?.[0])
           .flatMap((result, i) => ({
-            ...result.data?.originAuthentication?.[0],
+            ...result.data?.authentication?.[0],
             origin: {
               id: origins[i].origin.origin,
               ...origins[i].origin
@@ -24,7 +24,7 @@ export const serverResolvers = ({ origins, context }: { origins: any[], context?
           }))
       )
     },
-    originUser: async (parent, { input }, ctx, info) => {
+    user: async (parent, { input }, ctx, info) => {
       const origin = origins.find(origin => origin.origin.origin === input.origin)
       const result = await getOriginResult({ ctx, origin, context })
       if (result.errors) {
@@ -37,10 +37,10 @@ export const serverResolvers = ({ origins, context }: { origins: any[], context?
             .join('\n')
         )
       }
-      return result?.data?.originUser
+      return result?.data?.user
     },
 
-    originUserMediaPage: async (parent, { input }, ctx, info) => {
+    userMediaPage: async (parent, { input }, ctx, info) => {
       const results = await getOriginResults({ ctx, origins, context })
       for (const i in results) {
         const result = results[i]
@@ -57,7 +57,7 @@ export const serverResolvers = ({ origins, context }: { origins: any[], context?
       }
       const { scannarrHandles } = groupRelatedHandles({
         typename: 'Media',
-        results: (results?.flatMap(results => results.data.originUserMediaPage?.nodes ?? []) ?? []) as Media[]
+        results: (results?.flatMap(results => results.data.userMediaPage?.nodes ?? []) ?? []) as Media[]
       })
       return {
         nodes: scannarrHandles.map(media => populateMedia(media))
@@ -65,7 +65,7 @@ export const serverResolvers = ({ origins, context }: { origins: any[], context?
     }
   },
   Mutation: {
-    originAuthenticate: async (parent, { input }, ctx, info) => {
+    authenticate: async (parent, { input }, ctx, info) => {
       const origin = origins.find(origin => origin.origin.origin === input.origin)
       const result = await getOriginResult({ ctx, origin, context })
       if (result.errors) {
@@ -78,7 +78,7 @@ export const serverResolvers = ({ origins, context }: { origins: any[], context?
             .join('\n')
         )
       }
-      return result?.data?.originAuthenticate
+      return result?.data?.authenticate
     }
   }
 })

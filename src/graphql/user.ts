@@ -1,34 +1,34 @@
 export const schema = `#graphql
 
-enum OriginAuthenticationMethodType {
+enum AuthenticationMethodType {
   OAUTH2
 }
 
-type OriginAuthenticationMethodHeaderValue {
+type AuthenticationMethodHeaderValue {
   key: String!
   value: String!
 }
 
-type OriginAuthenticationMethod {
-  type: OriginAuthenticationMethodType!
+type AuthenticationMethod {
+  type: AuthenticationMethodType!
 
   url: String
-  headers: [OriginAuthenticationMethodHeaderValue!]
+  headers: [AuthenticationMethodHeaderValue!]
   body: String
 }
 
-type OriginAuthentication {
+type Authentication {
   origin: Origin!
   authentication: Boolean
-  methods: [OriginAuthenticationMethod!]
+  methods: [AuthenticationMethod!]
 }
 
-input OriginAuthenticationMethodHeaderValueInput {
+input AuthenticationMethodHeaderValueInput {
   key: String!
   value: String!
 }
 
-input OriginAuthenticateInputOauth2 {
+input AuthenticateInputOauth2 {
   clientId: String!
   authorizationCode: String!
   codeVerifier: String!
@@ -36,15 +36,15 @@ input OriginAuthenticateInputOauth2 {
   redirectUri: String!
 }
 
-input OriginAuthenticateInput {
+input AuthenticateInput {
   origin: String!
-  type: OriginAuthenticationMethodType!
+  type: AuthenticationMethodType!
 
   # OAUTH2
-  oauth2: OriginAuthenticateInputOauth2
+  oauth2: AuthenticateInputOauth2
 }
 
-type OriginAuthenticateOauth2 {
+type AuthenticateOauth2 {
   # OAUTH2
   accessToken: String!
   refreshToken: String!
@@ -52,36 +52,36 @@ type OriginAuthenticateOauth2 {
   tokenType: String!
 }
 
-type OriginAuthenticate {
-  oauth2: OriginAuthenticateOauth2
+type Authenticate {
+  oauth2: AuthenticateOauth2
 }
 
-type OriginUser {
+type User {
   id: ID!
   username: String!
   email: String
   avatar: String
 }
 
-input OriginUserInputOauth2 {
+input UserInputOauth2 {
   accessToken: String!
   tokenType: String!
 }
 
-input OriginUserInput {
+input UserInput {
   origin: String!
-  type: OriginAuthenticationMethodType!
-  oauth2: OriginUserInputOauth2
+  type: AuthenticationMethodType!
+  oauth2: UserInputOauth2
 }
 
-input OriginUserMediaPageInputAuthentication {
+input UserMediaPageInputAuthentication {
   origin: String!
-  type: OriginAuthenticationMethodType!
-  oauth2: OriginUserInputOauth2
+  type: AuthenticationMethodType!
+  oauth2: UserInputOauth2
 }
 
 """The current releasing status of the media"""
-enum OriginUserMediaStatus {
+enum UserMediaStatus {
   """Currently watching"""
   WATCHING
 
@@ -98,12 +98,12 @@ enum OriginUserMediaStatus {
   PLAN_TO_WATCH
 }
 
-input OriginUserMediaPageInput {
-  status: [OriginUserMediaStatus!]
-  authentications: [OriginUserMediaPageInputAuthentication!]!
+input UserMediaPageInput {
+  status: [UserMediaStatus!]
+  authentications: [UserMediaPageInputAuthentication!]!
 }
 
-type OriginUserMediaPage {
+type UserMediaPage {
   """The current page"""
   previousPageCursor: String
 
@@ -137,14 +137,33 @@ type OriginUserMediaPage {
   nodes: [Media!]!
 }
 
+input UserMediaPageInput {
+  status: [UserMediaStatus!]
+  authentications: [UserMediaPageInputAuthentication!]!
+}
+
+type UserMediaEpisode {
+  uri: Uri!
+  episode: Episode!
+  watched: Boolean!
+  progress: Int
+  origin: Origin!
+}
+
+type UserMedia {
+  media: Media!
+  status: UserMediaStatus!
+  episodes: [UserMediaEpisode!]!
+}
+
 extend type Query {
-  originUser(input: OriginUserInput!): OriginUser!
-  originUserMediaPage(input: OriginUserMediaPageInput!): OriginUserMediaPage!
-  originAuthentication: [OriginAuthentication!]!
+  user(input: UserInput!): User!
+  userMediaPage(input: UserMediaPageInput!): UserMediaPage!
+  authentication: [Authentication!]!
 }
 
 extend type Mutation {
-  originAuthenticate(input: OriginAuthenticateInput!): OriginAuthenticate!
+  authenticate(input: AuthenticateInput!): Authenticate!
 }
 
 `

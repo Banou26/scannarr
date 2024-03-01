@@ -31,8 +31,8 @@ export const makeScannarrServer = (
                   mediaPage: () => ({ nodes: [] }),
                   playbackSourcePage: () => ({ nodes: [] }),
                   episodePage: () => ({ nodes: [] }),
-                  originAuthentication: () => [],
-                  originUserMediaPage: () => ({ nodes: [] }),
+                  authentication: () => [],
+                  userMediaPage: () => ({ nodes: [] }),
                   ...origin.resolvers.Query
                 },
                 Mutation: {

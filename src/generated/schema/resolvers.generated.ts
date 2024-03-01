@@ -1,6 +1,11 @@
 /* This file was automatically generated. DO NOT UPDATE MANUALLY. */
     import type   { Resolvers } from './types.generated';
-    import    { CountryCode } from './resolvers/CountryCode';
+    import    { Authenticate } from './resolvers/Authenticate';
+import    { AuthenticateOauth2 } from './resolvers/AuthenticateOauth2';
+import    { Authentication } from './resolvers/Authentication';
+import    { AuthenticationMethod } from './resolvers/AuthenticationMethod';
+import    { AuthenticationMethodHeaderValue } from './resolvers/AuthenticationMethodHeaderValue';
+import    { CountryCode } from './resolvers/CountryCode';
 import    { Date } from './resolvers/Date';
 import    { Episode } from './resolvers/Episode';
 import    { EpisodeConnection } from './resolvers/EpisodeConnection';
@@ -21,32 +26,25 @@ import    { MediaPage } from './resolvers/MediaPage';
 import    { MediaSynonym } from './resolvers/MediaSynonym';
 import    { MediaTitle } from './resolvers/MediaTitle';
 import    { MediaTrailer } from './resolvers/MediaTrailer';
+import    { authenticate as Mutation_authenticate } from './resolvers/Mutation/authenticate';
 import    { dummy as Mutation_dummy } from './resolvers/Mutation/dummy';
-import    { originAuthenticate as Mutation_originAuthenticate } from './resolvers/Mutation/originAuthenticate';
 import    { Origin } from './resolvers/Origin';
-import    { OriginAuthenticate } from './resolvers/OriginAuthenticate';
-import    { OriginAuthenticateOauth2 } from './resolvers/OriginAuthenticateOauth2';
-import    { OriginAuthentication } from './resolvers/OriginAuthentication';
-import    { OriginAuthenticationMethod } from './resolvers/OriginAuthenticationMethod';
-import    { OriginAuthenticationMethodHeaderValue } from './resolvers/OriginAuthenticationMethodHeaderValue';
-import    { OriginUser } from './resolvers/OriginUser';
-import    { OriginUserMediaPage } from './resolvers/OriginUserMediaPage';
 import    { PlaybackSource } from './resolvers/PlaybackSource';
 import    { PlaybackSourceConnection } from './resolvers/PlaybackSourceConnection';
 import    { PlaybackSourceEdge } from './resolvers/PlaybackSourceEdge';
 import    { PlaybackSourcePage } from './resolvers/PlaybackSourcePage';
+import    { authentication as Query_authentication } from './resolvers/Query/authentication';
 import    { dummy as Query_dummy } from './resolvers/Query/dummy';
 import    { episode as Query_episode } from './resolvers/Query/episode';
 import    { episodePage as Query_episodePage } from './resolvers/Query/episodePage';
 import    { media as Query_media } from './resolvers/Query/media';
 import    { mediaPage as Query_mediaPage } from './resolvers/Query/mediaPage';
 import    { origin as Query_origin } from './resolvers/Query/origin';
-import    { originAuthentication as Query_originAuthentication } from './resolvers/Query/originAuthentication';
 import    { originPage as Query_originPage } from './resolvers/Query/originPage';
-import    { originUser as Query_originUser } from './resolvers/Query/originUser';
-import    { originUserMediaPage as Query_originUserMediaPage } from './resolvers/Query/originUserMediaPage';
 import    { playbackSource as Query_playbackSource } from './resolvers/Query/playbackSource';
 import    { playbackSourcePage as Query_playbackSourcePage } from './resolvers/Query/playbackSourcePage';
+import    { user as Query_user } from './resolvers/Query/user';
+import    { userMediaPage as Query_userMediaPage } from './resolvers/Query/userMediaPage';
 import    { Resource } from './resolvers/Resource';
 import    { ResourceConnection } from './resolvers/ResourceConnection';
 import    { ResourceEdge } from './resolvers/ResourceEdge';
@@ -54,11 +52,20 @@ import    { dummy as Subscription_dummy } from './resolvers/Subscription/dummy';
 import    { mediaPage as Subscription_mediaPage } from './resolvers/Subscription/mediaPage';
 import    { Team } from './resolvers/Team';
 import    { Uri } from './resolvers/Uri';
+import    { User } from './resolvers/User';
+import    { UserMedia } from './resolvers/UserMedia';
+import    { UserMediaEpisode } from './resolvers/UserMediaEpisode';
+import    { UserMediaPage } from './resolvers/UserMediaPage';
     export const resolvers: Resolvers = {
-      Query: { dummy: Query_dummy,episode: Query_episode,episodePage: Query_episodePage,media: Query_media,mediaPage: Query_mediaPage,origin: Query_origin,originAuthentication: Query_originAuthentication,originPage: Query_originPage,originUser: Query_originUser,originUserMediaPage: Query_originUserMediaPage,playbackSource: Query_playbackSource,playbackSourcePage: Query_playbackSourcePage },
-      Mutation: { dummy: Mutation_dummy,originAuthenticate: Mutation_originAuthenticate },
+      Query: { authentication: Query_authentication,dummy: Query_dummy,episode: Query_episode,episodePage: Query_episodePage,media: Query_media,mediaPage: Query_mediaPage,origin: Query_origin,originPage: Query_originPage,playbackSource: Query_playbackSource,playbackSourcePage: Query_playbackSourcePage,user: Query_user,userMediaPage: Query_userMediaPage },
+      Mutation: { authenticate: Mutation_authenticate,dummy: Mutation_dummy },
       Subscription: { dummy: Subscription_dummy,mediaPage: Subscription_mediaPage },
-      CountryCode: CountryCode,
+      Authenticate: Authenticate,
+AuthenticateOauth2: AuthenticateOauth2,
+Authentication: Authentication,
+AuthenticationMethod: AuthenticationMethod,
+AuthenticationMethodHeaderValue: AuthenticationMethodHeaderValue,
+CountryCode: CountryCode,
 Date: Date,
 Episode: Episode,
 EpisodeConnection: EpisodeConnection,
@@ -80,13 +87,6 @@ MediaSynonym: MediaSynonym,
 MediaTitle: MediaTitle,
 MediaTrailer: MediaTrailer,
 Origin: Origin,
-OriginAuthenticate: OriginAuthenticate,
-OriginAuthenticateOauth2: OriginAuthenticateOauth2,
-OriginAuthentication: OriginAuthentication,
-OriginAuthenticationMethod: OriginAuthenticationMethod,
-OriginAuthenticationMethodHeaderValue: OriginAuthenticationMethodHeaderValue,
-OriginUser: OriginUser,
-OriginUserMediaPage: OriginUserMediaPage,
 PlaybackSource: PlaybackSource,
 PlaybackSourceConnection: PlaybackSourceConnection,
 PlaybackSourceEdge: PlaybackSourceEdge,
@@ -95,5 +95,9 @@ Resource: Resource,
 ResourceConnection: ResourceConnection,
 ResourceEdge: ResourceEdge,
 Team: Team,
-Uri: Uri
+Uri: Uri,
+User: User,
+UserMedia: UserMedia,
+UserMediaEpisode: UserMediaEpisode,
+UserMediaPage: UserMediaPage
     }
