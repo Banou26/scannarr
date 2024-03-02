@@ -1754,6 +1754,14 @@
         "name": "Mutation",
         "fields": [
           {
+            "name": "_empty",
+            "type": {
+              "kind": "SCALAR",
+              "name": "Any"
+            },
+            "args": []
+          },
+          {
             "name": "authenticate",
             "type": {
               "kind": "NON_NULL",
@@ -1775,14 +1783,6 @@
                 }
               }
             ]
-          },
-          {
-            "name": "dummy",
-            "type": {
-              "kind": "SCALAR",
-              "name": "Any"
-            },
-            "args": []
           }
         ],
         "interfaces": []
@@ -2283,6 +2283,14 @@
         "name": "Query",
         "fields": [
           {
+            "name": "_empty",
+            "type": {
+              "kind": "SCALAR",
+              "name": "Any"
+            },
+            "args": []
+          },
+          {
             "name": "authentication",
             "type": {
               "kind": "NON_NULL",
@@ -2297,14 +2305,6 @@
                   }
                 }
               }
-            },
-            "args": []
-          },
-          {
-            "name": "dummy",
-            "type": {
-              "kind": "SCALAR",
-              "name": "Any"
             },
             "args": []
           },
@@ -2690,12 +2690,29 @@
         "name": "Subscription",
         "fields": [
           {
-            "name": "dummy",
+            "name": "_empty",
             "type": {
               "kind": "SCALAR",
               "name": "Any"
             },
             "args": []
+          },
+          {
+            "name": "media",
+            "type": {
+              "kind": "OBJECT",
+              "name": "Media",
+              "ofType": null
+            },
+            "args": [
+              {
+                "name": "input",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "Any"
+                }
+              }
+            ]
           },
           {
             "name": "mediaPage",

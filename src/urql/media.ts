@@ -101,9 +101,19 @@ export const serverResolvers = ({ origins, context }: { origins: any[], context?
     },
     mediaPage: async (parent, args, ctx, info) => {
       const results = await getOriginResults({ ctx, origins, context })
-      for (const result of results) {
-        if (!result.error) continue
-        console.error(result.error)
+      for (const i in results) {
+        const result = results[i]
+        if (result.errors) {
+          const origin = origins[i]
+          throw new Error(
+            result
+              .errors
+              .map(error =>
+                `Laserr Error from "${origin.origin.origin}" at ${error.path.join('->')}: ${error.message}`
+              )
+              .join('\n')
+          )
+        }
       }
       const { scannarrHandles } = groupRelatedHandles({
         typename: 'Media',
@@ -115,6 +125,92 @@ export const serverResolvers = ({ origins, context }: { origins: any[], context?
     }
   },
   Subscription: {
+    media: {
+      async *subscribe(parent, args, ctx, info) {
+        const modifiedCtx = {
+          ...ctx,
+          params: {
+            ...ctx.params,
+            query: ctx.params.query.replace('subscription', 'query')
+          }
+        }
+
+        modifiedCtx.request.headers.set('accept', 'application/graphql-response+json, application/graphql+json, application/json, text/event-stream, multipart/mixed')
+        const _results = getOriginResultsStreamed({ ctx: modifiedCtx, origins, context })
+        let results: any[] = []
+
+        for await (const result of _results) {
+          // console.log('result', result)
+          if (result.errors) {
+            throw new Error(
+              result
+                .errors
+                .map(error =>
+                  `Laserr Error at ${error.path.join('->')}: ${error.message}`
+                )
+                .join('\n')
+            )
+          }
+          if (!result.data?.media) continue
+          results = [...results, result]
+
+          const mediaResults =
+            results
+              ?.flatMap(results => results.data.media)
+              ?.filter(Boolean)
+            ?? []
+          // console.log('mediaResults', mediaResults)
+
+          const uri = toScannarrUri(
+            mediaResults.flatMap(media =>
+              media
+                .handles
+                .edges
+                .flatMap(edge =>
+                  edge
+                  .node
+                  .handles
+                  .edges.map(edge => edge.node.uri)
+                )
+            )
+          )
+
+          // console.log('uri', uri)
+
+          if (!uri || uri === 'scannarr:()') {
+            yield {
+              media: null
+            }
+            continue
+          }
+
+          if (!uri) throw new Error('No uri')
+          const decomposedUri = fromScannarrUri(uri)
+          if (!decomposedUri) throw new Error('No decomposedUri')
+          console.log('result', populateMedia({
+            origin: 'scannarr',
+            id: decomposedUri.id,
+            uri,
+            handles: {
+              __typename: 'MediaConnection',
+              edges: mediaResults ?? []
+            }
+          }))
+
+          yield {
+            media: populateMedia({
+              origin: 'scannarr',
+              id: decomposedUri.id,
+              uri,
+              handles: {
+                __typename: 'MediaConnection',
+                edges: mediaResults ?? []
+              }
+            })
+          }
+        }
+      }
+    },
     mediaPage: {
       async *subscribe(parent, args, ctx, info) {
         const modifiedCtx = {

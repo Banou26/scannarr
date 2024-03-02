@@ -26,15 +26,15 @@ import    { MediaPage } from './resolvers/MediaPage';
 import    { MediaSynonym } from './resolvers/MediaSynonym';
 import    { MediaTitle } from './resolvers/MediaTitle';
 import    { MediaTrailer } from './resolvers/MediaTrailer';
+import    { _empty as Mutation__empty } from './resolvers/Mutation/_empty';
 import    { authenticate as Mutation_authenticate } from './resolvers/Mutation/authenticate';
-import    { dummy as Mutation_dummy } from './resolvers/Mutation/dummy';
 import    { Origin } from './resolvers/Origin';
 import    { PlaybackSource } from './resolvers/PlaybackSource';
 import    { PlaybackSourceConnection } from './resolvers/PlaybackSourceConnection';
 import    { PlaybackSourceEdge } from './resolvers/PlaybackSourceEdge';
 import    { PlaybackSourcePage } from './resolvers/PlaybackSourcePage';
+import    { _empty as Query__empty } from './resolvers/Query/_empty';
 import    { authentication as Query_authentication } from './resolvers/Query/authentication';
-import    { dummy as Query_dummy } from './resolvers/Query/dummy';
 import    { episode as Query_episode } from './resolvers/Query/episode';
 import    { episodePage as Query_episodePage } from './resolvers/Query/episodePage';
 import    { media as Query_media } from './resolvers/Query/media';
@@ -48,7 +48,8 @@ import    { userMediaPage as Query_userMediaPage } from './resolvers/Query/userM
 import    { Resource } from './resolvers/Resource';
 import    { ResourceConnection } from './resolvers/ResourceConnection';
 import    { ResourceEdge } from './resolvers/ResourceEdge';
-import    { dummy as Subscription_dummy } from './resolvers/Subscription/dummy';
+import    { _empty as Subscription__empty } from './resolvers/Subscription/_empty';
+import    { media as Subscription_media } from './resolvers/Subscription/media';
 import    { mediaPage as Subscription_mediaPage } from './resolvers/Subscription/mediaPage';
 import    { Team } from './resolvers/Team';
 import    { Uri } from './resolvers/Uri';
@@ -57,9 +58,9 @@ import    { UserMedia } from './resolvers/UserMedia';
 import    { UserMediaEpisode } from './resolvers/UserMediaEpisode';
 import    { UserMediaPage } from './resolvers/UserMediaPage';
     export const resolvers: Resolvers = {
-      Query: { authentication: Query_authentication,dummy: Query_dummy,episode: Query_episode,episodePage: Query_episodePage,media: Query_media,mediaPage: Query_mediaPage,origin: Query_origin,originPage: Query_originPage,playbackSource: Query_playbackSource,playbackSourcePage: Query_playbackSourcePage,user: Query_user,userMediaPage: Query_userMediaPage },
-      Mutation: { authenticate: Mutation_authenticate,dummy: Mutation_dummy },
-      Subscription: { dummy: Subscription_dummy,mediaPage: Subscription_mediaPage },
+      Query: { _empty: Query__empty,authentication: Query_authentication,episode: Query_episode,episodePage: Query_episodePage,media: Query_media,mediaPage: Query_mediaPage,origin: Query_origin,originPage: Query_originPage,playbackSource: Query_playbackSource,playbackSourcePage: Query_playbackSourcePage,user: Query_user,userMediaPage: Query_userMediaPage },
+      Mutation: { _empty: Mutation__empty,authenticate: Mutation_authenticate },
+      Subscription: { _empty: Subscription__empty,media: Subscription_media,mediaPage: Subscription_mediaPage },
       Authenticate: Authenticate,
 AuthenticateOauth2: AuthenticateOauth2,
 Authentication: Authentication,

@@ -1,6 +1,7 @@
 
 import { createYoga, createSchema } from 'graphql-yoga'
 import { useDeferStream } from '@graphql-yoga/plugin-defer-stream'
+import { Client, fetchExchange } from 'urql'
 
 // import { typeDefs } from '../generated/schema/typeDefs.generated'
 import typeDefs from '../graphql'
@@ -18,39 +19,53 @@ export const makeScannarrServer = (
 ) => {
   const origins =
     _origins
-      .map(origin => ({
-        origin,
-        server:
-          createYoga({
-            maskedErrors: false,
-            schema: createSchema({
-              typeDefs,
-              resolvers: {
-                ...origin.resolvers,
-                Query: {
-                  mediaPage: () => ({ nodes: [] }),
-                  playbackSourcePage: () => ({ nodes: [] }),
-                  episodePage: () => ({ nodes: [] }),
-                  authentication: () => [],
-                  userMediaPage: () => ({ nodes: [] }),
-                  ...origin.resolvers.Query
-                },
-                Mutation: {
-                  ...origin.resolvers.Mutation
-                },
-                EpisodeConnection: {
-                  // this breaks episodes on media
-                  // edges: () => [],
-                  ...origin.resolvers.EpisodeConnection
-                },
-                PlaybackSourceConnection: {
-                  ...origin.resolvers.PlaybackSourceConnection
-                }
+      .map(origin => {
+        const server = createYoga({
+          maskedErrors: false,
+          schema: createSchema({
+            typeDefs,
+            resolvers: {
+              ...origin.resolvers,
+              Query: {
+                mediaPage: () => ({ nodes: [] }),
+                playbackSourcePage: () => ({ nodes: [] }),
+                episodePage: () => ({ nodes: [] }),
+                authentication: () => [],
+                userMediaPage: () => ({ nodes: [] }),
+                ...origin.resolvers.Query
+              },
+              Mutation: {
+                ...origin.resolvers.Mutation
+              },
+              Subscription: {
+                media: async function*() {},
+                mediaPage: async function*() {},
+                ...origin.resolvers.Subscription
+              },
+              EpisodeConnection: {
+                ...origin.resolvers.EpisodeConnection
+              },
+              PlaybackSourceConnection: {
+                ...origin.resolvers.PlaybackSourceConnection
               }
-            }),
-            plugins: [useDeferStream()]
+            }
           })
-      }))
+        })
+
+        const client = new Client({
+          url: 'http://d/graphql',
+          exchanges: [fetchExchange],
+          fetchSubscriptions: true,
+          fetch: async (input: RequestInfo | URL, init?: RequestInit | undefined) =>
+            yoga.handleRequest(new Request(input, init), {})
+        })
+
+        return {
+          origin,
+          server,
+          client
+        }
+      })
 
   const mediaResolvers = makeMediaServerResolvers({ origins, context })
   const episodeResolvers = makeEpisodeServerResolvers({ origins, context })
@@ -72,6 +87,9 @@ export const makeScannarrServer = (
       },
       Mutation: {
         ...userResolvers.Mutation
+      },
+      Subscription: {
+        ...mediaResolvers.Subscription
       }
     }
   })

@@ -98,6 +98,7 @@ extend type Query {
 }
 
 extend type Subscription {
+  media(input: MediaInput): Media
   mediaPage(input: MediaPageInput!): MediaPage
 }
 
