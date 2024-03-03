@@ -131,7 +131,7 @@ export type EpisodeInput = {
   /** Filter by the media origin */
   origin?: InputMaybe<Scalars['String']['input']>;
   /** Filter by the media uri */
-  uri?: InputMaybe<Scalars['String']['input']>;
+  uri?: InputMaybe<Scalars['Uri']['input']>;
 };
 
 export type EpisodePage = {
@@ -174,7 +174,7 @@ export type EpisodePageInput = {
   /** The order the results will be returned in */
   sorts?: InputMaybe<Array<EpisodeSort>>;
   /** Filter by the media uri */
-  uri?: InputMaybe<Scalars['String']['input']>;
+  uri?: InputMaybe<Scalars['Uri']['input']>;
 };
 
 export type EpisodeSort =
@@ -466,7 +466,7 @@ export type MediaInput = {
   /** Filter by the media origin */
   origin?: InputMaybe<Scalars['String']['input']>;
   /** Filter by the media uri */
-  uri?: InputMaybe<Scalars['String']['input']>;
+  uri?: InputMaybe<Scalars['Uri']['input']>;
 };
 
 export type MediaPage = {
@@ -519,7 +519,7 @@ export type MediaPageInput = {
   /** Filter by the media's current release status */
   status?: InputMaybe<MediaStatus>;
   /** Filter by the media uri */
-  uri?: InputMaybe<Scalars['String']['input']>;
+  uri?: InputMaybe<Scalars['Uri']['input']>;
 };
 
 export type MediaSeason =
@@ -819,7 +819,7 @@ export type PlaybackSourceInput = {
   /** Filter by the media origin */
   origin?: InputMaybe<Scalars['String']['input']>;
   /** Filter by the media uri */
-  uri?: InputMaybe<Scalars['String']['input']>;
+  uri?: InputMaybe<Scalars['Uri']['input']>;
 };
 
 export type PlaybackSourcePage = {
@@ -861,7 +861,7 @@ export type PlaybackSourcePageInput = {
   /** Filter by search terms */
   search?: InputMaybe<Scalars['String']['input']>;
   /** Filter by the media uri */
-  uri?: InputMaybe<Scalars['String']['input']>;
+  uri?: InputMaybe<Scalars['Uri']['input']>;
 };
 
 export type PlaybackSourceType =
@@ -969,7 +969,7 @@ export type Subscription = {
 
 
 export type SubscriptionMediaArgs = {
-  input?: InputMaybe<MediaInput>;
+  input: MediaInput;
 };
 
 
@@ -1670,7 +1670,7 @@ export type ResourceEdgeResolvers<ContextType = any, ParentType extends Resolver
 
 export type SubscriptionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
   _empty?: SubscriptionResolver<Maybe<ResolversTypes['String']>, "_empty", ParentType, ContextType>;
-  media?: SubscriptionResolver<Maybe<ResolversTypes['Media']>, "media", ParentType, ContextType, Partial<SubscriptionMediaArgs>>;
+  media?: SubscriptionResolver<Maybe<ResolversTypes['Media']>, "media", ParentType, ContextType, RequireFields<SubscriptionMediaArgs, 'input'>>;
   mediaPage?: SubscriptionResolver<Maybe<ResolversTypes['MediaPage']>, "mediaPage", ParentType, ContextType, RequireFields<SubscriptionMediaPageArgs, 'input'>>;
 };
 

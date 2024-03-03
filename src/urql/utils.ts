@@ -1,6 +1,6 @@
 import deepmerge from 'deepmerge'
 
-import { fromScannarrUri, fromUri, isScannarrUri, toScannarrId } from '../utils/uri2'
+import { fromScannarrUri, fromUri, isScannarrUri, toScannarrId } from '../utils/uri'
 import { YogaInitialContext } from 'graphql-yoga'
 import { Handle, HandleRelation } from '../generated/graphql'
 import { getEdges } from '../utils/handle'

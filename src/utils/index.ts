@@ -1,2 +1,4 @@
-// export * from './uri'
-export * from './uri2'
+export * from './uri'
+export * from './groupBy'
+export * from './handle'
+export * from './observableToAsyncIterable'

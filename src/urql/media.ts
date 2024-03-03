@@ -1,11 +1,18 @@
+import type { OriginCtx } from './server'
+
 import { Cache, DataFields, Entity, FieldArgs, ResolveInfo, Variables } from '@urql/exchange-graphcache'
+
 import { Media, MediaEdge } from '../generated/graphql'
-import { fromScannarrUri, isScannarrUri, toScannarrId, toScannarrUri } from '../utils/uri2'
+import { fromScannarrUri, isScannarrUri, toScannarrId, toScannarrUri } from '../utils/uri'
 import { getOriginResults, getOriginResultsStreamed, makeArrayResolver, makeObjectResolver, makeScalarResolver } from './utils'
 import { populateEpisode } from './episode'
 import { groupBy } from '../utils/groupBy'
 import { groupRelatedHandles } from './utils'
 import { ServerContext } from './client'
+import { combineLatest, from, of } from 'rxjs'
+import { map, tap, catchError } from 'rxjs/operators'
+import { observableToAsyncIterable } from '../utils/observableToAsyncIterable'
+import { gql } from 'graphql-tag'
 
 export const populateMedia = (media: Media, resolve?: (ref: any, str: string) => any) => ({
   __typename: 'Media',
@@ -75,7 +82,7 @@ export const populateMedia = (media: Media, resolve?: (ref: any, str: string) =>
   episodeCount: resolve ? resolve(media, 'episodeCount') : media.episodeCount ?? null
 })
 
-export const serverResolvers = ({ origins, context }: { origins: any[], context?: () => Promise<ServerContext> }) => ({
+export const serverResolvers = ({ origins, context }: { origins: OriginCtx[], context?: () => Promise<ServerContext> }) => ({
   Query: {
     media: (parent, args, ctx, info) => {
       const results = getOriginResultsStreamed({ ctx, origins, context })
@@ -126,90 +133,38 @@ export const serverResolvers = ({ origins, context }: { origins: any[], context?
   },
   Subscription: {
     media: {
-      async *subscribe(parent, args, ctx, info) {
-        const modifiedCtx = {
-          ...ctx,
-          params: {
-            ...ctx.params,
-            query: ctx.params.query.replace('subscription', 'query')
-          }
-        }
-
-        modifiedCtx.request.headers.set('accept', 'application/graphql-response+json, application/graphql+json, application/json, text/event-stream, multipart/mixed')
-        const _results = getOriginResultsStreamed({ ctx: modifiedCtx, origins, context })
-        let results: any[] = []
-
-        for await (const result of _results) {
-          // console.log('result', result)
-          if (result.errors) {
-            throw new Error(
-              result
-                .errors
-                .map(error =>
-                  `Laserr Error at ${error.path.join('->')}: ${error.message}`
+      subscribe: (parent, args, ctx, info) =>
+        observableToAsyncIterable(
+          combineLatest(
+            ...origins
+              .map(origin =>
+                from(
+                  origin
+                    .client
+                    .subscription(
+                      gql([ctx.params.query]),
+                      ctx.params.variables
+                    )
                 )
-                .join('\n')
-            )
-          }
-          if (!result.data?.media) continue
-          results = [...results, result]
-
-          const mediaResults =
-            results
-              ?.flatMap(results => results.data.media)
-              ?.filter(Boolean)
-            ?? []
-          // console.log('mediaResults', mediaResults)
-
-          const uri = toScannarrUri(
-            mediaResults.flatMap(media =>
-              media
-                .handles
-                .edges
-                .flatMap(edge =>
-                  edge
-                  .node
-                  .handles
-                  .edges.map(edge => edge.node.uri)
+                .pipe(
+                  map(result =>
+                    result.error?.message === '[Network] No Content'
+                      ? { ...result, data: { media: null }, error: undefined }
+                      : result
+                  ),
+                  tap(result => {
+                    if (result.error) console.error(result.error)
+                  })
                 )
-            )
+              )
           )
-
-          // console.log('uri', uri)
-
-          if (!uri || uri === 'scannarr:()') {
-            yield {
-              media: null
-            }
-            continue
-          }
-
-          if (!uri) throw new Error('No uri')
-          const decomposedUri = fromScannarrUri(uri)
-          if (!decomposedUri) throw new Error('No decomposedUri')
-          console.log('result', populateMedia({
-            origin: 'scannarr',
-            id: decomposedUri.id,
-            uri,
-            handles: {
-              __typename: 'MediaConnection',
-              edges: mediaResults ?? []
-            }
-          }))
-
-          yield {
-            media: populateMedia({
-              origin: 'scannarr',
-              id: decomposedUri.id,
-              uri,
-              handles: {
-                __typename: 'MediaConnection',
-                edges: mediaResults ?? []
-              }
-            })
-          }
-        }
-      }
+            .pipe(
+              map(results => {
+                console.log('results', results)
+                return { media: null }
+              })
+            )
+        )
     },
     mediaPage: {
       async *subscribe(parent, args, ctx, info) {

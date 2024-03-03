@@ -1,24 +1,19 @@
-import { Client, fetchExchange, gql, subscriptionExchange } from 'urql';
+import type { Episode, Media, MediaExternalLink, MediaTrailer, PlaybackSource, Team } from '../generated/graphql'
+
+import { Client, fetchExchange } from 'urql'
 import { cacheExchange } from '@urql/exchange-graphcache'
 import { YogaServerInstance } from 'graphql-yoga'
 import { devtoolsExchange } from '@urql/devtools'
 
-
-import { Uri, isScannarrUri, toScannarrUri} from '../utils/uri2'
-
-import { Episode, HandleEdge, Media, MediaExternalLink, MediaTrailer, PlaybackSource, Team } from '../generated/graphql'
+import { Uri, toScannarrUri} from '../utils'
 import { cacheResolvers as makeMediaCacheResolvers, populateMedia } from './media'
 import { cacheResolvers as makeEpisodeCacheResolvers } from './episode'
 import { cacheResolvers as makePlaybackSourceCacheResolvers } from './playback-source'
-// import introspection from '../generated/graphql.schema.json'
 
-export type ServerContext = {
-
-}
-
-export type UserContext = {
-
-}
+export type {
+  ServerContext,
+  UserContext,
+} from './server'
 
 export type OriginWithServer = {
   server: YogaServerInstance<{}, {}>

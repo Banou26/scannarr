@@ -1,7 +1,14 @@
-import { Handle } from '../generated/graphql'
+import { Handle as GraphQLHandle, HandleEdge } from '../generated/graphql'
 import { groupBy } from './groupBy'
 
-export type Uri = `${`${string}:` | ''}${string}:${string}`
+export type Handle = Omit<GraphQLHandle, 'handles'> & {
+  handles: {
+    edges: HandleEdge[]
+    nodes?: Handle[]
+  }
+}
+
+export type Uri = `${string}:${string}`
 
 type Separated<S extends string> = `${S}${''|`,${S}`}`
 
@@ -13,14 +20,16 @@ export type UriValues = {
 }
 
 export const fromUri = (uri: Uri): UriValues => {
-  const splits = uri.split(':') as [string, string]
-  const [origin, id] = splits as [string, string]
+  const [origin, id] = uri.split(':') as [string, string]
   return { origin, id }
 }
 
 export const fromUris = <T extends string | undefined = undefined>(uriString: Uris, schemeSearch?: T): T extends string ? UriValues : UriValues[] => {
   const uris = uriString.split(',') as Uri[]
-  const result = uris.map((uri) => fromUri(uri))
+  const result =
+    uris
+      .filter(Boolean)
+      .map((uri) => fromUri(uri))
   if (schemeSearch) return result.find(({ origin }) => origin === schemeSearch) as T extends string ? UriValues : UriValues[]
   return result as T extends string ? UriValues : UriValues[]
 }
@@ -30,7 +39,8 @@ export const toUri = (
   { origin: string, id: string }
 ): Uri => `${origin}:${id}`
 
-export const joinUris = (uris: Uri[]): Uri => uris.join(',') as Uri
+export const joinUris = (uris: Uri[]) => uris.join(',') as Uris
+export const splitUris = (uris: Uris) => uris.split(',') as Uri[]
 
 export const isUri = (uri: string): uri is Uri => {
   const parts =
@@ -38,7 +48,9 @@ export const isUri = (uri: string): uri is Uri => {
       .split(':')
       .filter(part => part.length)
 
-  return parts.length === 2 || parts.length === 3
+  if (parts[1]?.includes(',')) throw new Error(`Invalid uri: ${uri}, contains "," character in id`)
+
+  return parts.length === 2
 }
 
 export const isUris = (uri: string): uri is Uris =>
@@ -46,31 +58,84 @@ export const isUris = (uri: string): uri is Uris =>
     .split(',')
     .every(isUri)
 
-export const populateHandle = <T extends Partial<Pick<Handle, 'uri'>> & Omit<Handle, 'uri'>>(handle: T): T & Handle => ({
-  ...handle,
+export const populateHandle = <T extends Partial<Pick<Handle, 'uri' | 'handles'>> & Omit<Handle, 'uri' | 'handles'>>(handle: T): T & GraphQLHandle => ({
   uri: toUri({ origin: handle.origin, id: handle.id }),
-  url: handle.url
+  url: handle.url ?? null,
+  ...handle,
+  handles: {
+    edges: handle.handles?.edges ?? [],
+    nodes: handle.handles?.edges.map(({ node }) => node) ?? []
+  }
 })
 
-const BASE64_REGEX = /(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?/
+export type ScannarrUri = `scannarr:(${Uris})${''|`-${string}`}`
 
-export const isScannarrUri = (uri: Uri): boolean => uri.startsWith('scannarr:')
-export const toScannarrUri = (uris: Uris): Uri => `scannarr:${btoa(uris)}`
-export const toScannarrId = (uris: Uris): string => btoa(uris)
-export const fromScannarrUri = (uri: Uri): Uri[] => atob(uri.split(':')[1]!.match(BASE64_REGEX)![0]).split(',') as Uri[]
-export const toUriEpisodeId = (uri: Uri, episodeId: string) => `${uri}-${episodeId}`
-export const fromUriEpisodeId = (uri: Uri) => ({
-  uri: uri.split('-')[0] as Uri,
-  episodeId: uri.split('-')[1] as string
-})
+const SCANNARR_REGEX = /scannarr:\((.*)\)(?:-(.*))?/
 
-export const mergeScannarrUris = (uris: Uri[]) =>
+export const isScannarrUri = (uri: string): uri is ScannarrUri => {
+  if (!uri.startsWith('scannarr:')) return false
+  const match = uri.match(SCANNARR_REGEX)
+  if (!match) return false
+  const uris = match?.[1]
+  // allow empty scannarr uris
+  return !uris || isUris(uris)
+}
+
+export const toScannarrUri = <T extends Uri[] | Uris>(uris: T, episode?: string) =>
+  `scannarr:(${toScannarrId(uris)})${episode ? `-${episode}` : ''}` as ScannarrUri
+
+export const toScannarrId = <T extends Uri[] | Uris>(uris: T, sort = true): string =>
+  sort
+    ? toScannarrId(
+      (
+        fromUris(
+          Array.isArray(uris)
+            ? uris.join(',') as Uris
+            : uris
+        )
+      )
+        .filter(elem => elem.origin && elem.id)
+        .sort((a, b) => a.id.localeCompare(b.id))
+        .sort((a, b) => a.origin.localeCompare(b.origin))
+        .map(toUri),
+      false
+    )
+    : (
+      encodeURI(
+        Array.isArray(uris)
+          ? uris.join(',')
+          : uris
+      )
+    )
+
+export const fromScannarrUri = (uri: ScannarrUri) => {
+  const match = uri.match(SCANNARR_REGEX)
+  if (!match) return undefined
+  const uris =
+    fromUris(match[1] as Uris)
+      .filter(elem => elem.origin && elem.id)
+      .sort((a, b) => a.id.localeCompare(b.id))
+      .sort((a, b) => a.origin.localeCompare(b.origin))
+  return match && ({
+    uri: `scannarr:(${joinUris(uris.map(toUri))})` as Uri,
+    origin: 'scannarr' as const,
+    id: `(${joinUris(uris.map(toUri))})`,
+    handleUris: uris.map(toUri),
+    handleUrisString: joinUris(uris.map(toUri)), // match[1] as Uris,
+    handleUrisValues: uris,
+    episodeId: match[2] as string
+  })
+}
+
+export const mergeScannarrUris = (uris: ScannarrUri[]) =>
   toScannarrUri(
     [
       ...groupBy(
         uris
-          .flatMap(uri => fromScannarrUri(uri ?? ''))
-          .map(uri => fromUri(uri)),
+          .flatMap(uri =>
+            fromScannarrUri(uri as ScannarrUri)
+              ?.handleUrisValues
+          ),
         uri => uri.origin
       )
     ].map(([origin, uris]) =>
@@ -81,3 +146,9 @@ export const mergeScannarrUris = (uris: Uri[]) =>
       )
     ) as unknown as Uris
   )
+
+export const toUriEpisodeId = (uri: Uri, episodeId: string | number) => `${uri}-${episodeId}`
+export const fromUriEpisodeId = (uri: Uri) => ({
+  uri: [...(uri as string)].reverse().join('').split('-').slice(1).join('-').split('').reverse().join('') as Uri,
+  episodeId: [...(uri as string)].reverse().join('').split('-').at(0)?.split('').reverse().join('') as string
+})

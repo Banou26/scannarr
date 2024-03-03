@@ -1,6 +1,6 @@
 import { Cache, DataFields, ResolveInfo, Variables } from '@urql/exchange-graphcache'
 import { PlaybackSource, Team } from '../generated/graphql'
-import { fromScannarrUri, isScannarrUri, toScannarrId, toScannarrUri } from '../utils/uri2'
+import { fromScannarrUri, isScannarrUri, toScannarrId, toScannarrUri } from '../utils/uri'
 import { getOriginResults, getOriginResultsStreamed, groupRelatedHandles, makeArrayResolver, makeObjectResolver, makeScalarResolver } from './utils'
 import { ServerContext } from './client'
 
