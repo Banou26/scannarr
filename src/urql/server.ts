@@ -10,9 +10,8 @@ import { serverResolvers as makeMediaServerResolvers } from './media'
 import { serverResolvers as makeEpisodeServerResolvers } from './episode'
 import { serverResolvers as makePlaybackSourceServerResolvers } from './playback-source'
 import { serverResolvers as makeUserServerResolvers } from './user'
-import { MutationResolvers, QueryResolvers, Resolvers, SubscriptionResolvers } from '../generated/graphql'
+import { Handle, MutationResolvers, QueryResolvers, Resolvers, SubscriptionResolvers } from '../generated/graphql'
 import { merge } from '../utils/deep-merge'
-import { Handle } from '../utils'
 
 export type SimpleRoot = QueryResolvers & MutationResolvers
 export type ResolverArgs =

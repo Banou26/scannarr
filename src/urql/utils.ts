@@ -1,6 +1,6 @@
 import deepmerge from 'deepmerge'
 
-import { fromScannarrUri, fromUri, isScannarrUri, toScannarrId } from '../utils/uri'
+import { fromScannarrUri, fromUri, isScannarrUri, toScannarrId, toScannarrUri } from '../utils/uri'
 import { YogaInitialContext } from 'graphql-yoga'
 import { Handle, HandleRelation } from '../generated/graphql'
 import { getEdges } from '../utils/handle'
@@ -74,7 +74,7 @@ function mergeRelatedArrays(arrays) {
   return arrays
 }
 
-export const groupRelatedHandles = <T extends Handle>({ typename, results: _results }: { typename: string, results: T[] }) => {
+export const groupRelatedHandles = <T extends Handle>({ results: _results }: { results: T[] }) => {
   const { results, index } = indexHandles({ results: _results })
 
   const _groups =
@@ -93,13 +93,37 @@ export const groupRelatedHandles = <T extends Handle>({ typename, results: _resu
 
   return {
     groups,
-    handleGroups,
-    scannarrHandles:
-      handleGroups
-        .map((handles) =>
-          makeScannarrHandle({ typename, handles })
-        )
+    handleGroups
   }
+}
+
+export const makeScannarrHandle2 = ({ handles, mergeHandles }: { handles: Handle[], mergeHandles: <T2 extends Handle[]>(handles: T2) => T2[number] }) => {
+  const getRecursiveHandles = (handle: Handle) => {
+    const identicalHandles = getEdges(handle.handles) ?? []
+    return [
+      handle,
+      ...identicalHandles.flatMap(handle => getRecursiveHandles(handle.node))
+    ]
+  }
+
+  const handleUris = handles.flatMap(handle => getRecursiveHandles(handle)).map(handle => handle.uri)
+  const id = toScannarrId(handleUris)
+  const uri = toScannarrUri(handleUris)
+
+  return ({
+    ...mergeHandles(handles),
+    origin: 'scannarr',
+    id,
+    uri,
+    url: null,
+    handles: {
+      edges: handles.map((handle) => ({
+        handleRelationType: HandleRelation.Identical,
+        node: handle
+      })),
+      nodes: handles
+    }
+  })
 }
 
 export const makeScannarrHandle = ({ typename, handles, readField }: { typename: string, handles: Handle[], readField?: any }) => {
