@@ -42,7 +42,6 @@ export const subscribeToOrigins = <T extends keyof SubscriptionResolvers>(
   combineLatest(
     ...origins
       .map(origin =>
-        console.log('origin', origin, context) ||
         from(
           origin
             .client
@@ -71,8 +70,6 @@ export const mergeOriginSubscriptionResults = <T extends keyof SubscriptionResol
   results
     .pipe(
       map(_results => {
-        console.log('_results', _results)
-
         const resultsData =
           _results
             .map(result => result.data)

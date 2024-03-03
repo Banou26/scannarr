@@ -1,7 +1,6 @@
 import { Episode } from '../generated/graphql'
 import { fromScannarrUri } from '../utils/uri'
 import { getOriginResults, getOriginResultsStreamed, groupRelatedHandles, makeObjectResolver, makeScalarResolver } from './utils'
-import { populateMedia } from './media'
 import { ServerContext } from './client'
 
 export const populateEpisode = (episode: Episode, resolve?: (ref: any, str: string) => any) => ({

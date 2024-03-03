@@ -1,6 +1,5 @@
 import { getOriginResult, getOriginResults, groupRelatedHandles } from './utils'
 import { ServerContext } from './client'
-import { populateMedia } from './media'
 import { Media } from '../generated/graphql'
 
 export const serverResolvers = ({ origins, context }: { origins: any[], context?: () => Promise<ServerContext> }) => ({

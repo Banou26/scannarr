@@ -1,15 +1,4 @@
-// https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/observableToAsyncIterable.ts
-export interface Observer<T> {
-  next: (value: T) => void;
-  error: (error: Error) => void;
-  complete: () => void;
-}
-
-export interface Observable<T> {
-  subscribe(observer: Observer<T>): {
-    unsubscribe: () => void;
-  };
-}
+import type { Observable } from 'rxjs'
 
 export type Callback = (value?: any) => any;
 
