@@ -10,11 +10,23 @@ import { serverResolvers as makeMediaServerResolvers } from './media'
 import { serverResolvers as makeEpisodeServerResolvers } from './episode'
 import { serverResolvers as makePlaybackSourceServerResolvers } from './playback-source'
 import { serverResolvers as makeUserServerResolvers } from './user'
-import { Resolvers } from '../generated/graphql'
+import { MutationResolvers, QueryResolvers, Resolvers, SubscriptionResolvers } from '../generated/graphql'
 import { merge } from '../utils/deep-merge'
+import { Handle } from '../utils'
+
+export type SimpleRoot = QueryResolvers & MutationResolvers
+export type ResolverArgs =
+  Parameters<ReturnType<Extract<SubscriptionResolvers[keyof SubscriptionResolvers], Function>>['subscribe']>[1] &
+  Parameters<Extract<SimpleRoot[keyof SimpleRoot], Function>>[1]
 
 export type ServerContext = {
   fetch: typeof fetch
+  request: Request
+  params: {
+    operationName: string
+    query: string
+    variables: ResolverArgs
+  }
 }
 
 export type UserContext = {
@@ -34,19 +46,24 @@ export type Origin = {
 
 export type OriginCtx = {
   origin: Origin
-  server: YogaServerInstance<ServerContext, any>
+  server: YogaServerInstance<ServerContext, {}>
   client: Client
 }
 
+export type ServerResolverParameters = {
+  origins: OriginCtx[]
+  context?: () => Promise<ServerContext>
+  mergeHandles: (handles: Handle[]) => Handle
+}
+
 export const makeScannarrServer = (
-  { origins: _origins, context }:
-  { origins: Origin[], context?: () => Promise<ServerContext> } =
-  { origins: [], context: undefined }
+  { origins: _origins, context, mergeHandles }:
+  { origins: Origin[], context: () => Promise<ServerContext>, mergeHandles: (handles: Handle[]) => Handle }
 ) => {
   const origins =
     _origins
       .map(origin => {
-        const server = createYoga({
+        const server = createYoga<ServerContext, UserContext>({
           maskedErrors: false,
           schema: createSchema({
             typeDefs,
@@ -77,7 +94,7 @@ export const makeScannarrServer = (
           fetch: async (input: RequestInfo | URL, init?: RequestInit | undefined) =>
             server.handleRequest(
               new Request(input, init),
-              await context?.() ?? {}
+              { ...await context() }
             )
         })
 
@@ -88,10 +105,10 @@ export const makeScannarrServer = (
         }
       })
 
-  const mediaResolvers = makeMediaServerResolvers({ origins, context })
-  const episodeResolvers = makeEpisodeServerResolvers({ origins, context })
-  const playbackSourceResolvers = makePlaybackSourceServerResolvers({ origins, context })
-  const userResolvers = makeUserServerResolvers({ origins, context })
+  const mediaResolvers = makeMediaServerResolvers({ origins, context, mergeHandles })
+  const episodeResolvers = makeEpisodeServerResolvers({ origins, context, mergeHandles })
+  const playbackSourceResolvers = makePlaybackSourceServerResolvers({ origins, context, mergeHandles })
+  const userResolvers = makeUserServerResolvers({ origins, context, mergeHandles })
 
   const schema = createSchema({
     typeDefs,

@@ -1,8 +1,8 @@
-import type { OriginCtx } from './server'
+import type { OriginCtx, ServerResolverParameters } from './server'
 
 import { Cache, DataFields, Entity, FieldArgs, ResolveInfo, Variables } from '@urql/exchange-graphcache'
 
-import { Media, MediaEdge } from '../generated/graphql'
+import { Media, MediaEdge, Resolvers } from '../generated/graphql'
 import { fromScannarrUri, isScannarrUri, toScannarrId, toScannarrUri } from '../utils/uri'
 import { getOriginResults, getOriginResultsStreamed, makeArrayResolver, makeObjectResolver, makeScalarResolver } from './utils'
 import { populateEpisode } from './episode'
@@ -82,7 +82,7 @@ export const populateMedia = (media: Media, resolve?: (ref: any, str: string) =>
   episodeCount: resolve ? resolve(media, 'episodeCount') : media.episodeCount ?? null
 })
 
-export const serverResolvers = ({ origins, context }: { origins: OriginCtx[], context?: () => Promise<ServerContext> }) => ({
+export const serverResolvers = ({ origins, context, mergeHandles }: ServerResolverParameters) => ({
   Query: {
     media: (parent, args, ctx, info) => {
       const results = getOriginResultsStreamed({ ctx, origins, context })
@@ -141,7 +141,7 @@ export const serverResolvers = ({ origins, context }: { origins: OriginCtx[], co
                 from(
                   origin
                     .client
-                    .subscription(
+                    .subscription<{ media?: Partial<Media> }>(
                       gql([ctx.params.query]),
                       ctx.params.variables
                     )
@@ -159,9 +159,19 @@ export const serverResolvers = ({ origins, context }: { origins: OriginCtx[], co
               )
           )
             .pipe(
-              map(results => {
-                console.log('results', results)
-                return { media: null }
+              map(_results => {
+                const resultsData =
+                  _results
+                    .map(result => result.data)
+                    .filter((data): data is { media: Partial<Media> } => Boolean(data?.media))
+                if (!resultsData.length) return
+                return {
+                  media:
+                    mergeHandles(
+                      resultsData
+                        .map(data => data.media as Media)
+                    )
+                }
               })
             )
         )
@@ -197,7 +207,7 @@ export const serverResolvers = ({ origins, context }: { origins: OriginCtx[], co
       }
     }
   }
-})
+} satisfies Resolvers)
 
 export const cacheResolvers = ({ context }: { context?: () => Promise<ServerContext> }) => ({
   MediaCoverImage: {
