@@ -6,6 +6,7 @@ import { Handle, HandleRelation } from '../generated/graphql'
 import { getEdges } from '../utils/handle'
 import { ServerContext } from './client'
 import { HandleType } from './server'
+import { groupBy, merge } from '../utils'
 
 export const indexHandles = <T extends Handle[]>({ results: _results }: { results: T }) => {
   let results = [...new Map(_results.map(item => [item.uri, item])).values()]
@@ -98,6 +99,23 @@ export const groupRelatedHandles = <T extends Handle>({ results: _results }: { r
   }
 }
 
+const recursiveRemoveNullable = (obj) =>
+  Array.isArray(obj)
+    ? obj.map(recursiveRemoveNullable)
+    : (
+      typeof obj === 'object'
+        ? (
+          Object
+            .fromEntries(
+              Object
+                .entries(obj)
+                .filter(([_, value]) => value !== null && value !== undefined)
+                .map(([key, value]) => [key, recursiveRemoveNullable(value)])
+            )
+        )
+        : obj
+    )
+
 export const makeScannarrHandle2 = ({ handles, mergeHandles }: { handles: HandleType[], mergeHandles: <T2 extends HandleType[]>(handles: T2) => T2[number] }) => {
   const getRecursiveHandles = (handle: HandleType) => {
     const identicalHandles = getEdges(handle.handles) ?? []
@@ -107,22 +125,26 @@ export const makeScannarrHandle2 = ({ handles, mergeHandles }: { handles: Handle
     ]
   }
 
-  const handleUris = handles.flatMap(handle => getRecursiveHandles(handle)).map(handle => handle.uri)
+  const foundHandles = handles.flatMap(handle => getRecursiveHandles(handle))
+  const uniqueHandles =
+    [...groupBy(foundHandles, (handle) => handle.uri)]
+      .map(([_, handles]) => merge(...recursiveRemoveNullable(handles)))
+  const handleUris = uniqueHandles.map(handle => handle.uri)
   const id = toScannarrId(handleUris)
   const uri = toScannarrUri(handleUris)
 
   return ({
-    ...mergeHandles(handles),
+    ...mergeHandles(uniqueHandles),
     origin: 'scannarr',
     id,
     uri,
     url: null,
     handles: {
-      edges: handles.map((handle) => ({
+      edges: uniqueHandles.map((handle) => ({
         handleRelationType: HandleRelation.Identical,
         node: handle
       })),
-      nodes: handles
+      nodes: uniqueHandles
     }
   })
 }
