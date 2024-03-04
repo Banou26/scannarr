@@ -6,7 +6,6 @@ import { YogaServerInstance } from 'graphql-yoga'
 import { devtoolsExchange } from '@urql/devtools'
 
 import { cacheResolvers as makeMediaCacheResolvers } from './media'
-import { cacheResolvers as makeEpisodeCacheResolvers } from './episode'
 import { cacheResolvers as makePlaybackSourceCacheResolvers } from './playback-source'
 
 export type {
@@ -56,8 +55,6 @@ export const makeScannarrClient = (
     },
     resolvers: {
       ...makeMediaCacheResolvers({ context }),
-      // // @ts-ignore
-      // ...makeEpisodeCacheResolvers({ context }),
       // // @ts-ignore
       // ...makePlaybackSourceCacheResolvers({ context })
     }

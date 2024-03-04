@@ -2770,6 +2770,40 @@
                 }
               }
             ]
+          },
+          {
+            "name": "playbackSource",
+            "type": {
+              "kind": "OBJECT",
+              "name": "PlaybackSource",
+              "ofType": null
+            },
+            "args": [
+              {
+                "name": "input",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "Any"
+                }
+              }
+            ]
+          },
+          {
+            "name": "playbackSourcePage",
+            "type": {
+              "kind": "OBJECT",
+              "name": "PlaybackSourcePage",
+              "ofType": null
+            },
+            "args": [
+              {
+                "name": "input",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "Any"
+                }
+              }
+            ]
           }
         ],
         "interfaces": []

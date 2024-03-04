@@ -102,6 +102,8 @@ extend type Subscription {
   mediaPage(input: MediaPageInput!): MediaPage
   episode(input: EpisodeInput): Episode
   episodePage(input: EpisodePageInput): EpisodePage
+  playbackSourcePage(input: PlaybackSourcePageInput): PlaybackSourcePage
+  playbackSource(input: PlaybackSourceInput): PlaybackSource
 }
 
 """

@@ -967,6 +967,8 @@ export type Subscription = {
   episodePage?: Maybe<EpisodePage>;
   media?: Maybe<Media>;
   mediaPage?: Maybe<MediaPage>;
+  playbackSource?: Maybe<PlaybackSource>;
+  playbackSourcePage?: Maybe<PlaybackSourcePage>;
 };
 
 
@@ -987,6 +989,16 @@ export type SubscriptionMediaArgs = {
 
 export type SubscriptionMediaPageArgs = {
   input: MediaPageInput;
+};
+
+
+export type SubscriptionPlaybackSourceArgs = {
+  input?: InputMaybe<PlaybackSourceInput>;
+};
+
+
+export type SubscriptionPlaybackSourcePageArgs = {
+  input?: InputMaybe<PlaybackSourcePageInput>;
 };
 
 export type Team = Handle & {
@@ -1686,6 +1698,8 @@ export type SubscriptionResolvers<ContextType = any, ParentType extends Resolver
   episodePage?: SubscriptionResolver<Maybe<ResolversTypes['EpisodePage']>, "episodePage", ParentType, ContextType, Partial<SubscriptionEpisodePageArgs>>;
   media?: SubscriptionResolver<Maybe<ResolversTypes['Media']>, "media", ParentType, ContextType, RequireFields<SubscriptionMediaArgs, 'input'>>;
   mediaPage?: SubscriptionResolver<Maybe<ResolversTypes['MediaPage']>, "mediaPage", ParentType, ContextType, RequireFields<SubscriptionMediaPageArgs, 'input'>>;
+  playbackSource?: SubscriptionResolver<Maybe<ResolversTypes['PlaybackSource']>, "playbackSource", ParentType, ContextType, Partial<SubscriptionPlaybackSourceArgs>>;
+  playbackSourcePage?: SubscriptionResolver<Maybe<ResolversTypes['PlaybackSourcePage']>, "playbackSourcePage", ParentType, ContextType, Partial<SubscriptionPlaybackSourcePageArgs>>;
 };
 
 export type TeamResolvers<ContextType = any, ParentType extends ResolversParentTypes['Team'] = ResolversParentTypes['Team']> = {
