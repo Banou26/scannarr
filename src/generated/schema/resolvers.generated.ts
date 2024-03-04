@@ -49,6 +49,8 @@ import    { Resource } from './resolvers/Resource';
 import    { ResourceConnection } from './resolvers/ResourceConnection';
 import    { ResourceEdge } from './resolvers/ResourceEdge';
 import    { _empty as Subscription__empty } from './resolvers/Subscription/_empty';
+import    { episode as Subscription_episode } from './resolvers/Subscription/episode';
+import    { episodePage as Subscription_episodePage } from './resolvers/Subscription/episodePage';
 import    { media as Subscription_media } from './resolvers/Subscription/media';
 import    { mediaPage as Subscription_mediaPage } from './resolvers/Subscription/mediaPage';
 import    { Team } from './resolvers/Team';
@@ -60,7 +62,7 @@ import    { UserMediaPage } from './resolvers/UserMediaPage';
     export const resolvers: Resolvers = {
       Query: { _empty: Query__empty,authentication: Query_authentication,episode: Query_episode,episodePage: Query_episodePage,media: Query_media,mediaPage: Query_mediaPage,origin: Query_origin,originPage: Query_originPage,playbackSource: Query_playbackSource,playbackSourcePage: Query_playbackSourcePage,user: Query_user,userMediaPage: Query_userMediaPage },
       Mutation: { _empty: Mutation__empty,authenticate: Mutation_authenticate },
-      Subscription: { _empty: Subscription__empty,media: Subscription_media,mediaPage: Subscription_mediaPage },
+      Subscription: { _empty: Subscription__empty,episode: Subscription_episode,episodePage: Subscription_episodePage,media: Subscription_media,mediaPage: Subscription_mediaPage },
       Authenticate: Authenticate,
 AuthenticateOauth2: AuthenticateOauth2,
 Authentication: Authentication,

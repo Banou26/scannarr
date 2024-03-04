@@ -963,8 +963,20 @@ export type ResourceEdge = HandleEdge & {
 export type Subscription = {
   __typename?: 'Subscription';
   _empty?: Maybe<Scalars['String']['output']>;
+  episode?: Maybe<Episode>;
+  episodePage?: Maybe<EpisodePage>;
   media?: Maybe<Media>;
   mediaPage?: Maybe<MediaPage>;
+};
+
+
+export type SubscriptionEpisodeArgs = {
+  input?: InputMaybe<EpisodeInput>;
+};
+
+
+export type SubscriptionEpisodePageArgs = {
+  input?: InputMaybe<EpisodePageInput>;
 };
 
 
@@ -1670,6 +1682,8 @@ export type ResourceEdgeResolvers<ContextType = any, ParentType extends Resolver
 
 export type SubscriptionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
   _empty?: SubscriptionResolver<Maybe<ResolversTypes['String']>, "_empty", ParentType, ContextType>;
+  episode?: SubscriptionResolver<Maybe<ResolversTypes['Episode']>, "episode", ParentType, ContextType, Partial<SubscriptionEpisodeArgs>>;
+  episodePage?: SubscriptionResolver<Maybe<ResolversTypes['EpisodePage']>, "episodePage", ParentType, ContextType, Partial<SubscriptionEpisodePageArgs>>;
   media?: SubscriptionResolver<Maybe<ResolversTypes['Media']>, "media", ParentType, ContextType, RequireFields<SubscriptionMediaArgs, 'input'>>;
   mediaPage?: SubscriptionResolver<Maybe<ResolversTypes['MediaPage']>, "mediaPage", ParentType, ContextType, RequireFields<SubscriptionMediaPageArgs, 'input'>>;
 };

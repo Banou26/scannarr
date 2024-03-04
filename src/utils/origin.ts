@@ -4,6 +4,7 @@ import { combineLatest, from } from 'rxjs'
 import { map, tap } from 'rxjs/operators'
 import { gql } from 'graphql-tag'
 import { Handle, SubscriptionResolverObject, SubscriptionResolvers } from '../generated/graphql'
+import { makeScannarrHandle2 } from '../urql'
 
 type SubscriptionResolverValue<T extends keyof SubscriptionResolvers> =
   Extract<
@@ -57,7 +58,10 @@ export const subscribeToOrigins = <T extends keyof SubscriptionResolvers>(
               : { ...result, origin }
           ),
           tap(result => {
-            if (result.error) console.error(result.error)
+            if (result.error) {
+              console.warn('Error in origin', result.origin.origin.name)
+              console.error(result.error)
+            }
           })
         )
       )
@@ -79,10 +83,12 @@ export const mergeOriginSubscriptionResults = <T extends keyof SubscriptionResol
 
         return {
           [name]:
-            mergeHandles(
-              resultsData
-                .map(data => data![name as keyof typeof data])
-            )
+            makeScannarrHandle2({
+              handles:
+                resultsData
+                  .map(data => data![name as keyof typeof data]),
+              mergeHandles
+            })
         } as unknown as { [K in T]: SubscriptionResolverHandleValue<K> }
       })
     )

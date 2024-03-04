@@ -1,68 +1,15 @@
-import { Episode } from '../generated/graphql'
+import type { ServerResolverParameters } from './server'
+import { Episode, EpisodePage } from '../generated/graphql'
+
+import { map } from 'rxjs/operators'
+
 import { fromScannarrUri } from '../utils/uri'
-import { getOriginResults, getOriginResultsStreamed, groupRelatedHandles, makeObjectResolver, makeScalarResolver } from './utils'
+import { getOriginResults, getOriginResultsStreamed, groupRelatedHandles, makeObjectResolver, makeScalarResolver, makeScannarrHandle2 } from './utils'
 import { ServerContext } from './client'
+import { observableToAsyncIterable } from '../utils'
+import { mergeOriginSubscriptionResults, subscribeToOrigins } from '../utils/origin'
 
-export const populateEpisode = (episode: Episode, resolve?: (ref: any, str: string) => any) => ({
-  __typename: 'Episode',
-  origin: (resolve ? resolve(episode, 'origin') : episode.origin) ?? episode.origin,
-  id: (resolve ? resolve(episode, 'id') : episode.id) ?? episode.id,
-  uri: (resolve ? resolve(episode, 'uri') : episode.uri) ?? episode.uri,
-  url: (resolve ? resolve(episode, 'url') : (episode.url ?? '')) ?? '',
-  handles:
-    (episode.handles ?? {
-      __typename: 'EpisodeConnection',
-      edges:
-        typeof (episode as Episode).handles?.edges === 'function'
-          ? (
-            async function *() {
-              // @ts-ignore
-              for await (const edge of (episode as Episode).handles?.edges()) {
-                yield {
-                  ...edge,
-                  node: populateEpisode(edge.node),
-                  __typename: 'EpisodeEdge'
-                }
-              }
-            }
-          )
-          : (
-            (episode as Episode).handles?.edges.map(edge =>
-              typeof edge.node === 'string'
-                ? ({ node: edge.node, __typename: 'EpisodeEdge' })
-                : ({
-                  ...edge,
-                  node: populateEpisode(edge.node),
-                  __typename: 'EpisodeEdge'
-                })  
-            ) ?? []
-          )
-    }),
-
-  title: episode.title ?? {
-    romanized: null,
-    english: null,
-    native: null,
-  },
-
-  media:
-    populateMedia({
-      origin: 'scannarr',
-      id: '()',
-      uri: 'scannarr:()',
-      handles: {
-        edges: [],
-        nodes: []
-      }
-    }),
-  number: resolve ? resolve(episode, 'number') : (episode.number ?? null),
-  description: resolve ? resolve(episode, 'description') : (episode.description ?? null),
-  thumbnail: resolve ? resolve(episode, 'thumbnail') : (episode.thumbnail ?? null),
-  timeUntilAiring: resolve ? resolve(episode, 'timeUntilAiring') : (episode.timeUntilAiring ?? null),
-  airingAt: resolve ? resolve(episode, 'airingAt') : ( episode.airingAt ?? null)
-})
-
-export const serverResolvers = ({ origins, context }: { origins: any[], context?: () => Promise<ServerContext> }) => ({
+export const serverResolvers = ({ origins, mergeHandles }: ServerResolverParameters) => ({
   Query: {
     episode: (parent, args, ctx, info) => {
       const results = getOriginResultsStreamed({ ctx, origins, context })
@@ -116,6 +63,56 @@ export const serverResolvers = ({ origins, context }: { origins: any[], context?
             }))
         )
       }
+    }
+  },
+  Subscription: {
+    episode: {
+      subscribe: (_, __, context) =>
+        observableToAsyncIterable(
+          mergeOriginSubscriptionResults({
+            results:
+              subscribeToOrigins({
+                origins,
+                context,
+                name: 'episode'
+              }),
+            mergeHandles,
+            name: 'episode'
+          })
+        )
+    },
+    episodePage: {
+      subscribe: (_, __, context) =>
+        observableToAsyncIterable(
+          subscribeToOrigins({
+            origins,
+            context,
+            name: 'episodePage'
+          }).pipe(
+            map(results => {
+              const { handleGroups } = groupRelatedHandles({
+                results:
+                  results
+                    .map(result => result.data?.episodePage as EpisodePage)
+                    .flatMap(episodePage => episodePage?.nodes ?? [])
+              })
+              const scannarrHandles =
+                handleGroups
+                  .map(handles =>
+                    makeScannarrHandle2({
+                      handles,
+                      mergeHandles
+                    })
+                  )
+              return {
+                episodePage: {
+                  edges: scannarrHandles.map(episode => ({ node: episode })),
+                  nodes: scannarrHandles
+                }
+              }
+            })
+          )
+        )
     }
   }
 })

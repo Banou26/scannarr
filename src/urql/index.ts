@@ -5,3 +5,5 @@ export type {
 
 export { makeScannarrClient } from './client'
 export { makeScannarrServer } from './server'
+
+export * from './utils'

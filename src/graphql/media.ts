@@ -100,6 +100,8 @@ extend type Query {
 extend type Subscription {
   media(input: MediaInput!): Media
   mediaPage(input: MediaPageInput!): MediaPage
+  episode(input: EpisodeInput): Episode
+  episodePage(input: EpisodePageInput): EpisodePage
 }
 
 """

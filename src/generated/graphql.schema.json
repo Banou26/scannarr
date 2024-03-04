@@ -2698,6 +2698,40 @@
             "args": []
           },
           {
+            "name": "episode",
+            "type": {
+              "kind": "OBJECT",
+              "name": "Episode",
+              "ofType": null
+            },
+            "args": [
+              {
+                "name": "input",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "Any"
+                }
+              }
+            ]
+          },
+          {
+            "name": "episodePage",
+            "type": {
+              "kind": "OBJECT",
+              "name": "EpisodePage",
+              "ofType": null
+            },
+            "args": [
+              {
+                "name": "input",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "Any"
+                }
+              }
+            ]
+          },
+          {
             "name": "media",
             "type": {
               "kind": "OBJECT",

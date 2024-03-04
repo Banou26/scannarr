@@ -1,16 +1,56 @@
-import type { ServerResolverParameters } from './server'
-import type { MediaPage, Resolvers } from '../generated/graphql'
+import type { Cache, ResolveInfo } from '@urql/exchange-graphcache'
 
-import { Cache, ResolveInfo } from '@urql/exchange-graphcache'
+import type { ServerResolverParameters } from './server'
+import { HandleRelation, type MediaPage, type Resolvers } from '../generated/graphql'
+
 import { map } from 'rxjs/operators'
 
-import { makeScannarrHandle2 } from './utils'
-import { groupRelatedHandles } from './utils'
+import { makeScannarrHandle2, groupRelatedHandles } from './utils'
 import { ServerContext } from './client'
 import { observableToAsyncIterable } from '../utils/observableToAsyncIterable'
 import { mergeOriginSubscriptionResults, subscribeToOrigins } from '../utils/origin'
+import { groupBy, isScannarrUri } from '../utils'
 
 export const serverResolvers = ({ origins, mergeHandles }: ServerResolverParameters) => ({
+  Media: {
+    episodes: (parent, args, ctx, info) => {
+      if (!isScannarrUri(parent.uri)) return parent.episodes
+
+      const originHandles =
+        (parent.episodes?.edges.map(edge => edge.node)
+          ?? parent.episodes?.nodes
+          ?? [])
+        .flatMap(episode =>
+          episode?.handles?.edges.map(edge => edge.node)
+            ?? episode?.handles?.nodes
+            ?? []
+        )
+          
+      const groupedEpisodes = [
+        ...groupBy(
+          originHandles,
+          episode => episode.number
+        )
+      ]
+
+      const scannarrEpisodes =
+        groupedEpisodes
+          .map(([, handles]) =>
+            makeScannarrHandle2({
+              handles,
+              mergeHandles
+            })
+          )
+
+      return {
+        edges: scannarrEpisodes.map(episode => ({
+          handleRelationType: HandleRelation.Identical,
+          node: episode
+        })),
+        nodes: scannarrEpisodes
+      }
+    }
+  },
   Subscription: {
     media: {
       subscribe: (_, __, context) =>

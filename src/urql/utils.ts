@@ -5,6 +5,7 @@ import { YogaInitialContext } from 'graphql-yoga'
 import { Handle, HandleRelation } from '../generated/graphql'
 import { getEdges } from '../utils/handle'
 import { ServerContext } from './client'
+import { HandleType } from './server'
 
 export const indexHandles = <T extends Handle[]>({ results: _results }: { results: T }) => {
   let results = [...new Map(_results.map(item => [item.uri, item])).values()]
@@ -97,8 +98,8 @@ export const groupRelatedHandles = <T extends Handle>({ results: _results }: { r
   }
 }
 
-export const makeScannarrHandle2 = ({ handles, mergeHandles }: { handles: Handle[], mergeHandles: <T2 extends Handle[]>(handles: T2) => T2[number] }) => {
-  const getRecursiveHandles = (handle: Handle) => {
+export const makeScannarrHandle2 = ({ handles, mergeHandles }: { handles: HandleType[], mergeHandles: <T2 extends HandleType[]>(handles: T2) => T2[number] }) => {
+  const getRecursiveHandles = (handle: HandleType) => {
     const identicalHandles = getEdges(handle.handles) ?? []
     return [
       handle,
