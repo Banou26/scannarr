@@ -26,30 +26,29 @@ import    { MediaPage } from './resolvers/MediaPage';
 import    { MediaSynonym } from './resolvers/MediaSynonym';
 import    { MediaTitle } from './resolvers/MediaTitle';
 import    { MediaTrailer } from './resolvers/MediaTrailer';
+import    { _empty as Mutation__empty } from './resolvers/Mutation/_empty';
 import    { authenticate as Mutation_authenticate } from './resolvers/Mutation/authenticate';
-import    { dummy as Mutation_dummy } from './resolvers/Mutation/dummy';
 import    { Origin } from './resolvers/Origin';
 import    { PlaybackSource } from './resolvers/PlaybackSource';
 import    { PlaybackSourceConnection } from './resolvers/PlaybackSourceConnection';
 import    { PlaybackSourceEdge } from './resolvers/PlaybackSourceEdge';
 import    { PlaybackSourcePage } from './resolvers/PlaybackSourcePage';
+import    { _empty as Query__empty } from './resolvers/Query/_empty';
 import    { authentication as Query_authentication } from './resolvers/Query/authentication';
-import    { dummy as Query_dummy } from './resolvers/Query/dummy';
-import    { episode as Query_episode } from './resolvers/Query/episode';
-import    { episodePage as Query_episodePage } from './resolvers/Query/episodePage';
-import    { media as Query_media } from './resolvers/Query/media';
-import    { mediaPage as Query_mediaPage } from './resolvers/Query/mediaPage';
 import    { origin as Query_origin } from './resolvers/Query/origin';
 import    { originPage as Query_originPage } from './resolvers/Query/originPage';
-import    { playbackSource as Query_playbackSource } from './resolvers/Query/playbackSource';
-import    { playbackSourcePage as Query_playbackSourcePage } from './resolvers/Query/playbackSourcePage';
 import    { user as Query_user } from './resolvers/Query/user';
-import    { userMediaPage as Query_userMediaPage } from './resolvers/Query/userMediaPage';
 import    { Resource } from './resolvers/Resource';
 import    { ResourceConnection } from './resolvers/ResourceConnection';
 import    { ResourceEdge } from './resolvers/ResourceEdge';
-import    { dummy as Subscription_dummy } from './resolvers/Subscription/dummy';
+import    { _empty as Subscription__empty } from './resolvers/Subscription/_empty';
+import    { episode as Subscription_episode } from './resolvers/Subscription/episode';
+import    { episodePage as Subscription_episodePage } from './resolvers/Subscription/episodePage';
+import    { media as Subscription_media } from './resolvers/Subscription/media';
 import    { mediaPage as Subscription_mediaPage } from './resolvers/Subscription/mediaPage';
+import    { playbackSource as Subscription_playbackSource } from './resolvers/Subscription/playbackSource';
+import    { playbackSourcePage as Subscription_playbackSourcePage } from './resolvers/Subscription/playbackSourcePage';
+import    { userMediaPage as Subscription_userMediaPage } from './resolvers/Subscription/userMediaPage';
 import    { Team } from './resolvers/Team';
 import    { Uri } from './resolvers/Uri';
 import    { User } from './resolvers/User';
@@ -57,9 +56,9 @@ import    { UserMedia } from './resolvers/UserMedia';
 import    { UserMediaEpisode } from './resolvers/UserMediaEpisode';
 import    { UserMediaPage } from './resolvers/UserMediaPage';
     export const resolvers: Resolvers = {
-      Query: { authentication: Query_authentication,dummy: Query_dummy,episode: Query_episode,episodePage: Query_episodePage,media: Query_media,mediaPage: Query_mediaPage,origin: Query_origin,originPage: Query_originPage,playbackSource: Query_playbackSource,playbackSourcePage: Query_playbackSourcePage,user: Query_user,userMediaPage: Query_userMediaPage },
-      Mutation: { authenticate: Mutation_authenticate,dummy: Mutation_dummy },
-      Subscription: { dummy: Subscription_dummy,mediaPage: Subscription_mediaPage },
+      Query: { _empty: Query__empty,authentication: Query_authentication,origin: Query_origin,originPage: Query_originPage,user: Query_user },
+      Mutation: { _empty: Mutation__empty,authenticate: Mutation_authenticate },
+      Subscription: { _empty: Subscription__empty,episode: Subscription_episode,episodePage: Subscription_episodePage,media: Subscription_media,mediaPage: Subscription_mediaPage,playbackSource: Subscription_playbackSource,playbackSourcePage: Subscription_playbackSourcePage,userMediaPage: Subscription_userMediaPage },
       Authenticate: Authenticate,
 AuthenticateOauth2: AuthenticateOauth2,
 Authentication: Authentication,

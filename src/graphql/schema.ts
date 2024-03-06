@@ -1,13 +1,13 @@
 export const schema = `#graphql
 
 type Query {
-  dummy: String
+  _empty: String
 }
 type Mutation {
-  dummy: String
+  _empty: String
 }
 type Subscription {
-  dummy: String
+  _empty: String
 }
 schema {
   query: Query

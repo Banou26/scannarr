@@ -1,10 +1,12 @@
 import deepmerge from 'deepmerge'
 
-import { fromScannarrUri, fromUri, isScannarrUri, toScannarrId } from '../utils/uri2'
+import { fromScannarrUri, fromUri, isScannarrUri, toScannarrId, toScannarrUri } from '../utils/uri'
 import { YogaInitialContext } from 'graphql-yoga'
 import { Handle, HandleRelation } from '../generated/graphql'
 import { getEdges } from '../utils/handle'
 import { ServerContext } from './client'
+import { HandleType } from './server'
+import { groupBy, merge } from '../utils'
 
 export const indexHandles = <T extends Handle[]>({ results: _results }: { results: T }) => {
   let results = [...new Map(_results.map(item => [item.uri, item])).values()]
@@ -74,7 +76,7 @@ function mergeRelatedArrays(arrays) {
   return arrays
 }
 
-export const groupRelatedHandles = <T extends Handle>({ typename, results: _results }: { typename: string, results: T[] }) => {
+export const groupRelatedHandles = <T extends Handle>({ results: _results }: { results: T[] }) => {
   const { results, index } = indexHandles({ results: _results })
 
   const _groups =
@@ -93,13 +95,60 @@ export const groupRelatedHandles = <T extends Handle>({ typename, results: _resu
 
   return {
     groups,
-    handleGroups,
-    scannarrHandles:
-      handleGroups
-        .map((handles) =>
-          makeScannarrHandle({ typename, handles })
-        )
+    handleGroups
   }
+}
+
+const recursiveRemoveNullable = <T>(obj: T): T =>
+  (
+    Array.isArray(obj)
+      ? obj.map(recursiveRemoveNullable)
+      : (
+        typeof obj === 'object'
+          ? (
+            Object
+              .fromEntries(
+                Object
+                  .entries(obj as Object)
+                  .filter(([_, value]) => value !== null && value !== undefined)
+                  .map(([key, value]) => [key, recursiveRemoveNullable(value)])
+              )
+          )
+          : obj
+      )
+  ) as unknown as T
+
+export const makeScannarrHandle2 = ({ handles, mergeHandles }: { handles: HandleType[], mergeHandles: <T2 extends HandleType[]>(handles: T2) => T2[number] }) => {
+  const getRecursiveHandles = (handle: HandleType): HandleType[] => {
+    const identicalHandles = getEdges(handle.handles) ?? []
+    return [
+      handle,
+      ...identicalHandles.flatMap(handle => getRecursiveHandles(handle.node))
+    ]
+  }
+
+  const foundHandles = handles.flatMap(handle => getRecursiveHandles(handle))
+  const uniqueHandles =
+    [...groupBy(foundHandles, (handle) => handle.uri) as Map<string, HandleType[]>]
+      .map(([_, handles]) => merge(...recursiveRemoveNullable(handles)) as HandleType)
+  const handleUris = uniqueHandles.map(handle => handle.uri)
+  const id = toScannarrId(handleUris)
+  const uri = toScannarrUri(handleUris)
+
+  return ({
+    ...mergeHandles(uniqueHandles),
+    origin: 'scannarr',
+    id,
+    uri,
+    url: null,
+    handles: {
+      edges: uniqueHandles.map((handle) => ({
+        handleRelationType: HandleRelation.Identical,
+        node: handle
+      })),
+      nodes: uniqueHandles
+    }
+  })
 }
 
 export const makeScannarrHandle = ({ typename, handles, readField }: { typename: string, handles: Handle[], readField?: any }) => {

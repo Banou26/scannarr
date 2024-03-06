@@ -133,7 +133,7 @@ export type EpisodeInput = {
   /** Filter by the media origin */
   origin?: InputMaybe<Scalars['String']>;
   /** Filter by the media uri */
-  uri?: InputMaybe<Scalars['String']>;
+  uri?: InputMaybe<Scalars['Uri']>;
 };
 
 export type EpisodePage = {
@@ -176,7 +176,7 @@ export type EpisodePageInput = {
   /** The order the results will be returned in */
   sorts?: InputMaybe<Array<EpisodeSort>>;
   /** Filter by the media uri */
-  uri?: InputMaybe<Scalars['String']>;
+  uri?: InputMaybe<Scalars['Uri']>;
 };
 
 export enum EpisodeSort {
@@ -473,7 +473,7 @@ export type MediaInput = {
   /** Filter by the media origin */
   origin?: InputMaybe<Scalars['String']>;
   /** Filter by the media uri */
-  uri?: InputMaybe<Scalars['String']>;
+  uri?: InputMaybe<Scalars['Uri']>;
 };
 
 export type MediaPage = {
@@ -526,7 +526,7 @@ export type MediaPageInput = {
   /** Filter by the media's current release status */
   status?: InputMaybe<MediaStatus>;
   /** Filter by the media uri */
-  uri?: InputMaybe<Scalars['String']>;
+  uri?: InputMaybe<Scalars['Uri']>;
 };
 
 export enum MediaSeason {
@@ -718,8 +718,8 @@ export enum MediaType {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  _empty?: Maybe<Scalars['String']>;
   authenticate: Authenticate;
-  dummy?: Maybe<Scalars['String']>;
 };
 
 
@@ -832,7 +832,7 @@ export type PlaybackSourceInput = {
   /** Filter by the media origin */
   origin?: InputMaybe<Scalars['String']>;
   /** Filter by the media uri */
-  uri?: InputMaybe<Scalars['String']>;
+  uri?: InputMaybe<Scalars['Uri']>;
 };
 
 export type PlaybackSourcePage = {
@@ -874,7 +874,7 @@ export type PlaybackSourcePageInput = {
   /** Filter by search terms */
   search?: InputMaybe<Scalars['String']>;
   /** Filter by the media uri */
-  uri?: InputMaybe<Scalars['String']>;
+  uri?: InputMaybe<Scalars['Uri']>;
 };
 
 export enum PlaybackSourceType {
@@ -886,38 +886,11 @@ export enum PlaybackSourceType {
 
 export type Query = {
   __typename?: 'Query';
+  _empty?: Maybe<Scalars['String']>;
   authentication: Array<Authentication>;
-  dummy?: Maybe<Scalars['String']>;
-  episode?: Maybe<Episode>;
-  episodePage?: Maybe<EpisodePage>;
-  media?: Maybe<Media>;
-  mediaPage?: Maybe<MediaPage>;
   origin?: Maybe<Origin>;
   originPage: Array<Origin>;
-  playbackSource?: Maybe<PlaybackSource>;
-  playbackSourcePage?: Maybe<PlaybackSourcePage>;
   user: User;
-  userMediaPage: UserMediaPage;
-};
-
-
-export type QueryEpisodeArgs = {
-  input?: InputMaybe<EpisodeInput>;
-};
-
-
-export type QueryEpisodePageArgs = {
-  input?: InputMaybe<EpisodePageInput>;
-};
-
-
-export type QueryMediaArgs = {
-  input?: InputMaybe<MediaInput>;
-};
-
-
-export type QueryMediaPageArgs = {
-  input: MediaPageInput;
 };
 
 
@@ -931,23 +904,8 @@ export type QueryOriginPageArgs = {
 };
 
 
-export type QueryPlaybackSourceArgs = {
-  input?: InputMaybe<PlaybackSourceInput>;
-};
-
-
-export type QueryPlaybackSourcePageArgs = {
-  input?: InputMaybe<PlaybackSourcePageInput>;
-};
-
-
 export type QueryUserArgs = {
   input: UserInput;
-};
-
-
-export type QueryUserMediaPageArgs = {
-  input: UserMediaPageInput;
 };
 
 export type Resource = Handle & {
@@ -976,13 +934,49 @@ export type ResourceEdge = HandleEdge & {
 
 export type Subscription = {
   __typename?: 'Subscription';
-  dummy?: Maybe<Scalars['String']>;
+  _empty?: Maybe<Scalars['String']>;
+  episode?: Maybe<Episode>;
+  episodePage?: Maybe<EpisodePage>;
+  media?: Maybe<Media>;
   mediaPage?: Maybe<MediaPage>;
+  playbackSource?: Maybe<PlaybackSource>;
+  playbackSourcePage?: Maybe<PlaybackSourcePage>;
+  userMediaPage?: Maybe<UserMediaPage>;
+};
+
+
+export type SubscriptionEpisodeArgs = {
+  input?: InputMaybe<EpisodeInput>;
+};
+
+
+export type SubscriptionEpisodePageArgs = {
+  input?: InputMaybe<EpisodePageInput>;
+};
+
+
+export type SubscriptionMediaArgs = {
+  input: MediaInput;
 };
 
 
 export type SubscriptionMediaPageArgs = {
   input: MediaPageInput;
+};
+
+
+export type SubscriptionPlaybackSourceArgs = {
+  input?: InputMaybe<PlaybackSourceInput>;
+};
+
+
+export type SubscriptionPlaybackSourcePageArgs = {
+  input?: InputMaybe<PlaybackSourcePageInput>;
+};
+
+
+export type SubscriptionUserMediaPageArgs = {
+  input: UserMediaPageInput;
 };
 
 export type Team = Handle & {
@@ -1563,8 +1557,8 @@ export type MediaTrailerResolvers<ContextType = ServerContext, ParentType extend
 };
 
 export type MutationResolvers<ContextType = ServerContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
+  _empty?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   authenticate?: Resolver<ResolversTypes['Authenticate'], ParentType, ContextType, RequireFields<MutationAuthenticateArgs, 'input'>>;
-  dummy?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
 export type OriginResolvers<ContextType = ServerContext, ParentType extends ResolversParentTypes['Origin'] = ResolversParentTypes['Origin']> = {
@@ -1633,18 +1627,11 @@ export type PlaybackSourcePageResolvers<ContextType = ServerContext, ParentType 
 };
 
 export type QueryResolvers<ContextType = ServerContext, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
+  _empty?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   authentication?: Resolver<Array<ResolversTypes['Authentication']>, ParentType, ContextType>;
-  dummy?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  episode?: Resolver<Maybe<ResolversTypes['Episode']>, ParentType, ContextType, Partial<QueryEpisodeArgs>>;
-  episodePage?: Resolver<Maybe<ResolversTypes['EpisodePage']>, ParentType, ContextType, Partial<QueryEpisodePageArgs>>;
-  media?: Resolver<Maybe<ResolversTypes['Media']>, ParentType, ContextType, Partial<QueryMediaArgs>>;
-  mediaPage?: Resolver<Maybe<ResolversTypes['MediaPage']>, ParentType, ContextType, RequireFields<QueryMediaPageArgs, 'input'>>;
   origin?: Resolver<Maybe<ResolversTypes['Origin']>, ParentType, ContextType, RequireFields<QueryOriginArgs, 'input'>>;
   originPage?: Resolver<Array<ResolversTypes['Origin']>, ParentType, ContextType, RequireFields<QueryOriginPageArgs, 'input'>>;
-  playbackSource?: Resolver<Maybe<ResolversTypes['PlaybackSource']>, ParentType, ContextType, Partial<QueryPlaybackSourceArgs>>;
-  playbackSourcePage?: Resolver<Maybe<ResolversTypes['PlaybackSourcePage']>, ParentType, ContextType, Partial<QueryPlaybackSourcePageArgs>>;
   user?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<QueryUserArgs, 'input'>>;
-  userMediaPage?: Resolver<ResolversTypes['UserMediaPage'], ParentType, ContextType, RequireFields<QueryUserMediaPageArgs, 'input'>>;
 };
 
 export type ResourceResolvers<ContextType = ServerContext, ParentType extends ResolversParentTypes['Resource'] = ResolversParentTypes['Resource']> = {
@@ -1671,8 +1658,14 @@ export type ResourceEdgeResolvers<ContextType = ServerContext, ParentType extend
 };
 
 export type SubscriptionResolvers<ContextType = ServerContext, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
-  dummy?: SubscriptionResolver<Maybe<ResolversTypes['String']>, "dummy", ParentType, ContextType>;
+  _empty?: SubscriptionResolver<Maybe<ResolversTypes['String']>, "_empty", ParentType, ContextType>;
+  episode?: SubscriptionResolver<Maybe<ResolversTypes['Episode']>, "episode", ParentType, ContextType, Partial<SubscriptionEpisodeArgs>>;
+  episodePage?: SubscriptionResolver<Maybe<ResolversTypes['EpisodePage']>, "episodePage", ParentType, ContextType, Partial<SubscriptionEpisodePageArgs>>;
+  media?: SubscriptionResolver<Maybe<ResolversTypes['Media']>, "media", ParentType, ContextType, RequireFields<SubscriptionMediaArgs, 'input'>>;
   mediaPage?: SubscriptionResolver<Maybe<ResolversTypes['MediaPage']>, "mediaPage", ParentType, ContextType, RequireFields<SubscriptionMediaPageArgs, 'input'>>;
+  playbackSource?: SubscriptionResolver<Maybe<ResolversTypes['PlaybackSource']>, "playbackSource", ParentType, ContextType, Partial<SubscriptionPlaybackSourceArgs>>;
+  playbackSourcePage?: SubscriptionResolver<Maybe<ResolversTypes['PlaybackSourcePage']>, "playbackSourcePage", ParentType, ContextType, Partial<SubscriptionPlaybackSourcePageArgs>>;
+  userMediaPage?: SubscriptionResolver<Maybe<ResolversTypes['UserMediaPage']>, "userMediaPage", ParentType, ContextType, RequireFields<SubscriptionUserMediaPageArgs, 'input'>>;
 };
 
 export type TeamResolvers<ContextType = ServerContext, ParentType extends ResolversParentTypes['Team'] = ResolversParentTypes['Team']> = {

@@ -1,24 +1,17 @@
-import { Client, fetchExchange, gql, subscriptionExchange } from 'urql';
+import type { Episode, Media, MediaExternalLink, MediaTrailer, PlaybackSource, Team } from '../generated/graphql'
+import type { ServerContext } from '.'
+
+import { Client, fetchExchange } from 'urql'
 import { cacheExchange } from '@urql/exchange-graphcache'
 import { YogaServerInstance } from 'graphql-yoga'
 import { devtoolsExchange } from '@urql/devtools'
 
+import { cacheResolvers as makeMediaCacheResolvers } from './media'
 
-import { Uri, isScannarrUri, toScannarrUri} from '../utils/uri2'
-
-import { Episode, HandleEdge, Media, MediaExternalLink, MediaTrailer, PlaybackSource, Team } from '../generated/graphql'
-import { cacheResolvers as makeMediaCacheResolvers, populateMedia } from './media'
-import { cacheResolvers as makeEpisodeCacheResolvers } from './episode'
-import { cacheResolvers as makePlaybackSourceCacheResolvers } from './playback-source'
-// import introspection from '../generated/graphql.schema.json'
-
-export type ServerContext = {
-
-}
-
-export type UserContext = {
-
-}
+export type {
+  ServerContext,
+  UserContext,
+} from './server'
 
 export type OriginWithServer = {
   server: YogaServerInstance<{}, {}>
@@ -39,51 +32,19 @@ export const makeScannarrClient = (
   const cache = cacheExchange({
     schema: introspectionSchema,
     keys: {
-      // Media: (media) => {
-      //   const handlesIds = media.handles?.edges.map(mediaEdge => mediaEdge.node.uri)
-      //   if (handlesIds?.length) {
-      //     return `scannarr:(${handlesIds.join(',')})`
-      //   }
-      //   return media.uri
-      // },
       UserMediaPage: () => null,
       Authentication: () => null,
       MediaPage: () => null,
-      Media: (media) => {
-        const handles = (media as Media).handles?.edges.map(handle => handle.node.uri)
-        if (!(media.uri as string)?.includes('scannarr')) return (media as Media).uri
-        // console.log('KEY Media', toScannarrUri(handles), {...media})
-        return toScannarrUri(handles ?? [])
-      },
+      Media: (media) => (media as Media).uri,
       MediaConnection: () => null,
       MediaEdge: () => null,
-      // Episode: (episode) => {
-      //   const handlesIds = episode.handles?.edges.map(episodeEdge => episodeEdge.node.uri)
-      //     if (handlesIds?.length) {
-      //       return `scannarr:(${handlesIds.join(',')})`
-      //     }
-      //   return episode.uri
-      // },
+      Episode: (episode) => (episode as Episode).uri,
       EpisodePage: () => null,
-      Episode: (episode) => {
-        const handles = (episode as Episode).handles?.edges.map(handle => handle.node.uri)
-        if (!(episode.uri as string)?.includes('scannarr')) return (episode as Episode).uri
-        // console.log('KEY Episode', toScannarrUri(handles), {...episode})
-        return toScannarrUri(handles ?? [])
-      },
       EpisodeConnection: () => null,
       EpisodeEdge: () => null,
       PlaybackSourcePage: () => null,
-      PlaybackSource: (playbackSource) => {
-        const handles = (playbackSource as PlaybackSource).handles?.edges.map(handle => handle.node.uri)
-        if (!(playbackSource?.uri as string)?.includes('scannarr')) return (playbackSource as PlaybackSource).uri
-        return toScannarrUri(handles ?? [])
-      },
-      Team: (team) => {
-        const handles = (team as Team).handles?.edges.map(handle => handle.node.uri)
-        if (!(team?.uri as string)?.includes('scannarr')) return (team as Team).uri
-        return toScannarrUri(handles ?? [])
-      },
+      PlaybackSource: (playbackSource) => (playbackSource as PlaybackSource).uri,
+      Team: (team) => (team as Team).uri,
       PlaybackSourceConnection: () => null,
       PlaybackSourceEdge: () => null,
       MediaExternalLink: (mediaExternalLink) => (mediaExternalLink as MediaExternalLink).uri,
@@ -92,57 +53,8 @@ export const makeScannarrClient = (
       MediaTitle: () => null,
       FuzzyDate: () => null,
     },
-    updates: {
-      Episode: {
-        handles: (result, args, cache, info) => {
-          if (!info.parentKey.includes('scannarr')) return
-          if (!result.media && (result as Episode).handles?.edges.length) {
-            result.media = populateMedia({
-              __typename: 'Media',
-              uri: info.parentKey.replace('Media:', '') as Uri,
-              handles: {
-                __typename: 'MediaConnection',
-                // @ts-ignore
-                edges: (result as Media).handles.edges.map(episodeEdge => ({
-                  __typename: 'MediaEdge',
-                  node: populateMedia((episodeEdge.node as Episode).media!)
-                }))
-              }
-            })
-            return
-          }
-          if (result.media) {
-            // if (!result.media.handles) {
-            //   console.log('result', result, args, cache, {...info})
-            // }
-            result.media = populateMedia({
-              // @ts-ignore
-              ...result.media,
-              handles: {
-                __typename: 'MediaConnection',
-                edges:
-                  // @ts-ignore
-                  result.handles?.edges.map(episodeEdge => ({
-                    __typename: 'MediaEdge',
-                    node: populateMedia(episodeEdge.node.media)
-                  }))
-                  ?? []
-                // edges: result.media.handles.edges.map(episodeEdge => ({
-                //   __typename: 'MediaEdge',
-                //   node: populateMedia(episodeEdge.node.media)
-                // }))
-              }
-            })
-          }
-        }
-      }
-    },
     resolvers: {
       ...makeMediaCacheResolvers({ context }),
-      // @ts-ignore
-      ...makeEpisodeCacheResolvers({ context }),
-      // @ts-ignore
-      ...makePlaybackSourceCacheResolvers({ context })
     }
   })
 

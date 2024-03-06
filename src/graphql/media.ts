@@ -7,7 +7,7 @@ input MediaPageInput {
   origin: String
 
   """Filter by the media uri"""
-  uri: String
+  uri: Uri
 
   """Filter by search terms"""
   search: String
@@ -85,20 +85,16 @@ input MediaInput {
   origin: String
 
   """Filter by the media uri"""
-  uri: String
-}
-
-extend type Query {
-  mediaPage(input: MediaPageInput!): MediaPage
-  media(input: MediaInput): Media
-  episodePage(input: EpisodePageInput): EpisodePage
-  episode(input: EpisodeInput): Episode
-  playbackSourcePage(input: PlaybackSourcePageInput): PlaybackSourcePage
-  playbackSource(input: PlaybackSourceInput): PlaybackSource
+  uri: Uri
 }
 
 extend type Subscription {
+  media(input: MediaInput!): Media
   mediaPage(input: MediaPageInput!): MediaPage
+  episode(input: EpisodeInput): Episode
+  episodePage(input: EpisodePageInput): EpisodePage
+  playbackSourcePage(input: PlaybackSourcePageInput): PlaybackSourcePage
+  playbackSource(input: PlaybackSourceInput): PlaybackSource
 }
 
 """
@@ -205,7 +201,7 @@ input EpisodePageInput {
   """Filter by the media origin"""
   origin: String
   """Filter by the media uri"""
-  uri: String
+  uri: Uri
   """Filter by search terms"""
   search: String
 
@@ -266,7 +262,7 @@ input EpisodeInput {
   origin: String
 
   """Filter by the media uri"""
-  uri: String
+  uri: Uri
 }
 
 type Episode implements Handle  {
@@ -328,7 +324,7 @@ input PlaybackSourcePageInput {
   """Filter by the media origin"""
   origin: String
   """Filter by the media uri"""
-  uri: String
+  uri: Uri
   """Filter by search terms"""
   search: String
 
@@ -388,7 +384,7 @@ input PlaybackSourceInput {
   origin: String
 
   """Filter by the media uri"""
-  uri: String
+  uri: Uri
 }
 
 enum PlaybackSourceType {

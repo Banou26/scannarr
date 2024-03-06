@@ -158,8 +158,11 @@ type UserMedia {
 
 extend type Query {
   user(input: UserInput!): User!
-  userMediaPage(input: UserMediaPageInput!): UserMediaPage!
   authentication: [Authentication!]!
+}
+
+extend type Subscription {
+  userMediaPage(input: UserMediaPageInput!): UserMediaPage
 }
 
 extend type Mutation {

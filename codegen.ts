@@ -34,7 +34,7 @@ const config: CodegenConfig = {
       ],
       config: {
         scalars: {
-          Uri: 'string'
+          Uri: 'Uri'
         }
       }
     }
