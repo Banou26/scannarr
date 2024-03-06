@@ -888,36 +888,9 @@ export type Query = {
   __typename?: 'Query';
   _empty?: Maybe<Scalars['String']>;
   authentication: Array<Authentication>;
-  episode?: Maybe<Episode>;
-  episodePage?: Maybe<EpisodePage>;
-  media?: Maybe<Media>;
-  mediaPage?: Maybe<MediaPage>;
   origin?: Maybe<Origin>;
   originPage: Array<Origin>;
-  playbackSource?: Maybe<PlaybackSource>;
-  playbackSourcePage?: Maybe<PlaybackSourcePage>;
   user: User;
-  userMediaPage: UserMediaPage;
-};
-
-
-export type QueryEpisodeArgs = {
-  input?: InputMaybe<EpisodeInput>;
-};
-
-
-export type QueryEpisodePageArgs = {
-  input?: InputMaybe<EpisodePageInput>;
-};
-
-
-export type QueryMediaArgs = {
-  input?: InputMaybe<MediaInput>;
-};
-
-
-export type QueryMediaPageArgs = {
-  input: MediaPageInput;
 };
 
 
@@ -931,23 +904,8 @@ export type QueryOriginPageArgs = {
 };
 
 
-export type QueryPlaybackSourceArgs = {
-  input?: InputMaybe<PlaybackSourceInput>;
-};
-
-
-export type QueryPlaybackSourcePageArgs = {
-  input?: InputMaybe<PlaybackSourcePageInput>;
-};
-
-
 export type QueryUserArgs = {
   input: UserInput;
-};
-
-
-export type QueryUserMediaPageArgs = {
-  input: UserMediaPageInput;
 };
 
 export type Resource = Handle & {
@@ -1671,16 +1629,9 @@ export type PlaybackSourcePageResolvers<ContextType = ServerContext, ParentType 
 export type QueryResolvers<ContextType = ServerContext, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   _empty?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   authentication?: Resolver<Array<ResolversTypes['Authentication']>, ParentType, ContextType>;
-  episode?: Resolver<Maybe<ResolversTypes['Episode']>, ParentType, ContextType, Partial<QueryEpisodeArgs>>;
-  episodePage?: Resolver<Maybe<ResolversTypes['EpisodePage']>, ParentType, ContextType, Partial<QueryEpisodePageArgs>>;
-  media?: Resolver<Maybe<ResolversTypes['Media']>, ParentType, ContextType, Partial<QueryMediaArgs>>;
-  mediaPage?: Resolver<Maybe<ResolversTypes['MediaPage']>, ParentType, ContextType, RequireFields<QueryMediaPageArgs, 'input'>>;
   origin?: Resolver<Maybe<ResolversTypes['Origin']>, ParentType, ContextType, RequireFields<QueryOriginArgs, 'input'>>;
   originPage?: Resolver<Array<ResolversTypes['Origin']>, ParentType, ContextType, RequireFields<QueryOriginPageArgs, 'input'>>;
-  playbackSource?: Resolver<Maybe<ResolversTypes['PlaybackSource']>, ParentType, ContextType, Partial<QueryPlaybackSourceArgs>>;
-  playbackSourcePage?: Resolver<Maybe<ResolversTypes['PlaybackSourcePage']>, ParentType, ContextType, Partial<QueryPlaybackSourcePageArgs>>;
   user?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<QueryUserArgs, 'input'>>;
-  userMediaPage?: Resolver<ResolversTypes['UserMediaPage'], ParentType, ContextType, RequireFields<QueryUserMediaPageArgs, 'input'>>;
 };
 
 export type ResourceResolvers<ContextType = ServerContext, ParentType extends ResolversParentTypes['Resource'] = ResolversParentTypes['Resource']> = {

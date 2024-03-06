@@ -159,7 +159,6 @@ type UserMedia {
 extend type Query {
   user(input: UserInput!): User!
   authentication: [Authentication!]!
-  userMediaPage(input: UserMediaPageInput!): UserMediaPage!
 }
 
 extend type Subscription {

@@ -35,16 +35,9 @@ import    { PlaybackSourceEdge } from './resolvers/PlaybackSourceEdge';
 import    { PlaybackSourcePage } from './resolvers/PlaybackSourcePage';
 import    { _empty as Query__empty } from './resolvers/Query/_empty';
 import    { authentication as Query_authentication } from './resolvers/Query/authentication';
-import    { episode as Query_episode } from './resolvers/Query/episode';
-import    { episodePage as Query_episodePage } from './resolvers/Query/episodePage';
-import    { media as Query_media } from './resolvers/Query/media';
-import    { mediaPage as Query_mediaPage } from './resolvers/Query/mediaPage';
 import    { origin as Query_origin } from './resolvers/Query/origin';
 import    { originPage as Query_originPage } from './resolvers/Query/originPage';
-import    { playbackSource as Query_playbackSource } from './resolvers/Query/playbackSource';
-import    { playbackSourcePage as Query_playbackSourcePage } from './resolvers/Query/playbackSourcePage';
 import    { user as Query_user } from './resolvers/Query/user';
-import    { userMediaPage as Query_userMediaPage } from './resolvers/Query/userMediaPage';
 import    { Resource } from './resolvers/Resource';
 import    { ResourceConnection } from './resolvers/ResourceConnection';
 import    { ResourceEdge } from './resolvers/ResourceEdge';
@@ -63,7 +56,7 @@ import    { UserMedia } from './resolvers/UserMedia';
 import    { UserMediaEpisode } from './resolvers/UserMediaEpisode';
 import    { UserMediaPage } from './resolvers/UserMediaPage';
     export const resolvers: Resolvers = {
-      Query: { _empty: Query__empty,authentication: Query_authentication,episode: Query_episode,episodePage: Query_episodePage,media: Query_media,mediaPage: Query_mediaPage,origin: Query_origin,originPage: Query_originPage,playbackSource: Query_playbackSource,playbackSourcePage: Query_playbackSourcePage,user: Query_user,userMediaPage: Query_userMediaPage },
+      Query: { _empty: Query__empty,authentication: Query_authentication,origin: Query_origin,originPage: Query_originPage,user: Query_user },
       Mutation: { _empty: Mutation__empty,authenticate: Mutation_authenticate },
       Subscription: { _empty: Subscription__empty,episode: Subscription_episode,episodePage: Subscription_episodePage,media: Subscription_media,mediaPage: Subscription_mediaPage,playbackSource: Subscription_playbackSource,playbackSourcePage: Subscription_playbackSourcePage,userMediaPage: Subscription_userMediaPage },
       Authenticate: Authenticate,

@@ -1,6 +1,6 @@
 import { getOriginResult, getOriginResults, groupRelatedHandles, makeScannarrHandle2 } from './utils'
 import { ServerContext } from './client'
-import { Media, UserMediaPage } from '../generated/graphql'
+import { UserMediaPage } from '../generated/graphql'
 import { observableToAsyncIterable, subscribeToOrigins } from '../utils'
 import { map } from 'rxjs'
 import { ServerResolverParameters } from './server'
@@ -34,36 +34,12 @@ export const serverResolvers = ({ origins, context, mergeHandles }: ServerResolv
           result
             .errors
             .map(error =>
-              `Laserr Error from "${origin.origin.origin}" at ${error.path.join('->')}: ${error.message}`
+              `Laserr Error from "${origin?.origin.origin}" at ${error.path.join('->')}: ${error.message}`
             )
             .join('\n')
         )
       }
       return result?.data?.user
-    },
-
-    userMediaPage: async (parent, { input }, ctx, info) => {
-      const results = await getOriginResults({ ctx, origins, context })
-      for (const i in results) {
-        const result = results[i]
-        if (!result.errors) continue
-        const origin = origins[i]
-        console.error(
-          result
-            .errors
-            .map(error =>
-              `Laserr Error from "${origin.origin.origin}" at ${error.path.join('->')}: ${error.message}`
-            )
-            .join('\n')
-        )
-      }
-      const { scannarrHandles } = groupRelatedHandles({
-        typename: 'Media',
-        results: (results?.flatMap(results => results.data.userMediaPage?.nodes ?? []) ?? []) as Media[]
-      })
-      return {
-        nodes: scannarrHandles.map(media => populateMedia(media))
-      }
     }
   },
   Subscription: {
@@ -110,7 +86,7 @@ export const serverResolvers = ({ origins, context, mergeHandles }: ServerResolv
           result
             .errors
             .map(error =>
-              `Laserr Error from "${origin.origin.origin}" at ${error.path.join('->')}: ${error.message}`
+              `Laserr Error from "${origin?.origin.origin}" at ${error.path.join('->')}: ${error.message}`
             )
             .join('\n')
         )

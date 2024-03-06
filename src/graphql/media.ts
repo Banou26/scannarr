@@ -88,15 +88,6 @@ input MediaInput {
   uri: Uri
 }
 
-extend type Query {
-  mediaPage(input: MediaPageInput!): MediaPage
-  media(input: MediaInput): Media
-  episodePage(input: EpisodePageInput): EpisodePage
-  episode(input: EpisodeInput): Episode
-  playbackSourcePage(input: PlaybackSourcePageInput): PlaybackSourcePage
-  playbackSource(input: PlaybackSourceInput): PlaybackSource
-}
-
 extend type Subscription {
   media(input: MediaInput!): Media
   mediaPage(input: MediaPageInput!): MediaPage

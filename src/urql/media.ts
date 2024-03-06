@@ -13,6 +13,7 @@ import { groupBy, isScannarrUri } from '../utils'
 
 export const serverResolvers = ({ origins, mergeHandles }: ServerResolverParameters) => ({
   Media: {
+    // @ts-expect-error
     episodes: (parent, args, ctx, info) => {
       if (!isScannarrUri(parent.uri)) return parent.episodes
 
@@ -66,7 +67,8 @@ export const serverResolvers = ({ origins, mergeHandles }: ServerResolverParamet
             mergeHandles,
             name: 'media'
           })
-        )
+        ),
+      resolve: (parent) => parent.media
     },
     mediaPage: {
       subscribe: (_, __, context) =>

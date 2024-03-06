@@ -72,13 +72,6 @@ export const makeScannarrServer = (
             resolvers:
               merge(
                 {
-                  Query: {
-                    mediaPage: () => ({ nodes: [] }),
-                    playbackSourcePage: () => ({ nodes: [] }),
-                    episodePage: () => ({ nodes: [] }),
-                    authentication: () => [],
-                    userMediaPage: () => ({ nodes: [] })
-                  },
                   Subscription: {
                     media: { subscribe: async function*() {} },
                     mediaPage: { subscribe: async function*() {} },

@@ -2309,77 +2309,6 @@
             "args": []
           },
           {
-            "name": "episode",
-            "type": {
-              "kind": "OBJECT",
-              "name": "Episode",
-              "ofType": null
-            },
-            "args": [
-              {
-                "name": "input",
-                "type": {
-                  "kind": "SCALAR",
-                  "name": "Any"
-                }
-              }
-            ]
-          },
-          {
-            "name": "episodePage",
-            "type": {
-              "kind": "OBJECT",
-              "name": "EpisodePage",
-              "ofType": null
-            },
-            "args": [
-              {
-                "name": "input",
-                "type": {
-                  "kind": "SCALAR",
-                  "name": "Any"
-                }
-              }
-            ]
-          },
-          {
-            "name": "media",
-            "type": {
-              "kind": "OBJECT",
-              "name": "Media",
-              "ofType": null
-            },
-            "args": [
-              {
-                "name": "input",
-                "type": {
-                  "kind": "SCALAR",
-                  "name": "Any"
-                }
-              }
-            ]
-          },
-          {
-            "name": "mediaPage",
-            "type": {
-              "kind": "OBJECT",
-              "name": "MediaPage",
-              "ofType": null
-            },
-            "args": [
-              {
-                "name": "input",
-                "type": {
-                  "kind": "NON_NULL",
-                  "ofType": {
-                    "kind": "SCALAR",
-                    "name": "Any"
-                  }
-                }
-              }
-            ]
-          },
-          {
             "name": "origin",
             "type": {
               "kind": "OBJECT",
@@ -2429,69 +2358,12 @@
             ]
           },
           {
-            "name": "playbackSource",
-            "type": {
-              "kind": "OBJECT",
-              "name": "PlaybackSource",
-              "ofType": null
-            },
-            "args": [
-              {
-                "name": "input",
-                "type": {
-                  "kind": "SCALAR",
-                  "name": "Any"
-                }
-              }
-            ]
-          },
-          {
-            "name": "playbackSourcePage",
-            "type": {
-              "kind": "OBJECT",
-              "name": "PlaybackSourcePage",
-              "ofType": null
-            },
-            "args": [
-              {
-                "name": "input",
-                "type": {
-                  "kind": "SCALAR",
-                  "name": "Any"
-                }
-              }
-            ]
-          },
-          {
             "name": "user",
             "type": {
               "kind": "NON_NULL",
               "ofType": {
                 "kind": "OBJECT",
                 "name": "User",
-                "ofType": null
-              }
-            },
-            "args": [
-              {
-                "name": "input",
-                "type": {
-                  "kind": "NON_NULL",
-                  "ofType": {
-                    "kind": "SCALAR",
-                    "name": "Any"
-                  }
-                }
-              }
-            ]
-          },
-          {
-            "name": "userMediaPage",
-            "type": {
-              "kind": "NON_NULL",
-              "ofType": {
-                "kind": "OBJECT",
-                "name": "UserMediaPage",
                 "ofType": null
               }
             },

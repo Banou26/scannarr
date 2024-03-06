@@ -1,4 +1,5 @@
 import type { Episode, Media, MediaExternalLink, MediaTrailer, PlaybackSource, Team } from '../generated/graphql'
+import type { ServerContext } from '.'
 
 import { Client, fetchExchange } from 'urql'
 import { cacheExchange } from '@urql/exchange-graphcache'
@@ -6,7 +7,6 @@ import { YogaServerInstance } from 'graphql-yoga'
 import { devtoolsExchange } from '@urql/devtools'
 
 import { cacheResolvers as makeMediaCacheResolvers } from './media'
-import { cacheResolvers as makePlaybackSourceCacheResolvers } from './playback-source'
 
 export type {
   ServerContext,
@@ -35,16 +35,16 @@ export const makeScannarrClient = (
       UserMediaPage: () => null,
       Authentication: () => null,
       MediaPage: () => null,
-      Media: (media) => media.uri,
+      Media: (media) => (media as Media).uri,
       MediaConnection: () => null,
       MediaEdge: () => null,
-      Episode: (episode) => episode.uri,
+      Episode: (episode) => (episode as Episode).uri,
       EpisodePage: () => null,
       EpisodeConnection: () => null,
       EpisodeEdge: () => null,
       PlaybackSourcePage: () => null,
-      PlaybackSource: (playbackSource) => playbackSource.uri,
-      Team: (team) => team.uri,
+      PlaybackSource: (playbackSource) => (playbackSource as PlaybackSource).uri,
+      Team: (team) => (team as Team).uri,
       PlaybackSourceConnection: () => null,
       PlaybackSourceEdge: () => null,
       MediaExternalLink: (mediaExternalLink) => (mediaExternalLink as MediaExternalLink).uri,
@@ -55,8 +55,6 @@ export const makeScannarrClient = (
     },
     resolvers: {
       ...makeMediaCacheResolvers({ context }),
-      // // @ts-ignore
-      // ...makePlaybackSourceCacheResolvers({ context })
     }
   })
 
