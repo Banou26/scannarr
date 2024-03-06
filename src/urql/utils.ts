@@ -99,25 +99,27 @@ export const groupRelatedHandles = <T extends Handle>({ results: _results }: { r
   }
 }
 
-const recursiveRemoveNullable = (obj) =>
-  Array.isArray(obj)
-    ? obj.map(recursiveRemoveNullable)
-    : (
-      typeof obj === 'object'
-        ? (
-          Object
-            .fromEntries(
-              Object
-                .entries(obj)
-                .filter(([_, value]) => value !== null && value !== undefined)
-                .map(([key, value]) => [key, recursiveRemoveNullable(value)])
-            )
-        )
-        : obj
-    )
+const recursiveRemoveNullable = <T>(obj: T): T =>
+  (
+    Array.isArray(obj)
+      ? obj.map(recursiveRemoveNullable)
+      : (
+        typeof obj === 'object'
+          ? (
+            Object
+              .fromEntries(
+                Object
+                  .entries(obj as Object)
+                  .filter(([_, value]) => value !== null && value !== undefined)
+                  .map(([key, value]) => [key, recursiveRemoveNullable(value)])
+              )
+          )
+          : obj
+      )
+  ) as unknown as T
 
 export const makeScannarrHandle2 = ({ handles, mergeHandles }: { handles: HandleType[], mergeHandles: <T2 extends HandleType[]>(handles: T2) => T2[number] }) => {
-  const getRecursiveHandles = (handle: HandleType) => {
+  const getRecursiveHandles = (handle: HandleType): HandleType[] => {
     const identicalHandles = getEdges(handle.handles) ?? []
     return [
       handle,
@@ -127,8 +129,8 @@ export const makeScannarrHandle2 = ({ handles, mergeHandles }: { handles: Handle
 
   const foundHandles = handles.flatMap(handle => getRecursiveHandles(handle))
   const uniqueHandles =
-    [...groupBy(foundHandles, (handle) => handle.uri)]
-      .map(([_, handles]) => merge(...recursiveRemoveNullable(handles)))
+    [...groupBy(foundHandles, (handle) => handle.uri) as Map<string, HandleType[]>]
+      .map(([_, handles]) => merge(...recursiveRemoveNullable(handles)) as HandleType)
   const handleUris = uniqueHandles.map(handle => handle.uri)
   const id = toScannarrId(handleUris)
   const uri = toScannarrUri(handleUris)

@@ -1,8 +1,11 @@
-import { getOriginResult, getOriginResults, groupRelatedHandles } from './utils'
+import { getOriginResult, getOriginResults, groupRelatedHandles, makeScannarrHandle2 } from './utils'
 import { ServerContext } from './client'
-import { Media } from '../generated/graphql'
+import { Media, UserMediaPage } from '../generated/graphql'
+import { observableToAsyncIterable, subscribeToOrigins } from '../utils'
+import { map } from 'rxjs'
+import { ServerResolverParameters } from './server'
 
-export const serverResolvers = ({ origins, context }: { origins: any[], context?: () => Promise<ServerContext> }) => ({
+export const serverResolvers = ({ origins, context, mergeHandles }: ServerResolverParameters & { origins: any[], context?: () => Promise<ServerContext> }) => ({
   Query: {
     authentication: async (parent, args, ctx, info) => {
       const results = await getOriginResults({ ctx, origins, context })
@@ -61,6 +64,41 @@ export const serverResolvers = ({ origins, context }: { origins: any[], context?
       return {
         nodes: scannarrHandles.map(media => populateMedia(media))
       }
+    }
+  },
+  Subscription: {
+    userMediaPage: {
+      subscribe: (_, __, context) =>
+        observableToAsyncIterable(
+          subscribeToOrigins({
+            origins,
+            context,
+            name: 'userMediaPage'
+          }).pipe(
+            map(results => {
+              const { handleGroups } = groupRelatedHandles({
+                results:
+                  results
+                    .map(result => result.data?.userMediaPage as UserMediaPage)
+                    .flatMap(userMediaPage => userMediaPage?.nodes ?? [])
+              })
+              const scannarrHandles =
+                handleGroups
+                  .map(handles =>
+                    makeScannarrHandle2({
+                      handles,
+                      mergeHandles
+                    })
+                  )
+              return {
+                userMediaPage: {
+                  edges: scannarrHandles.map(media => ({ node: media })),
+                  nodes: scannarrHandles
+                }
+              }
+            })
+          )
+        )
     }
   },
   Mutation: {

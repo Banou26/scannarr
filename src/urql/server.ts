@@ -85,7 +85,8 @@ export const makeScannarrServer = (
                     episode: { subscribe: async function*() {} },
                     episodePage: { subscribe: async function*() {} },
                     playbackSource: { subscribe: async function*() {} },
-                    playbackSourcePage: { subscribe: async function*() {} }
+                    playbackSourcePage: { subscribe: async function*() {} },
+                    userMediaPage: { subscribe: async function*() {} }
                   }
                 } satisfies Resolvers,
                 origin.resolvers

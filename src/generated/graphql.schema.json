@@ -2804,6 +2804,26 @@
                 }
               }
             ]
+          },
+          {
+            "name": "userMediaPage",
+            "type": {
+              "kind": "OBJECT",
+              "name": "UserMediaPage",
+              "ofType": null
+            },
+            "args": [
+              {
+                "name": "input",
+                "type": {
+                  "kind": "NON_NULL",
+                  "ofType": {
+                    "kind": "SCALAR",
+                    "name": "Any"
+                  }
+                }
+              }
+            ]
           }
         ],
         "interfaces": []

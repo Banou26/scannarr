@@ -55,6 +55,7 @@ import    { media as Subscription_media } from './resolvers/Subscription/media';
 import    { mediaPage as Subscription_mediaPage } from './resolvers/Subscription/mediaPage';
 import    { playbackSource as Subscription_playbackSource } from './resolvers/Subscription/playbackSource';
 import    { playbackSourcePage as Subscription_playbackSourcePage } from './resolvers/Subscription/playbackSourcePage';
+import    { userMediaPage as Subscription_userMediaPage } from './resolvers/Subscription/userMediaPage';
 import    { Team } from './resolvers/Team';
 import    { Uri } from './resolvers/Uri';
 import    { User } from './resolvers/User';
@@ -64,7 +65,7 @@ import    { UserMediaPage } from './resolvers/UserMediaPage';
     export const resolvers: Resolvers = {
       Query: { _empty: Query__empty,authentication: Query_authentication,episode: Query_episode,episodePage: Query_episodePage,media: Query_media,mediaPage: Query_mediaPage,origin: Query_origin,originPage: Query_originPage,playbackSource: Query_playbackSource,playbackSourcePage: Query_playbackSourcePage,user: Query_user,userMediaPage: Query_userMediaPage },
       Mutation: { _empty: Mutation__empty,authenticate: Mutation_authenticate },
-      Subscription: { _empty: Subscription__empty,episode: Subscription_episode,episodePage: Subscription_episodePage,media: Subscription_media,mediaPage: Subscription_mediaPage,playbackSource: Subscription_playbackSource,playbackSourcePage: Subscription_playbackSourcePage },
+      Subscription: { _empty: Subscription__empty,episode: Subscription_episode,episodePage: Subscription_episodePage,media: Subscription_media,mediaPage: Subscription_mediaPage,playbackSource: Subscription_playbackSource,playbackSourcePage: Subscription_playbackSourcePage,userMediaPage: Subscription_userMediaPage },
       Authenticate: Authenticate,
 AuthenticateOauth2: AuthenticateOauth2,
 Authentication: Authentication,

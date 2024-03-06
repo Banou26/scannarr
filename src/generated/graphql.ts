@@ -983,6 +983,7 @@ export type Subscription = {
   mediaPage?: Maybe<MediaPage>;
   playbackSource?: Maybe<PlaybackSource>;
   playbackSourcePage?: Maybe<PlaybackSourcePage>;
+  userMediaPage?: Maybe<UserMediaPage>;
 };
 
 
@@ -1013,6 +1014,11 @@ export type SubscriptionPlaybackSourceArgs = {
 
 export type SubscriptionPlaybackSourcePageArgs = {
   input?: InputMaybe<PlaybackSourcePageInput>;
+};
+
+
+export type SubscriptionUserMediaPageArgs = {
+  input: UserMediaPageInput;
 };
 
 export type Team = Handle & {
@@ -1708,6 +1714,7 @@ export type SubscriptionResolvers<ContextType = ServerContext, ParentType extend
   mediaPage?: SubscriptionResolver<Maybe<ResolversTypes['MediaPage']>, "mediaPage", ParentType, ContextType, RequireFields<SubscriptionMediaPageArgs, 'input'>>;
   playbackSource?: SubscriptionResolver<Maybe<ResolversTypes['PlaybackSource']>, "playbackSource", ParentType, ContextType, Partial<SubscriptionPlaybackSourceArgs>>;
   playbackSourcePage?: SubscriptionResolver<Maybe<ResolversTypes['PlaybackSourcePage']>, "playbackSourcePage", ParentType, ContextType, Partial<SubscriptionPlaybackSourcePageArgs>>;
+  userMediaPage?: SubscriptionResolver<Maybe<ResolversTypes['UserMediaPage']>, "userMediaPage", ParentType, ContextType, RequireFields<SubscriptionUserMediaPageArgs, 'input'>>;
 };
 
 export type TeamResolvers<ContextType = ServerContext, ParentType extends ResolversParentTypes['Team'] = ResolversParentTypes['Team']> = {
