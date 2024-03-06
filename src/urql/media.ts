@@ -35,6 +35,7 @@ export const serverResolvers = ({ origins, mergeHandles }: ServerResolverParamet
 
       const scannarrEpisodes =
         groupedEpisodes
+          .filter(([episodeNumber]) => episodeNumber !== null && episodeNumber !== undefined)
           .map(([, handles]) =>
             makeScannarrHandle2({
               handles,
