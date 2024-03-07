@@ -708,11 +708,17 @@ export type Mutation = {
   __typename?: 'Mutation';
   _empty?: Maybe<Scalars['String']['output']>;
   authenticate: Authenticate;
+  updateUserMedia: UserMedia;
 };
 
 
 export type MutationAuthenticateArgs = {
   input: AuthenticateInput;
+};
+
+
+export type MutationUpdateUserMediaArgs = {
+  input: UpdateUserMediaInput;
 };
 
 /**
@@ -873,7 +879,7 @@ export type PlaybackSourceType =
 export type Query = {
   __typename?: 'Query';
   _empty?: Maybe<Scalars['String']['output']>;
-  authentication: Array<Authentication>;
+  authentications: Array<Authentication>;
   origin?: Maybe<Origin>;
   originPage: Array<Origin>;
   user: User;
@@ -975,6 +981,17 @@ export type Team = Handle & {
   url?: Maybe<Scalars['String']['output']>;
 };
 
+export type UpdateUserMediaInput = {
+  authentications: Array<UserMediaPageInputAuthentication>;
+  isRewatching?: InputMaybe<Scalars['Boolean']['input']>;
+  mediaUri: Scalars['Uri']['input'];
+  origin: Scalars['String']['input'];
+  progress?: InputMaybe<Scalars['Int']['input']>;
+  rewatchCount?: InputMaybe<Scalars['Int']['input']>;
+  score?: InputMaybe<Scalars['Float']['input']>;
+  status?: InputMaybe<UserMediaStatus>;
+};
+
 export type User = {
   __typename?: 'User';
   avatar?: Maybe<Scalars['String']['output']>;
@@ -997,17 +1014,32 @@ export type UserInputOauth2 = {
 export type UserMedia = {
   __typename?: 'UserMedia';
   episodes: Array<UserMediaEpisode>;
+  handles: MediaConnection;
+  id: Scalars['String']['output'];
+  isRewatching?: Maybe<Scalars['Boolean']['output']>;
   media: Media;
+  origin: Scalars['String']['output'];
+  progress?: Maybe<Scalars['Int']['output']>;
+  rewatchCount?: Maybe<Scalars['Int']['output']>;
+  score?: Maybe<Scalars['Float']['output']>;
   status: UserMediaStatus;
+  updatedAt?: Maybe<Scalars['Float']['output']>;
+  uri: Scalars['Uri']['output'];
+  url?: Maybe<Scalars['String']['output']>;
 };
 
 export type UserMediaEpisode = {
   __typename?: 'UserMediaEpisode';
   episode: Episode;
   origin: Origin;
-  progress?: Maybe<Scalars['Int']['output']>;
+  progress?: Maybe<Scalars['Float']['output']>;
   uri: Scalars['Uri']['output'];
   watched: Scalars['Boolean']['output'];
+};
+
+export type UserMediaInput = {
+  authentications: Array<UserMediaPageInputAuthentication>;
+  uri: Scalars['Uri']['input'];
 };
 
 export type UserMediaPage = {
@@ -1023,7 +1055,7 @@ export type UserMediaPage = {
   /** The current page */
   nextPageCursor?: Maybe<Scalars['String']['output']>;
   /** The media page nodes */
-  nodes: Array<Media>;
+  nodes: Array<UserMedia>;
   /** The current page */
   previousPageCursor?: Maybe<Scalars['String']['output']>;
   /** The total number of items. Note: This value is not guaranteed to be accurate, do not rely on this for logic */
@@ -1205,6 +1237,7 @@ export type ResolversTypes = {
   ResourceEdge: ResolverTypeWrapper<ResourceEdge>;
   Subscription: ResolverTypeWrapper<{}>;
   Team: ResolverTypeWrapper<Team>;
+  UpdateUserMediaInput: UpdateUserMediaInput;
   Uri: ResolverTypeWrapper<Scalars['Uri']['output']>;
   User: ResolverTypeWrapper<User>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
@@ -1212,6 +1245,7 @@ export type ResolversTypes = {
   UserInputOauth2: UserInputOauth2;
   UserMedia: ResolverTypeWrapper<UserMedia>;
   UserMediaEpisode: ResolverTypeWrapper<UserMediaEpisode>;
+  UserMediaInput: UserMediaInput;
   UserMediaPage: ResolverTypeWrapper<UserMediaPage>;
   UserMediaPageInput: UserMediaPageInput;
   UserMediaPageInputAuthentication: UserMediaPageInputAuthentication;
@@ -1277,6 +1311,7 @@ export type ResolversParentTypes = {
   ResourceEdge: ResourceEdge;
   Subscription: {};
   Team: Team;
+  UpdateUserMediaInput: UpdateUserMediaInput;
   Uri: Scalars['Uri']['output'];
   User: User;
   ID: Scalars['ID']['output'];
@@ -1284,6 +1319,7 @@ export type ResolversParentTypes = {
   UserInputOauth2: UserInputOauth2;
   UserMedia: UserMedia;
   UserMediaEpisode: UserMediaEpisode;
+  UserMediaInput: UserMediaInput;
   UserMediaPage: UserMediaPage;
   UserMediaPageInput: UserMediaPageInput;
   UserMediaPageInputAuthentication: UserMediaPageInputAuthentication;
@@ -1551,6 +1587,7 @@ export type MediaTrailerResolvers<ContextType = any, ParentType extends Resolver
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   _empty?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   authenticate?: Resolver<ResolversTypes['Authenticate'], ParentType, ContextType, RequireFields<MutationAuthenticateArgs, 'input'>>;
+  updateUserMedia?: Resolver<ResolversTypes['UserMedia'], ParentType, ContextType, RequireFields<MutationUpdateUserMediaArgs, 'input'>>;
 };
 
 export type OriginResolvers<ContextType = any, ParentType extends ResolversParentTypes['Origin'] = ResolversParentTypes['Origin']> = {
@@ -1620,7 +1657,7 @@ export type PlaybackSourcePageResolvers<ContextType = any, ParentType extends Re
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   _empty?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  authentication?: Resolver<Array<ResolversTypes['Authentication']>, ParentType, ContextType>;
+  authentications?: Resolver<Array<ResolversTypes['Authentication']>, ParentType, ContextType>;
   origin?: Resolver<Maybe<ResolversTypes['Origin']>, ParentType, ContextType, RequireFields<QueryOriginArgs, 'input'>>;
   originPage?: Resolver<Array<ResolversTypes['Origin']>, ParentType, ContextType, RequireFields<QueryOriginPageArgs, 'input'>>;
   user?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<QueryUserArgs, 'input'>>;
@@ -1684,15 +1721,25 @@ export type UserResolvers<ContextType = any, ParentType extends ResolversParentT
 
 export type UserMediaResolvers<ContextType = any, ParentType extends ResolversParentTypes['UserMedia'] = ResolversParentTypes['UserMedia']> = {
   episodes?: Resolver<Array<ResolversTypes['UserMediaEpisode']>, ParentType, ContextType>;
+  handles?: Resolver<ResolversTypes['MediaConnection'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  isRewatching?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   media?: Resolver<ResolversTypes['Media'], ParentType, ContextType>;
+  origin?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  progress?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  rewatchCount?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  score?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   status?: Resolver<ResolversTypes['UserMediaStatus'], ParentType, ContextType>;
+  updatedAt?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  uri?: Resolver<ResolversTypes['Uri'], ParentType, ContextType>;
+  url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type UserMediaEpisodeResolvers<ContextType = any, ParentType extends ResolversParentTypes['UserMediaEpisode'] = ResolversParentTypes['UserMediaEpisode']> = {
   episode?: Resolver<ResolversTypes['Episode'], ParentType, ContextType>;
   origin?: Resolver<ResolversTypes['Origin'], ParentType, ContextType>;
-  progress?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  progress?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   uri?: Resolver<ResolversTypes['Uri'], ParentType, ContextType>;
   watched?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
@@ -1704,7 +1751,7 @@ export type UserMediaPageResolvers<ContextType = any, ParentType extends Resolve
   inPage?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   lastPageCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   nextPageCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  nodes?: Resolver<Array<ResolversTypes['Media']>, ParentType, ContextType>;
+  nodes?: Resolver<Array<ResolversTypes['UserMedia']>, ParentType, ContextType>;
   previousPageCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   total?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   totalAfter?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;

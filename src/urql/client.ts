@@ -34,6 +34,7 @@ export const makeScannarrClient = (
     keys: {
       UserMediaPage: () => null,
       Authentication: () => null,
+      AuthenticationMethod: () => null,
       MediaPage: () => null,
       Media: (media) => (media as Media).uri,
       MediaConnection: () => null,

@@ -10,7 +10,7 @@ import { serverResolvers as makeMediaServerResolvers } from './media'
 import { serverResolvers as makeEpisodeServerResolvers } from './episode'
 import { serverResolvers as makePlaybackSourceServerResolvers } from './playback-source'
 import { serverResolvers as makeUserServerResolvers } from './user'
-import { Episode, Handle, Media, MutationResolvers, QueryResolvers, Resolvers, SubscriptionResolvers } from '../generated/graphql'
+import { Episode, Handle, Media, MutationResolvers, QueryResolvers, Resolvers, SubscriptionResolvers, UserMedia } from '../generated/graphql'
 import { merge } from '../utils/deep-merge'
 
 export type SimpleRoot = QueryResolvers & MutationResolvers
@@ -49,7 +49,7 @@ export type OriginCtx = {
   client: Client
 }
 
-export type HandleType = Media | Episode 
+export type HandleType = UserMedia | Media | Episode
 export type MergeHandleFunction = (handles: (HandleType)[]) => HandleType
 
 export type ServerResolverParameters = {
@@ -72,6 +72,9 @@ export const makeScannarrServer = (
             resolvers:
               merge(
                 {
+                  Query: {
+                    authentications: () => [],
+                  },
                   Subscription: {
                     media: { subscribe: async function*() {} },
                     mediaPage: { subscribe: async function*() {} },

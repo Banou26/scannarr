@@ -56,13 +56,6 @@ type Authenticate {
   oauth2: AuthenticateOauth2
 }
 
-type User {
-  id: ID!
-  username: String!
-  email: String
-  avatar: String
-}
-
 input UserInputOauth2 {
   accessToken: String!
   tokenType: String!
@@ -134,7 +127,7 @@ type UserMediaPage {
   totalAfter: Int
 
   """The media page nodes"""
-  nodes: [Media!]!
+  nodes: [UserMedia!]!
 }
 
 input UserMediaPageInput {
@@ -146,27 +139,66 @@ type UserMediaEpisode {
   uri: Uri!
   episode: Episode!
   watched: Boolean!
-  progress: Int
+  progress: Float
   origin: Origin!
 }
 
 type UserMedia {
+  # Handle properties
+  origin: String!
+  id: String!
+  uri: Uri!
+  url: String
+  handles: MediaConnection!
+
   media: Media!
   status: UserMediaStatus!
+  isRewatching: Boolean
+  rewatchCount: Int
+  score: Float
+  progress: Int
+  updatedAt: Float
   episodes: [UserMediaEpisode!]!
+}
+
+type User {
+  id: ID!
+  username: String!
+  email: String
+  avatar: String
 }
 
 extend type Query {
   user(input: UserInput!): User!
-  authentication: [Authentication!]!
+  authentications: [Authentication!]!
+}
+
+input UserMediaInput {
+  uri: Uri!
+  authentications: [UserMediaPageInputAuthentication!]!
 }
 
 extend type Subscription {
+  # userMedia(input: UserMediaInput!): UserMedia
   userMediaPage(input: UserMediaPageInput!): UserMediaPage
+}
+
+input UpdateUserMediaInput {
+  origin: String!
+  mediaUri: Uri!
+  status: UserMediaStatus
+  isRewatching: Boolean
+  rewatchCount: Int
+  score: Float
+  progress: Int
+  
+  authentications: [UserMediaPageInputAuthentication!]!
 }
 
 extend type Mutation {
   authenticate(input: AuthenticateInput!): Authenticate!
+
+  updateUserMedia(input: UpdateUserMediaInput!): UserMedia!
 }
 
 `

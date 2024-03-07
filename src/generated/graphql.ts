@@ -720,11 +720,17 @@ export type Mutation = {
   __typename?: 'Mutation';
   _empty?: Maybe<Scalars['String']>;
   authenticate: Authenticate;
+  updateUserMedia: UserMedia;
 };
 
 
 export type MutationAuthenticateArgs = {
   input: AuthenticateInput;
+};
+
+
+export type MutationUpdateUserMediaArgs = {
+  input: UpdateUserMediaInput;
 };
 
 /**
@@ -887,7 +893,7 @@ export enum PlaybackSourceType {
 export type Query = {
   __typename?: 'Query';
   _empty?: Maybe<Scalars['String']>;
-  authentication: Array<Authentication>;
+  authentications: Array<Authentication>;
   origin?: Maybe<Origin>;
   originPage: Array<Origin>;
   user: User;
@@ -989,6 +995,17 @@ export type Team = Handle & {
   url?: Maybe<Scalars['String']>;
 };
 
+export type UpdateUserMediaInput = {
+  authentications: Array<UserMediaPageInputAuthentication>;
+  isRewatching?: InputMaybe<Scalars['Boolean']>;
+  mediaUri: Scalars['Uri'];
+  origin: Scalars['String'];
+  progress?: InputMaybe<Scalars['Int']>;
+  rewatchCount?: InputMaybe<Scalars['Int']>;
+  score?: InputMaybe<Scalars['Float']>;
+  status?: InputMaybe<UserMediaStatus>;
+};
+
 export type User = {
   __typename?: 'User';
   avatar?: Maybe<Scalars['String']>;
@@ -1011,17 +1028,32 @@ export type UserInputOauth2 = {
 export type UserMedia = {
   __typename?: 'UserMedia';
   episodes: Array<UserMediaEpisode>;
+  handles: MediaConnection;
+  id: Scalars['String'];
+  isRewatching?: Maybe<Scalars['Boolean']>;
   media: Media;
+  origin: Scalars['String'];
+  progress?: Maybe<Scalars['Int']>;
+  rewatchCount?: Maybe<Scalars['Int']>;
+  score?: Maybe<Scalars['Float']>;
   status: UserMediaStatus;
+  updatedAt?: Maybe<Scalars['Float']>;
+  uri: Scalars['Uri'];
+  url?: Maybe<Scalars['String']>;
 };
 
 export type UserMediaEpisode = {
   __typename?: 'UserMediaEpisode';
   episode: Episode;
   origin: Origin;
-  progress?: Maybe<Scalars['Int']>;
+  progress?: Maybe<Scalars['Float']>;
   uri: Scalars['Uri'];
   watched: Scalars['Boolean'];
+};
+
+export type UserMediaInput = {
+  authentications: Array<UserMediaPageInputAuthentication>;
+  uri: Scalars['Uri'];
 };
 
 export type UserMediaPage = {
@@ -1037,7 +1069,7 @@ export type UserMediaPage = {
   /** The current page */
   nextPageCursor?: Maybe<Scalars['String']>;
   /** The media page nodes */
-  nodes: Array<Media>;
+  nodes: Array<UserMedia>;
   /** The current page */
   previousPageCursor?: Maybe<Scalars['String']>;
   /** The total number of items. Note: This value is not guaranteed to be accurate, do not rely on this for logic */
@@ -1214,12 +1246,14 @@ export type ResolversTypes = {
   String: ResolverTypeWrapper<Scalars['String']>;
   Subscription: ResolverTypeWrapper<{}>;
   Team: ResolverTypeWrapper<Team>;
+  UpdateUserMediaInput: UpdateUserMediaInput;
   Uri: ResolverTypeWrapper<Scalars['Uri']>;
   User: ResolverTypeWrapper<User>;
   UserInput: UserInput;
   UserInputOauth2: UserInputOauth2;
   UserMedia: ResolverTypeWrapper<UserMedia>;
   UserMediaEpisode: ResolverTypeWrapper<UserMediaEpisode>;
+  UserMediaInput: UserMediaInput;
   UserMediaPage: ResolverTypeWrapper<UserMediaPage>;
   UserMediaPageInput: UserMediaPageInput;
   UserMediaPageInputAuthentication: UserMediaPageInputAuthentication;
@@ -1286,12 +1320,14 @@ export type ResolversParentTypes = {
   String: Scalars['String'];
   Subscription: {};
   Team: Team;
+  UpdateUserMediaInput: UpdateUserMediaInput;
   Uri: Scalars['Uri'];
   User: User;
   UserInput: UserInput;
   UserInputOauth2: UserInputOauth2;
   UserMedia: UserMedia;
   UserMediaEpisode: UserMediaEpisode;
+  UserMediaInput: UserMediaInput;
   UserMediaPage: UserMediaPage;
   UserMediaPageInput: UserMediaPageInput;
   UserMediaPageInputAuthentication: UserMediaPageInputAuthentication;
@@ -1559,6 +1595,7 @@ export type MediaTrailerResolvers<ContextType = ServerContext, ParentType extend
 export type MutationResolvers<ContextType = ServerContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   _empty?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   authenticate?: Resolver<ResolversTypes['Authenticate'], ParentType, ContextType, RequireFields<MutationAuthenticateArgs, 'input'>>;
+  updateUserMedia?: Resolver<ResolversTypes['UserMedia'], ParentType, ContextType, RequireFields<MutationUpdateUserMediaArgs, 'input'>>;
 };
 
 export type OriginResolvers<ContextType = ServerContext, ParentType extends ResolversParentTypes['Origin'] = ResolversParentTypes['Origin']> = {
@@ -1628,7 +1665,7 @@ export type PlaybackSourcePageResolvers<ContextType = ServerContext, ParentType 
 
 export type QueryResolvers<ContextType = ServerContext, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   _empty?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  authentication?: Resolver<Array<ResolversTypes['Authentication']>, ParentType, ContextType>;
+  authentications?: Resolver<Array<ResolversTypes['Authentication']>, ParentType, ContextType>;
   origin?: Resolver<Maybe<ResolversTypes['Origin']>, ParentType, ContextType, RequireFields<QueryOriginArgs, 'input'>>;
   originPage?: Resolver<Array<ResolversTypes['Origin']>, ParentType, ContextType, RequireFields<QueryOriginPageArgs, 'input'>>;
   user?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<QueryUserArgs, 'input'>>;
@@ -1692,15 +1729,25 @@ export type UserResolvers<ContextType = ServerContext, ParentType extends Resolv
 
 export type UserMediaResolvers<ContextType = ServerContext, ParentType extends ResolversParentTypes['UserMedia'] = ResolversParentTypes['UserMedia']> = {
   episodes?: Resolver<Array<ResolversTypes['UserMediaEpisode']>, ParentType, ContextType>;
+  handles?: Resolver<ResolversTypes['MediaConnection'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  isRewatching?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   media?: Resolver<ResolversTypes['Media'], ParentType, ContextType>;
+  origin?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  progress?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  rewatchCount?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  score?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   status?: Resolver<ResolversTypes['UserMediaStatus'], ParentType, ContextType>;
+  updatedAt?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  uri?: Resolver<ResolversTypes['Uri'], ParentType, ContextType>;
+  url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type UserMediaEpisodeResolvers<ContextType = ServerContext, ParentType extends ResolversParentTypes['UserMediaEpisode'] = ResolversParentTypes['UserMediaEpisode']> = {
   episode?: Resolver<ResolversTypes['Episode'], ParentType, ContextType>;
   origin?: Resolver<ResolversTypes['Origin'], ParentType, ContextType>;
-  progress?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  progress?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   uri?: Resolver<ResolversTypes['Uri'], ParentType, ContextType>;
   watched?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
@@ -1712,7 +1759,7 @@ export type UserMediaPageResolvers<ContextType = ServerContext, ParentType exten
   inPage?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   lastPageCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   nextPageCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  nodes?: Resolver<Array<ResolversTypes['Media']>, ParentType, ContextType>;
+  nodes?: Resolver<Array<ResolversTypes['UserMedia']>, ParentType, ContextType>;
   previousPageCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   total?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   totalAfter?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
