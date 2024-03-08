@@ -51,6 +51,12 @@ export const makeGraph = <NodeType extends NodeData>(
   const nodesMap = new Map<string, Node<NodeType>>()
   
   const makeNode = <T extends NodeType>(_node: T) => {
+    const id = keys[_node.__typename]?.(_node) as string
+
+    if (nodesMap.has(id)) {
+      throw new Error(`Node with id "${id}" already exists`)
+    }
+
     const changesObservable = new Subject<T>()
     const nodeObservable =
       changesObservable
@@ -58,7 +64,6 @@ export const makeGraph = <NodeType extends NodeData>(
           shareReplay(1)
         )
       
-    const id = keys[_node.__typename]?.(_node) as string
     if (!id) throw new Error(`No key for ${_node.__typename}`)
 
     const node = {
@@ -179,3 +184,56 @@ const friendsFoos =
 //           friend.map(friend => friend.foo)
 //         )
 //     )
+
+type ExtractObservableType<T> =
+  T extends Observable<infer U> ? U :
+  T extends Array<infer U> ? ExtractObservableType<U>[] :
+  T extends object ? { [key in keyof T]: ExtractObservableType<T[key]> }[keyof T] :
+  never
+
+// type Foo = {
+//   __typename: 'User'
+//   uri: string
+//   foo: string
+//   friends: Observable<User>[]
+// }
+
+// type Test = ExtractObservableType<Foo>
+
+// export const getObservables = <T>(value: T): Observable<any>[] => {
+export const getObservables = <T>(value: T): ExtractObservableType<T> => {
+  const observables: Observable<T>[] = []
+  const recurse = (value: any) =>
+    value instanceof Observable ? observables.push(value) :
+    Array.isArray(value) ? value.map(recurse) :
+    value && typeof value === 'object' ? Object.values(value).map(recurse) :
+    undefined
+
+  recurse(value)
+  return observables as ExtractObservableType<T>
+}
+
+// type ExtractObservableType<T> =
+//   T extends Observable<infer U> ? U :
+//   T extends Array<infer U> ? ExtractObservableType<U>[] :
+//   T extends object ? { [key in keyof T]: ExtractObservableType<T[key]> } :
+//   never
+
+type ReplaceObservableType<Value, Target extends Observable<any>> =
+  Value extends Observable<infer T> ? T :
+  Value extends Array<infer T> ? ReplaceObservableType<T, Target>[] :
+  Value extends object ? { [key in keyof Value]: ReplaceObservableType<Value[key], Target> } :
+  Value
+
+export const replaceObservablePairs = <T>(value: T, replacementPairs: [Observable<any>, any][]): ReplaceObservableType<T, Observable<any>> =>
+  Array.isArray(value) ? value.map(v => replaceObservablePairs(v, replacementPairs)) :
+  value instanceof Observable ? replacementPairs.find(([observable]) => observable === value)?.[1] :
+  value && typeof value === 'object' ? Object.fromEntries(
+    Object
+      .entries(value)
+      .map(([key, value]) => [
+        key,
+        replaceObservablePairs(value, replacementPairs)
+      ])
+  ) :
+  value
