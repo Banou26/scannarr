@@ -1,6 +1,6 @@
-import { Observable, Subject, combineLatest, firstValueFrom, map, mergeMap, scan, shareReplay, switchMap } from 'rxjs'
+import { Observable, Subject, combineLatest, firstValueFrom, map, mergeMap, scan, shareReplay, startWith, switchMap } from 'rxjs'
 
-import { merge } from '../utils'
+import { merge } from './utils/merge'
 
 const recursiveRemoveNullable = (obj) =>
   Array.isArray(obj)
@@ -61,12 +61,14 @@ export const makeGraph = <NodeType extends NodeData>(
     const nodeObservable =
       changesObservable
         .pipe(
+          startWith(_node),
           shareReplay(1)
         )
       
     if (!id) throw new Error(`No key for ${_node.__typename}`)
 
     const node = {
+      __type__: 'Node',
       id,
       $: nodeObservable,
       set: (changes: Partial<T>) =>
@@ -77,23 +79,23 @@ export const makeGraph = <NodeType extends NodeData>(
             )  
           ),
       get: () => firstValueFrom(nodeObservable),
-      map: <T2 extends (node: T) => Observable<T2 | T2[]> | T2 | T2[]>(fn: T2) =>
+      map: <T2 extends (node: T) => ReplaceNodeType<T, Node<T>>>(fn: T2): ReplaceObservableType<T, Observable<any>> =>
         nodeObservable
           .pipe(
             switchMap(node => {
               const result = fn(node)
-
-              if (Array.isArray(result)) {
-                return combineLatest(result)
-              }
-
+              const observables = getObservables(result)
+              const allObservablesResults = combineLatest(observables)
               return (
-                result instanceof Observable
-                  ? result
-                  : new Observable<T>(subscriber => {
-                    subscriber.next(result)
-                    subscriber.complete()
-                  })
+                allObservablesResults
+                  .pipe(
+                    map(results =>
+                      replaceObservablePairs(
+                        result,
+                        results.map((result, i) => [observables[i], result] as const)
+                      )
+                    )
+                  )
               )
             })
           )
@@ -106,6 +108,51 @@ export const makeGraph = <NodeType extends NodeData>(
     makeNode
   }
 }
+
+
+type ExtractObservableType<T> =
+  T extends Observable<infer U> ? U :
+  T extends Array<infer U> ? ExtractObservableType<U>[] :
+  T extends object ? { [key in keyof T]: ExtractObservableType<T[key]> }[keyof T] :
+  never
+
+export const getObservables = <T>(value: T): ExtractObservableType<T> => {
+  const observables: Observable<T>[] = []
+  const recurse = (value: any) =>
+    value instanceof Observable ? observables.push(value) :
+    Array.isArray(value) ? value.map(recurse) :
+    value && typeof value === 'object' ? Object.values(value).map(recurse) :
+    undefined
+
+  recurse(value)
+  return observables as ExtractObservableType<T>
+}
+
+type ReplaceNodeType<Value, Target extends Node<any>> =
+  Value extends Node<infer T> ? T :
+  Value extends Array<infer T> ? ReplaceNodeType<T, Target>[] :
+  Value extends object ? { [key in keyof Value]: ReplaceNodeType<Value[key], Target> } :
+  Value
+
+type ReplaceObservableType<Value, Target extends Observable<any>> =
+  Value extends Observable<infer T> ? T :
+  Value extends Array<infer T> ? ReplaceObservableType<T, Target>[] :
+  Value extends object ? { [key in keyof Value]: ReplaceObservableType<Value[key], Target> } :
+  Value
+
+export const replaceObservablePairs = <T>(value: T, replacementPairs: [Observable<any>, any][]): ReplaceObservableType<T, Observable<any>> =>
+  Array.isArray(value) ? value.map(v => replaceObservablePairs(v, replacementPairs)) :
+  value instanceof Observable ? replacementPairs.find(([observable]) => observable === value)?.[1] :
+  value && typeof value === 'object' ? Object.fromEntries(
+    Object
+      .entries(value)
+      .map(([key, value]) => [
+        key,
+        replaceObservablePairs(value, replacementPairs)
+      ])
+  ) :
+  value
+
 
 type User = {
   __typename: 'User'
@@ -156,84 +203,36 @@ const userWithFriends =
       )
     )
 
-const friendsFoos =
+userWithFriends.subscribe(res => {
+  console.log('userWithFriends', res)
+})
+
+const userWithFriendsMap =
   user1
-    .$
-    .pipe(
-      map(user => user.friends),
-      switchMap(friends =>
-        combineLatest(
-          friends
-            .map(friend =>
-              friend
-                .$
-                .pipe(
-                  map(friend => friend.foo)
-                )
-            )
-        )
-      )
-    )
+    .map(user => ({
+      ...user,
+      friends: user.friends.map(friend => friend.$)
+    }))
+
+userWithFriendsMap.subscribe(res => {
+  console.log('userWithFriends 2222', res)
+})
 
 // const friendsFoos =
 //   user1
-//     .map(user =>
-//       user
-//         .friends
-//         .map(friend =>
-//           friend.map(friend => friend.foo)
+//     .$
+//     .pipe(
+//       map(user => user.friends),
+//       switchMap(friends =>
+//         combineLatest(
+//           friends
+//             .map(friend =>
+//               friend
+//                 .$
+//                 .pipe(
+//                   map(friend => friend.foo)
+//                 )
+//             )
 //         )
+//       )
 //     )
-
-type ExtractObservableType<T> =
-  T extends Observable<infer U> ? U :
-  T extends Array<infer U> ? ExtractObservableType<U>[] :
-  T extends object ? { [key in keyof T]: ExtractObservableType<T[key]> }[keyof T] :
-  never
-
-// type Foo = {
-//   __typename: 'User'
-//   uri: string
-//   foo: string
-//   friends: Observable<User>[]
-// }
-
-// type Test = ExtractObservableType<Foo>
-
-// export const getObservables = <T>(value: T): Observable<any>[] => {
-export const getObservables = <T>(value: T): ExtractObservableType<T> => {
-  const observables: Observable<T>[] = []
-  const recurse = (value: any) =>
-    value instanceof Observable ? observables.push(value) :
-    Array.isArray(value) ? value.map(recurse) :
-    value && typeof value === 'object' ? Object.values(value).map(recurse) :
-    undefined
-
-  recurse(value)
-  return observables as ExtractObservableType<T>
-}
-
-// type ExtractObservableType<T> =
-//   T extends Observable<infer U> ? U :
-//   T extends Array<infer U> ? ExtractObservableType<U>[] :
-//   T extends object ? { [key in keyof T]: ExtractObservableType<T[key]> } :
-//   never
-
-type ReplaceObservableType<Value, Target extends Observable<any>> =
-  Value extends Observable<infer T> ? T :
-  Value extends Array<infer T> ? ReplaceObservableType<T, Target>[] :
-  Value extends object ? { [key in keyof Value]: ReplaceObservableType<Value[key], Target> } :
-  Value
-
-export const replaceObservablePairs = <T>(value: T, replacementPairs: [Observable<any>, any][]): ReplaceObservableType<T, Observable<any>> =>
-  Array.isArray(value) ? value.map(v => replaceObservablePairs(v, replacementPairs)) :
-  value instanceof Observable ? replacementPairs.find(([observable]) => observable === value)?.[1] :
-  value && typeof value === 'object' ? Object.fromEntries(
-    Object
-      .entries(value)
-      .map(([key, value]) => [
-        key,
-        replaceObservablePairs(value, replacementPairs)
-      ])
-  ) :
-  value
