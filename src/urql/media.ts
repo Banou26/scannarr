@@ -11,7 +11,7 @@ import { observableToAsyncIterable } from '../utils/observableToAsyncIterable'
 import { mergeOriginSubscriptionResults, subscribeToOrigins } from '../utils/origin'
 import { groupBy, isScannarrUri } from '../utils'
 
-export const serverResolvers = ({ origins, mergeHandles }: ServerResolverParameters) => ({
+export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolverParameters) => ({
   Media: {
     // @ts-expect-error
     episodes: (parent, args, ctx, info) => {
@@ -60,6 +60,7 @@ export const serverResolvers = ({ origins, mergeHandles }: ServerResolverParamet
           mergeOriginSubscriptionResults({
             results:
               subscribeToOrigins({
+                graph,
                 origins,
                 context,
                 name: 'media'
@@ -74,6 +75,7 @@ export const serverResolvers = ({ origins, mergeHandles }: ServerResolverParamet
       subscribe: (_, __, context) =>
         observableToAsyncIterable(
           subscribeToOrigins({
+            graph,
             origins,
             context,
             name: 'mediaPage'

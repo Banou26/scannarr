@@ -5,7 +5,7 @@ import { mergeOriginSubscriptionResults, observableToAsyncIterable, subscribeToO
 import { map } from 'rxjs'
 import { ServerResolverParameters } from './server'
 
-export const serverResolvers = ({ origins, context, mergeHandles }: ServerResolverParameters & { origins: any[], context?: () => Promise<ServerContext> }) => ({
+export const serverResolvers = ({ graph, origins, context, mergeHandles }: ServerResolverParameters & { origins: any[], context?: () => Promise<ServerContext> }) => ({
   Query: {
     authentications: async (parent, args, ctx, info) => {
       const results = await getOriginResults({ ctx, origins, context })
@@ -83,6 +83,7 @@ export const serverResolvers = ({ origins, context, mergeHandles }: ServerResolv
       subscribe: (_, __, context) =>
         observableToAsyncIterable(
           subscribeToOrigins({
+            graph,
             origins,
             context,
             name: 'userMediaPage'

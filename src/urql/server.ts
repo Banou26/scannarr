@@ -12,6 +12,7 @@ import { serverResolvers as makePlaybackSourceServerResolvers } from './playback
 import { serverResolvers as makeUserServerResolvers } from './user'
 import { Episode, Handle, Media, MutationResolvers, QueryResolvers, Resolvers, SubscriptionResolvers, UserMedia } from '../generated/graphql'
 import { merge } from '../utils/deep-merge'
+import { Graph, keyResolvers, makeGraph } from './graph'
 
 export type SimpleRoot = QueryResolvers & MutationResolvers
 export type ResolverArgs =
@@ -19,6 +20,7 @@ export type ResolverArgs =
   Parameters<Extract<SimpleRoot[keyof SimpleRoot], Function>>[1]
 
 export type ServerContext = {
+  client: Client
   fetch: typeof fetch
   request: Request
   params: {
@@ -53,6 +55,7 @@ export type HandleType = UserMedia | Media | Episode
 export type MergeHandleFunction = (handles: (HandleType)[]) => HandleType
 
 export type ServerResolverParameters = {
+  graph: Graph
   origins: OriginCtx[]
   context?: () => Promise<ServerContext>
   mergeHandles: MergeHandleFunction
@@ -62,6 +65,7 @@ export const makeScannarrServer = (
   { origins: _origins, context, mergeHandles }:
   { origins: Origin[], context: () => Promise<ServerContext>, mergeHandles: MergeHandleFunction }
 ) => {
+  const graph = makeGraph({ keys: keyResolvers })
   const origins =
     _origins
       .map(origin => {
@@ -97,7 +101,7 @@ export const makeScannarrServer = (
           fetch: async (input: RequestInfo | URL, init?: RequestInit | undefined) =>
             server.handleRequest(
               new Request(input, init),
-              { ...await context() }
+              { ...await context(), client }
             )
         })
 
@@ -108,10 +112,10 @@ export const makeScannarrServer = (
         }
       })
 
-  const mediaResolvers = makeMediaServerResolvers({ origins, context, mergeHandles })
-  const episodeResolvers = makeEpisodeServerResolvers({ origins, context, mergeHandles })
-  const playbackSourceResolvers = makePlaybackSourceServerResolvers({ origins, context, mergeHandles })
-  const userResolvers = makeUserServerResolvers({ origins, context, mergeHandles })
+  const mediaResolvers = makeMediaServerResolvers({ graph, origins, context, mergeHandles })
+  const episodeResolvers = makeEpisodeServerResolvers({ graph, origins, context, mergeHandles })
+  const playbackSourceResolvers = makePlaybackSourceServerResolvers({ graph, origins, context, mergeHandles })
+  const userResolvers = makeUserServerResolvers({ graph, origins, context, mergeHandles })
 
   const schema = createSchema({
     typeDefs,

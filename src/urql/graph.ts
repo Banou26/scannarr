@@ -1,8 +1,9 @@
 import { Observable, Subject, combineLatest, firstValueFrom, map, mergeMap, scan, shareReplay, startWith, switchMap } from 'rxjs'
 
 import { merge } from '../utils'
+import { Episode, Media, MediaExternalLink, MediaTrailer, PlaybackSource, Team } from '../generated/graphql'
 
-const recursiveRemoveNullable = (obj) =>
+export const recursiveRemoveNullable = (obj) =>
   Array.isArray(obj)
     ? obj.map(recursiveRemoveNullable)
     : (
@@ -80,9 +81,10 @@ export const makeGraph = <NodeType extends NodeData>(
   { keys: KeyingConfig }
 ) => {
   const nodesMap = new Map<string, Node<NodeType>>()
+  console.log('nodesMap', nodesMap)
   
   const makeNode = <T extends NodeType>(_node: T) => {
-    const id = keys[_node.__typename]?.(_node) as string
+    const id = `${_node.__typename}:${keys[_node.__typename]?.(_node) as string}`
 
     if (nodesMap.has(id)) {
       throw new Error(`Node with id "${id}" already exists`)
@@ -139,6 +141,34 @@ export const makeGraph = <NodeType extends NodeData>(
   }
 
   return {
-    makeNode
+    makeNode,
+    hasNode: (id: string) => nodesMap.has(id),
+    getNode: (id: string) => nodesMap.get(id)
   }
 }
+
+export const keyResolvers = {
+  UserMediaPage: () => null,
+  Authentication: () => null,
+  AuthenticationMethod: () => null,
+  MediaPage: () => null,
+  Media: (media) => (media as Media).uri,
+  MediaConnection: () => null,
+  MediaEdge: () => null,
+  Episode: (episode) => (episode as Episode).uri,
+  EpisodePage: () => null,
+  EpisodeConnection: () => null,
+  EpisodeEdge: () => null,
+  PlaybackSourcePage: () => null,
+  PlaybackSource: (playbackSource) => (playbackSource as PlaybackSource).uri,
+  Team: (team) => (team as Team).uri,
+  PlaybackSourceConnection: () => null,
+  PlaybackSourceEdge: () => null,
+  MediaExternalLink: (mediaExternalLink) => (mediaExternalLink as MediaExternalLink).uri,
+  MediaTrailer: (mediaTrailer) => (mediaTrailer as MediaTrailer).uri,
+  MediaCoverImage: () => null,
+  MediaTitle: () => null,
+  FuzzyDate: () => null,
+}
+
+export type Graph = ReturnType<typeof makeGraph>

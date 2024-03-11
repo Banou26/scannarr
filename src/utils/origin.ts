@@ -3,8 +3,80 @@ import type { OriginCtx, ServerContext } from '../urql/server'
 import { combineLatest, from } from 'rxjs'
 import { map, tap } from 'rxjs/operators'
 import { gql } from 'graphql-tag'
-import { Handle, SubscriptionResolverObject, SubscriptionResolvers } from '../generated/graphql'
+import { Handle, ResolversTypes, SubscriptionResolverObject, SubscriptionResolvers } from '../generated/graphql'
 import { makeScannarrHandle2 } from '../urql'
+import { Graph, keyResolvers, recursiveRemoveNullable } from '../urql/graph'
+import { merge } from './deep-merge'
+
+type KeyResolvers = typeof keyResolvers
+type KeyResolversMap = {
+  [K in keyof KeyResolvers]: Exclude<KeyResolvers[K], (...args: any) => null>
+}
+
+type NullKeyResolvers = {
+  [K in keyof KeyResolversMap]: KeyResolversMap[K] extends never ? K : never
+}[keyof KeyResolversMap]
+
+type KeyResolverHandler = {
+  [K in Exclude<keyof KeyResolversMap, NullKeyResolvers>]: Exclude<KeyResolvers[K], (...args: any) => null>
+}
+
+
+type HandleResolvers = {
+  [K in keyof KeyResolverHandler]: Awaited<ResolversTypes[K]>
+}
+
+type HandleTypename = NonNullable<HandleResolvers[keyof HandleResolvers]['__typename']>
+
+export type Handle2 = HandleResolvers[keyof HandleResolvers]
+
+type ExtractHandleType<T> =
+  T extends Handle2 ? T :
+  T extends Array<infer U> ? ExtractHandleType<U>[] :
+  T extends object ? { [key in keyof T]: ExtractHandleType<T[key]> }[keyof T] :
+  never
+
+const handleTypeNames =
+  Object
+    .entries(keyResolvers)
+    .filter(([, resolver]) => resolver({ uri: 'foo:bar' }) === 'foo:bar')
+    .map(([key]) => key) as HandleTypename[]
+
+export const getNodeId = (handle: Handle2) =>
+  `${handle.__typename}:${keyResolvers[handle.__typename!](handle)}`
+
+export const getHandles = <T>(value: T): ExtractHandleType<T> => {
+  const handlesMap = new Map<string, Handle2>()
+
+  const recurse = (value: any) => {
+    if (!value) return
+
+    if (Array.isArray(value)) return value.map(recurse)
+
+    if (handleTypeNames.includes(value.__typename)) {
+      const uri = getNodeId(value)
+      const existingHandle = handlesMap.get(uri)
+      if (existingHandle) {
+        handlesMap.set(uri, merge(existingHandle, recursiveRemoveNullable(value)) as Handle2)
+        return
+      }
+      handlesMap.set(uri, value)
+      Object
+        .values(value)
+        .map(recurse)
+      return
+    }
+
+    if (typeof value === 'object') {
+      Object
+        .values(value)
+        .map(recurse)
+    }
+  }
+
+  recurse(value)
+  return [...handlesMap.values()] as ExtractHandleType<T>
+}
 
 type SubscriptionResolverValue<T extends keyof SubscriptionResolvers> =
   Extract<
@@ -37,8 +109,8 @@ type SubscriptionResolverInnerValue<T extends keyof SubscriptionResolvers> = Sub
 type SubscriptionResolverHandleValue<T extends keyof SubscriptionResolvers> = Awaited<SubscriptionResolverInnerValue<T>>
 
 export const subscribeToOrigins = <T extends keyof SubscriptionResolvers>(
-  { name, context, origins }:
-  { name: T, context: ServerContext, origins: OriginCtx[] }
+  { graph, name, context, origins }:
+  { graph: Graph, name: T, context: ServerContext, origins: OriginCtx[] }
 ) =>
   combineLatest(
     ...origins
@@ -61,6 +133,25 @@ export const subscribeToOrigins = <T extends keyof SubscriptionResolvers>(
             if (result.error) {
               console.warn('Error in origin', result.origin.origin.name)
               console.error(result.error)
+            } else if (result.data) {
+              console.log('aaa', result.data)
+              try {
+                const handles = getHandles(result.data) ?? []
+                for (const handle of handles) {
+                  const id = getNodeId(handle)
+                  const existingHandle = graph.getNode(id)
+                  if (existingHandle) {
+                    existingHandle.set(handle)
+                    continue
+                  } else {
+                    graph.makeNode(handle)
+                  }
+                }
+              } catch (err) {
+                console.error(err)
+              }
+              // recursive loop thru data, check for objects that match __typename and run `keyResolvers` on them
+              // then add them to the graph
             }
           })
         )

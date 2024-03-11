@@ -7,7 +7,7 @@ import { groupRelatedHandles, makeScannarrHandle2 } from './utils'
 import { observableToAsyncIterable } from '../utils'
 import { mergeOriginSubscriptionResults, subscribeToOrigins } from '../utils/origin'
 
-export const serverResolvers = ({ origins, mergeHandles }: ServerResolverParameters) => ({
+export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolverParameters) => ({
   Subscription: {
     episode: {
       subscribe: (_, __, context) =>
@@ -15,6 +15,7 @@ export const serverResolvers = ({ origins, mergeHandles }: ServerResolverParamet
           mergeOriginSubscriptionResults({
             results:
               subscribeToOrigins({
+                graph,
                 origins,
                 context,
                 name: 'episode'
@@ -28,6 +29,7 @@ export const serverResolvers = ({ origins, mergeHandles }: ServerResolverParamet
       subscribe: (_, __, context) =>
         observableToAsyncIterable(
           subscribeToOrigins({
+            graph,
             origins,
             context,
             name: 'episodePage'

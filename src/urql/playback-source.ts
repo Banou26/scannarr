@@ -7,7 +7,7 @@ import { observableToAsyncIterable } from '../utils/observableToAsyncIterable'
 import { mergeOriginSubscriptionResults, subscribeToOrigins } from '../utils/origin'
 import { PlaybackSourcePage } from '../generated/graphql'
 
-export const serverResolvers = ({ origins, mergeHandles }: ServerResolverParameters) => ({
+export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolverParameters) => ({
   Subscription: {
     playbackSource: {
       subscribe: (_, __, context) =>
@@ -15,6 +15,7 @@ export const serverResolvers = ({ origins, mergeHandles }: ServerResolverParamet
           mergeOriginSubscriptionResults({
             results:
               subscribeToOrigins({
+                graph,
                 origins,
                 context,
                 name: 'playbackSource'
@@ -28,6 +29,7 @@ export const serverResolvers = ({ origins, mergeHandles }: ServerResolverParamet
       subscribe: (_, __, context) =>
         observableToAsyncIterable(
           subscribeToOrigins({
+            graph,
             origins,
             context,
             name: 'playbackSourcePage'
