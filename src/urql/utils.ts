@@ -135,7 +135,12 @@ export const makeScannarrHandle2 = ({ handles, mergeHandles }: { handles: Handle
   const id = toScannarrId(handleUris)
   const uri = toScannarrUri(handleUris)
 
+  const __typename = uniqueHandles[0]?.__typename
+
+  if (!__typename) throw new Error('No __typename found in makeScannarrHandle2')
+
   return ({
+    __typename,
     ...mergeHandles(uniqueHandles),
     origin: 'scannarr',
     id,

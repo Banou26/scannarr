@@ -58,6 +58,7 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
       subscribe: (_, __, context) =>
         observableToAsyncIterable(
           mergeOriginSubscriptionResults({
+            graph,
             results:
               subscribeToOrigins({
                 graph,
@@ -69,7 +70,7 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
             name: 'media'
           })
         ),
-      resolve: (parent) => parent.media
+      resolve: (parent) => parent?.media
     },
     mediaPage: {
       subscribe: (_, __, context) =>
@@ -95,6 +96,16 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                       mergeHandles
                     })
                   )
+
+              for (const handle of scannarrHandles) {
+                const existingNode = graph.getNode(handle.id)
+                if (existingNode) {
+                  existingNode.set(handle)
+                } else {
+                  graph.makeNode(handle)
+                }
+              }
+
               return {
                 mediaPage: {
                   edges: scannarrHandles.map(media => ({ node: media })),

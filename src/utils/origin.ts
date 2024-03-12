@@ -134,7 +134,6 @@ export const subscribeToOrigins = <T extends keyof SubscriptionResolvers>(
               console.warn('Error in origin', result.origin.origin.name)
               console.error(result.error)
             } else if (result.data) {
-              console.log('aaa', result.data)
               try {
                 const handles = getHandles(result.data) ?? []
                 for (const handle of handles) {
@@ -159,8 +158,8 @@ export const subscribeToOrigins = <T extends keyof SubscriptionResolvers>(
   )
 
 export const mergeOriginSubscriptionResults = <T extends keyof SubscriptionResolvers>(
-  { name, results, mergeHandles }:
-  { name: T, results: ReturnType<typeof subscribeToOrigins>, mergeHandles: <T2 extends Handle[]>(handles: T2) => T2[number] }
+  { graph, name, results, mergeHandles }:
+  { graph: Graph, name: T, results: ReturnType<typeof subscribeToOrigins>, mergeHandles: <T2 extends Handle[]>(handles: T2) => T2[number] }
 ) =>
   results
     .pipe(
@@ -172,14 +171,26 @@ export const mergeOriginSubscriptionResults = <T extends keyof SubscriptionResol
             .filter(data => Boolean(data?.[name as keyof typeof data]))
         if (!resultsData.length) return
 
+        const scannarHandle = makeScannarrHandle2({
+          handles:
+            resultsData
+              .map(data => data![name as keyof typeof data]),
+          mergeHandles
+        })
+
+        try {
+          const existingNode = graph.getNode(getNodeId(scannarHandle))
+          if (existingNode) {
+            existingNode.set(scannarHandle)
+          } else {
+            graph.makeNode(scannarHandle)
+          }
+        } catch (err) {
+          console.error(err)
+        }
+
         return {
-          [name]:
-            makeScannarrHandle2({
-              handles:
-                resultsData
-                  .map(data => data![name as keyof typeof data]),
-              mergeHandles
-            })
+          [name]: scannarHandle
         } as unknown as { [K in T]: SubscriptionResolverHandleValue<K> }
       })
     )

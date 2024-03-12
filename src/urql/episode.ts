@@ -13,6 +13,7 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
       subscribe: (_, __, context) =>
         observableToAsyncIterable(
           mergeOriginSubscriptionResults({
+            graph,
             results:
               subscribeToOrigins({
                 graph,

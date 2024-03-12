@@ -1,7 +1,7 @@
 import { getOriginResult, getOriginResults, groupRelatedHandles, makeScannarrHandle2 } from './utils'
 import { ServerContext } from './client'
 import { Resolvers, UserMedia, UserMediaPage } from '../generated/graphql'
-import { mergeOriginSubscriptionResults, observableToAsyncIterable, subscribeToOrigins } from '../utils'
+import { observableToAsyncIterable, subscribeToOrigins } from '../utils'
 import { map } from 'rxjs'
 import { ServerResolverParameters } from './server'
 
