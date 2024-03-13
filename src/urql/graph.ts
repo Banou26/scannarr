@@ -1,4 +1,4 @@
-import { Observable, Subject, combineLatest, firstValueFrom, map, mergeMap, scan, shareReplay, startWith, switchMap } from 'rxjs'
+import { Observable, Subject, combineLatest, firstValueFrom, map, mergeMap, of, scan, shareReplay, startWith, switchMap } from 'rxjs'
 
 import { merge } from '../utils'
 import { Episode, Media, MediaExternalLink, MediaTrailer, PlaybackSource, Team } from '../generated/graphql'
@@ -65,7 +65,7 @@ type UnwrapObservables<Value> =
 export const replaceObservablePairs = <T>(value: T, replacementPairs: [Observable<any>, any][]): UnwrapObservables<T> =>
   Array.isArray(value) ? value.map(v => replaceObservablePairs(v, replacementPairs)) :
   value instanceof Observable ? replacementPairs.find(([observable]) => observable === value)?.[1] :
-  value && typeof value === 'object' ? Object.fromEntries(
+  value && typeof value === 'object' && !('__type__' in value) && value['__type__'] !== 'Node' ? Object.fromEntries(
     Object
       .entries(value)
       .map(([key, value]) => [
@@ -97,7 +97,7 @@ export const makeGraph = <NodeType extends NodeData>(
           startWith(_node),
           shareReplay(1)
         )
-      
+
     if (!id) throw new Error(`No key for ${_node.__typename}`)
 
     const node = {
@@ -109,7 +109,7 @@ export const makeGraph = <NodeType extends NodeData>(
           .then(node =>
             changesObservable.next(
               merge(node, changes) as T
-            )  
+            )
           ),
       get: () => firstValueFrom(nodeObservable),
       map: <T2 extends (node: T) => any>(fn: T2) =>
@@ -118,6 +118,7 @@ export const makeGraph = <NodeType extends NodeData>(
             switchMap(node => {
               const result = fn(node)
               const observables = getObservables(result)
+              if (!observables.length) return of(result)
               const allObservablesResults = combineLatest(observables as Observable<any>)
               return (
                 allObservablesResults

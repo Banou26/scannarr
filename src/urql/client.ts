@@ -1,4 +1,3 @@
-import type { Episode, Media, MediaExternalLink, MediaTrailer, PlaybackSource, Team } from '../generated/graphql'
 import type { ServerContext } from '.'
 
 import { Client, fetchExchange } from 'urql'
