@@ -5,8 +5,9 @@ import { map, tap } from 'rxjs/operators'
 import { gql } from 'graphql-tag'
 import { Handle, ResolversTypes, SubscriptionResolverObject, SubscriptionResolvers } from '../generated/graphql'
 import { makeScannarrHandle2 } from '../urql'
-import { Graph, keyResolvers, recursiveRemoveNullable } from '../urql/graph'
+import { Graph, recursiveRemoveNullable } from '../urql/graph'
 import { merge } from './deep-merge'
+import { keyResolvers } from '../urql/client'
 
 type KeyResolvers = typeof keyResolvers
 type KeyResolversMap = {

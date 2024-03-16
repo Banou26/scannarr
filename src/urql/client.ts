@@ -1,4 +1,5 @@
 import type { ServerContext } from '.'
+import { Episode, Media, MediaExternalLink, MediaTrailer, PlaybackSource, Team } from '../generated/graphql'
 
 import { Client, fetchExchange } from 'urql'
 import { cacheExchange } from '@urql/exchange-graphcache'
@@ -6,7 +7,6 @@ import { YogaServerInstance } from 'graphql-yoga'
 import { devtoolsExchange } from '@urql/devtools'
 
 import { cacheResolvers as makeMediaCacheResolvers } from './media'
-import { keyResolvers } from './graph'
 
 export type {
   ServerContext,
@@ -15,6 +15,30 @@ export type {
 
 export type OriginWithServer = {
   server: YogaServerInstance<{}, {}>
+}
+
+export const keyResolvers = {
+  UserMediaPage: () => null,
+  Authentication: () => null,
+  AuthenticationMethod: () => null,
+  MediaPage: () => null,
+  Media: (media) => (media as Media).uri,
+  MediaConnection: () => null,
+  MediaEdge: () => null,
+  Episode: (episode) => (episode as Episode).uri,
+  EpisodePage: () => null,
+  EpisodeConnection: () => null,
+  EpisodeEdge: () => null,
+  PlaybackSourcePage: () => null,
+  PlaybackSource: (playbackSource) => (playbackSource as PlaybackSource).uri,
+  Team: (team) => (team as Team).uri,
+  PlaybackSourceConnection: () => null,
+  PlaybackSourceEdge: () => null,
+  MediaExternalLink: (mediaExternalLink) => (mediaExternalLink as MediaExternalLink).uri,
+  MediaTrailer: (mediaTrailer) => (mediaTrailer as MediaTrailer).uri,
+  MediaCoverImage: () => null,
+  MediaTitle: () => null,
+  FuzzyDate: () => null,
 }
 
 export const makeScannarrClient = (

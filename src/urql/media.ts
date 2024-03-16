@@ -3,13 +3,14 @@ import type { Cache, ResolveInfo } from '@urql/exchange-graphcache'
 import type { ServerResolverParameters } from './server'
 import { HandleRelation, type MediaPage, type Resolvers } from '../generated/graphql'
 
-import { map } from 'rxjs/operators'
+import { map, mergeMap, tap } from 'rxjs/operators'
 
 import { makeScannarrHandle2, groupRelatedHandles } from './utils'
 import { ServerContext } from './client'
 import { observableToAsyncIterable } from '../utils/observableToAsyncIterable'
-import { mergeOriginSubscriptionResults, subscribeToOrigins } from '../utils/origin'
+import { getNodeId, mergeOriginSubscriptionResults, subscribeToOrigins } from '../utils/origin'
 import { groupBy, isScannarrUri } from '../utils'
+import { combineLatest } from 'rxjs'
 
 export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolverParameters) => ({
   Media: {
@@ -112,7 +113,27 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                   nodes: scannarrHandles
                 }
               }
-            })
+            }),
+            // mergeMap(({ mediaPage }) =>
+            //   combineLatest(
+            //     mediaPage
+            //       .nodes
+            //       .map(node =>
+            //         graph
+            //           .getNode(getNodeId(node))
+            //           ?.map(nodeValue => ({
+            //             ...nodeValue,
+            //             __node: graph.getNode(getNodeId(node))
+            //           }))
+            //       )
+            //   )
+            // ),
+            // map((results) => console.log('results', results) || ({
+            //   mediaPage: {
+            //     edges: results.map(node => ({ node })),
+            //     nodes: results
+            //   }
+            // }))
           )
         )
     }

@@ -12,7 +12,7 @@ import { serverResolvers as makePlaybackSourceServerResolvers } from './playback
 import { serverResolvers as makeUserServerResolvers } from './user'
 import { Episode, Handle, Media, MutationResolvers, QueryResolvers, Resolvers, SubscriptionResolvers, UserMedia } from '../generated/graphql'
 import { merge } from '../utils/deep-merge'
-import { Graph, keyResolvers, makeGraph } from './graph'
+import { InMemoryGraphDatabase, makeInMemoryGraphDatabase } from './graph'
 
 export type SimpleRoot = QueryResolvers & MutationResolvers
 export type ResolverArgs =
@@ -55,7 +55,7 @@ export type HandleType = UserMedia | Media | Episode
 export type MergeHandleFunction = (handles: (HandleType)[]) => HandleType
 
 export type ServerResolverParameters = {
-  graph: Graph
+  graph: InMemoryGraphDatabase
   origins: OriginCtx[]
   context?: () => Promise<ServerContext>
   mergeHandles: MergeHandleFunction
@@ -65,7 +65,7 @@ export const makeScannarrServer = (
   { origins: _origins, context, mergeHandles }:
   { origins: Origin[], context: () => Promise<ServerContext>, mergeHandles: MergeHandleFunction }
 ) => {
-  const graph = makeGraph({ keys: keyResolvers })
+  const graph = makeInMemoryGraphDatabase({})
   const origins =
     _origins
       .map(origin => {

@@ -102,6 +102,7 @@ Media is a type of handle that represents a media.
 It generally represents a Movie, TV Show, Game, Package, ect...
 """
 type Media implements Handle {
+  _id: String!
   # Handle properties
   origin: String!
   id: String!
@@ -266,6 +267,7 @@ input EpisodeInput {
 }
 
 type Episode implements Handle  {
+  _id: String!
   # Handle properties
   origin: String!
   id: String!
@@ -400,6 +402,7 @@ enum PlaybackSourceFileStructure {
 }
 
 type Team implements Handle {
+  _id: String!
   # Handle properties
   origin: String!
   id: String!
@@ -415,6 +418,7 @@ type Team implements Handle {
 # todo: add a system to allow subtitles as episode playback type of thing
 
 type PlaybackSource implements Handle {
+  _id: String!
   # Handle properties
   origin: String!
   id: String!
@@ -503,6 +507,7 @@ type EpisodeEdge implements HandleEdge {
 Media Airing Schedule. NOTE: We only aim to guarantee that FUTURE airing data is present and accurate.
 """
 type MediaAiringSchedule implements Handle {
+  _id: String!
   # Handle properties
   origin: String!
   id: String!
@@ -583,6 +588,7 @@ type MediaCoverImage {
 
 """An external link to another site related to the media or its properties"""
 type MediaExternalLink implements Handle {
+  _id: String!
   # Handle properties
   origin: String!
   id: String!
@@ -607,6 +613,7 @@ type MediaExternalLink implements Handle {
 
 """Media trailer or advertisement"""
 type MediaTrailer implements Handle {
+  _id: String!
   # Handle properties
   origin: String!
   id: String!

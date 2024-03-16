@@ -202,6 +202,17 @@
         "name": "Episode",
         "fields": [
           {
+            "name": "_id",
+            "type": {
+              "kind": "NON_NULL",
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "Any"
+              }
+            },
+            "args": []
+          },
+          {
             "name": "airingAt",
             "type": {
               "kind": "SCALAR",
@@ -764,6 +775,17 @@
         "name": "Media",
         "fields": [
           {
+            "name": "_id",
+            "type": {
+              "kind": "NON_NULL",
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "Any"
+              }
+            },
+            "args": []
+          },
+          {
             "name": "averageScore",
             "type": {
               "kind": "SCALAR",
@@ -1049,6 +1071,17 @@
         "kind": "OBJECT",
         "name": "MediaAiringSchedule",
         "fields": [
+          {
+            "name": "_id",
+            "type": {
+              "kind": "NON_NULL",
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "Any"
+              }
+            },
+            "args": []
+          },
           {
             "name": "airingAt",
             "type": {
@@ -1377,6 +1410,17 @@
         "name": "MediaExternalLink",
         "fields": [
           {
+            "name": "_id",
+            "type": {
+              "kind": "NON_NULL",
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "Any"
+              }
+            },
+            "args": []
+          },
+          {
             "name": "color",
             "type": {
               "kind": "SCALAR",
@@ -1681,6 +1725,17 @@
         "name": "MediaTrailer",
         "fields": [
           {
+            "name": "_id",
+            "type": {
+              "kind": "NON_NULL",
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "Any"
+              }
+            },
+            "args": []
+          },
+          {
             "name": "handles",
             "type": {
               "kind": "NON_NULL",
@@ -1917,6 +1972,17 @@
         "kind": "OBJECT",
         "name": "PlaybackSource",
         "fields": [
+          {
+            "name": "_id",
+            "type": {
+              "kind": "NON_NULL",
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "Any"
+              }
+            },
+            "args": []
+          },
           {
             "name": "bytes",
             "type": {
@@ -2411,6 +2477,17 @@
         "name": "Resource",
         "fields": [
           {
+            "name": "_id",
+            "type": {
+              "kind": "NON_NULL",
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "Any"
+              }
+            },
+            "args": []
+          },
+          {
             "name": "batchResources",
             "type": {
               "kind": "NON_NULL",
@@ -2728,6 +2805,17 @@
         "name": "Team",
         "fields": [
           {
+            "name": "_id",
+            "type": {
+              "kind": "NON_NULL",
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "Any"
+              }
+            },
+            "args": []
+          },
+          {
             "name": "handles",
             "type": {
               "kind": "NON_NULL",
@@ -2845,6 +2933,17 @@
         "kind": "OBJECT",
         "name": "UserMedia",
         "fields": [
+          {
+            "name": "_id",
+            "type": {
+              "kind": "NON_NULL",
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "Any"
+              }
+            },
+            "args": []
+          },
           {
             "name": "episodes",
             "type": {
