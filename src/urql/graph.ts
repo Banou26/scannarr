@@ -83,11 +83,11 @@ type Indexer<NodeType extends NodeData> = {
   insertOne: (node: Node<NodeType>) => void
 }
 
-const uidIndexer = <NodeType extends NodeData>(): Indexer<NodeType> => {
+export const makePropertyIndexer = <NodeType extends NodeData, Property extends keyof NodeType>(property: Property): Indexer<NodeType> => {
   const nodesMap = new Map<string, Node<NodeType>>()
   return {
-    findOne: ({ filter }) => filter._id ? nodesMap.get(filter._id) : undefined,
-    insertOne: (node) => nodesMap.set(node._id, node)
+    findOne: ({ filter }) => filter[property] ? nodesMap.get(filter[property]) : undefined,
+    insertOne: (node) => nodesMap.set(node.data[property], node)
   }
 }
 
@@ -108,7 +108,8 @@ export const makeInMemoryGraphDatabase = <NodeType extends NodeData>(
   { indexers?: Indexer<NodeType>[] }
 ) => {
   const indexers = [
-    uidIndexer<NodeType>(),
+    makePropertyIndexer<NodeType, '_id'>('_id'),
+    makePropertyIndexer<NodeType, '_typename'>('_typename'),
     ..._indexers ?? [],
     deepEqualIndexer<NodeType>()
   ]
