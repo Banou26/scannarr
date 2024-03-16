@@ -19,17 +19,18 @@ export const recursiveRemoveNullable = (obj) =>
         : obj
     )
 
-type NodeData =
+export type NodeData =
   { _id: string, __typename: string } &
   { [key: string]: any }
 
-type Node<NodeDataType extends NodeData> = {
+export type Node<NodeDataType extends NodeData> = {
   _id: string
   $: Observable<NodeDataType>
   subject: Subject<NodeDataType>
   data: NodeDataType
   update: (changes: Partial<NodeDataType>) => Promise<void>
   get: () => Promise<NodeDataType>
+  map: <T2 extends (nodeData: NodeDataType, node: Node<NodeDataType>) => any>(fn: T2) => ReturnType<T2> extends Observable<infer U> ? Observable<U> : ReturnType<T2>
 }
 
 type ExtractObservableType<T> =
@@ -128,38 +129,40 @@ export const makeInMemoryGraphDatabase = <NodeType extends NodeData>(
       )
       .at(0)
 
+  const mapNode = <T extends NodeType, T2 extends (nodeData: NodeType, node: Node<NodeType>) => any>(node: Node<T>, fn: T2) =>
+    node
+      .$
+      .pipe(
+        switchMap(data => {
+          const result = fn(data, node)
+          const observables = getObservables(result)
+          if (!observables.length) return of(result)
+          return (
+            combineLatest(observables as Observable<any>)
+              .pipe(
+                map(results =>
+                  replaceObservablePairs(
+                    result,
+                    results.map((result, i) => [
+                      (observables as Observable<any>[])[i]!,
+                      result
+                    ])
+                  )
+                )
+              )
+          )
+        })
+      )
+
   return {
+    mapNode,
     findOne: <T extends NodeType>(filter: Partial<T>) => findNodeOne(filter)?.data,
     mapOne: <T2 extends (nodeData: NodeType, node: Node<NodeType>) => any>(filter: Partial<NodeType>, fn: T2) => {
       const foundNode = findNodeOne(filter)
       if (!foundNode) throw new Error(`No node found for ${JSON.stringify(filter)}`)
-      return (
-        foundNode
-        .$
-        .pipe(
-          switchMap(node => {
-            const result = fn(node, foundNode)
-            const observables = getObservables(result)
-            if (!observables.length) return of(result)
-            return (
-              combineLatest(observables as Observable<any>)
-                .pipe(
-                  map(results =>
-                    replaceObservablePairs(
-                      result,
-                      results.map((result, i) => [
-                        (observables as Observable<any>[])[i]!,
-                        result
-                      ])
-                    )
-                  )
-                )
-            )
-          })
-        )
-      )
+      return mapNode(foundNode, fn)
     },
-    insertOne: <T extends NodeType>(_node: T) => {
+    insertOne: <T extends Omit<NodeType, '_id'>, T2 extends boolean>(_node: T, { returnNode }: { returnNode?: T2 } = {}): T2 extends true ? Node<T & { _id: string }> : T & { _id: string } => {
       const _id = globalThis.crypto.randomUUID() as string
       const data = { ..._node, _id }
 
@@ -186,23 +189,28 @@ export const makeInMemoryGraphDatabase = <NodeType extends NodeData>(
                 merge(node, changes) as T
               )
             ),
-        get: () => firstValueFrom(nodeObservable)
-      } as Node<T>
+        get: () => firstValueFrom(nodeObservable),
+        map: <T2 extends (nodeData: NodeType, node: Node<NodeType>) => any>(fn: T2) => mapNode(node as Node<NodeType>, fn)
+      }
 
       nodes.set(_id, node as Node<T>)
       for (const indexer of indexers) indexer.insertOne(node)
 
-      return data
+      return (
+        returnNode
+          ? node as Node<T & { _id: string }>
+          : data as T & { _id: string }
+      )
     },
     updateOne: <T extends NodeType>(filter: Partial<T>, changes: Partial<T>) => {
       const node = findNodeOne(filter)
       if (!node) throw new Error(`No node found for ${JSON.stringify(filter)}`)
       firstValueFrom(node.$)
-        .then(nodeData =>
-          node.subject.next(
-            merge(nodeData, changes) as T
-          )
-        )
+        .then(nodeData => {
+          const newData = merge(nodeData, changes) as T
+          node.data = newData
+          node.subject.next(newData)
+        })
     }
   }
 }
