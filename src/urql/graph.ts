@@ -1,4 +1,5 @@
 import { Observable, Subject, combineLatest, firstValueFrom, map, mergeMap, of, scan, shareReplay, startWith, switchMap } from 'rxjs'
+import { flatten, $timestamp, $unset } from 'mongo-dot-notation'
 
 import { merge } from '../utils'
 
@@ -103,6 +104,71 @@ const deepEqualIndexer = <NodeType extends NodeData>(): Indexer<NodeType> => {
   }
 }
 
+
+const updateOperators = ['$set', '$unset', '$merge', '$push', '$pull'] as const
+type UpdateOperators = typeof updateOperators[number]
+
+type UpdateObject<T> = {
+  $set?: Partial<T>
+  $unset?: Partial<T>
+  $merge?: Partial<T>
+  $push?: { [key in keyof T]?: T[key] }
+  $pull?: { [key in keyof T]?: T[key] }
+}
+
+function updateObject<T>(_obj: T, update: UpdateObject<T>) {
+  const obj = merge(_obj, _obj) as T
+  if (update.$set) {
+      for (let key in update.$set) {
+          // Using dot notation to handle nested objects
+          const keys = key.split('.');
+          let target = obj;
+          for (let i = 0; i < keys.length - 1; i++) {
+              if (!target[keys[i]]) target[keys[i]] = {};
+              target = target[keys[i]];
+          }
+          target[keys[keys.length - 1]] = update.$set[key];
+      }
+  }
+
+  if (update.$unset) {
+      for (let key in update.$unset) {
+          // Assuming the path exists
+          const keys = key.split('.');
+          let target = obj;
+          for (let i = 0; i < keys.length - 1; i++) {
+              target = target[keys[i]];
+          }
+          delete target[keys[keys.length - 1]];
+      }
+  }
+
+  if (update.$push) {
+      for (let key in update.$push) {
+          // Assuming the path exists and is an array
+          const keys = key.split('.');
+          let target = obj;
+          for (let i = 0; i < keys.length - 1; i++) {
+              target = target[keys[i]];
+          }
+          target[keys[keys.length - 1]].push(update.$push[key]);
+      }
+  }
+
+  if (update.$pull) {
+      for (let key in update.$pull) {
+          // Assuming the path exists and is an array
+          const keys = key.split('.');
+          let target = obj;
+          for (let i = 0; i < keys.length - 1; i++) {
+              target = target[keys[i]];
+          }
+          target[keys[keys.length - 1]] = target[keys[keys.length - 1]].filter(item => item !== update.$pull[key]);
+      }
+  }
+  return obj
+}
+
 export const makeInMemoryGraphDatabase = <NodeType extends NodeData>(
   { indexers: _indexers }:
   { indexers?: Indexer<NodeType>[] }
@@ -115,20 +181,25 @@ export const makeInMemoryGraphDatabase = <NodeType extends NodeData>(
   ]
   const nodes = new Map<string, Node<NodeType>>()
 
-  const findNodeOne = (filter: Partial<NodeType>) =>
-    indexers
-      .reduce(
-        (filteredNodes, indexer) => {
-          const indexResult = indexer.findOne({ filteredNodes, filter })
-          return (
-            indexResult
-              ? [indexResult]
-              : filteredNodes
-          )
-        },
-        [...nodes.values()]
-      )
-      .at(0)
+  const findNodeOne = (filter: Partial<NodeType>) => {
+    const allNodes = [...nodes.values()]
+    const filteredNodes =
+      indexers
+        .reduce(
+          (filteredNodes, indexer) => {
+            const indexResult = indexer.findOne({ filteredNodes, filter })
+            return (
+              indexResult
+                ? [indexResult]
+                : filteredNodes
+            )
+          },
+          allNodes
+        )
+
+    if (allNodes === filteredNodes) return undefined
+    return filteredNodes[0]
+  }
 
   const mapNode = <T extends NodeType, T2 extends (nodeData: NodeType, node: Node<NodeType>) => any>(node: Node<T>, fn: T2) =>
     node
@@ -156,8 +227,18 @@ export const makeInMemoryGraphDatabase = <NodeType extends NodeData>(
       )
 
   return {
+    indexers,
+    nodes,
     mapNode,
-    findOne: <T extends NodeType>(filter: Partial<T>) => findNodeOne(filter)?.data,
+    findOne: <T extends NodeType, T2 extends boolean>(filter: Partial<T>, { returnNode }: { returnNode?: T2 } = {}): (T2 extends true ? Node<T & { _id: string }> : T & { _id: string }) | undefined => {
+      const foundNode = findNodeOne(filter)
+      if (!foundNode) return undefined
+      return (
+        returnNode
+          ? foundNode as Node<T & { _id: string }>
+          : foundNode.data as T & { _id: string }
+      )
+    },
     mapOne: <T2 extends (nodeData: NodeType, node: Node<NodeType>) => any>(filter: Partial<NodeType>, fn: T2) => {
       const foundNode = findNodeOne(filter)
       if (!foundNode) throw new Error(`No node found for ${JSON.stringify(filter)}`)
@@ -183,13 +264,13 @@ export const makeInMemoryGraphDatabase = <NodeType extends NodeData>(
         subject: changesObservable,
         $: nodeObservable,
         data,
-        update: (changes: Partial<T>) =>
-          firstValueFrom(nodeObservable)
-            .then(node =>
-              changesObservable.next(
-                merge(node, changes) as T
-              )
-            ),
+        // update: (changes: Partial<T>) =>
+        //   firstValueFrom(nodeObservable)
+        //     .then(node =>
+        //       changesObservable.next(
+        //         merge(node, changes) as T
+        //       )
+        //     ),
         get: () => firstValueFrom(nodeObservable),
         map: <T2 extends (nodeData: NodeType, node: Node<NodeType>) => any>(fn: T2) => mapNode(node as Node<NodeType>, fn)
       }
@@ -205,10 +286,13 @@ export const makeInMemoryGraphDatabase = <NodeType extends NodeData>(
     },
     updateOne: <T extends NodeType>(filter: Partial<T>, changes: Partial<T>) => {
       const node = findNodeOne(filter)
-      if (!node) throw new Error(`No node found for ${JSON.stringify(filter)}`)
+      if (!node) {
+        console.log('No node found for', filter)
+        return // throw new Error(`No node found for ${JSON.stringify(filter)}`)
+      }
       firstValueFrom(node.$)
         .then(nodeData => {
-          const newData = merge(nodeData, changes) as T
+          const newData = updateObject(nodeData, flatten(changes?.$set)) as T
           node.data = newData
           node.subject.next(newData)
         })

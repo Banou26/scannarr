@@ -5,7 +5,7 @@ import { map, tap } from 'rxjs/operators'
 import { gql } from 'graphql-tag'
 import { Handle, ResolversTypes, SubscriptionResolverObject, SubscriptionResolvers } from '../generated/graphql'
 import { makeScannarrHandle2 } from '../urql'
-import { Graph, recursiveRemoveNullable } from '../urql/graph'
+import { Graph, InMemoryGraphDatabase, recursiveRemoveNullable } from '../urql/graph'
 import { merge } from './deep-merge'
 import { keyResolvers } from '../urql/client'
 
@@ -55,13 +55,13 @@ export const getHandles = <T>(value: T): ExtractHandleType<T> => {
     if (Array.isArray(value)) return value.map(recurse)
 
     if (handleTypeNames.includes(value.__typename)) {
-      const uri = getNodeId(value)
-      const existingHandle = handlesMap.get(uri)
+      const key = `${value.__typename}:${value.uri}`
+      const existingHandle = handlesMap.get(key)
       if (existingHandle) {
-        handlesMap.set(uri, merge(existingHandle, recursiveRemoveNullable(value)) as Handle2)
+        handlesMap.set(key, merge(existingHandle, recursiveRemoveNullable(value)) as Handle2)
         return
       }
-      handlesMap.set(uri, value)
+      handlesMap.set(key, value)
       Object
         .values(value)
         .map(recurse)
@@ -111,7 +111,7 @@ type SubscriptionResolverHandleValue<T extends keyof SubscriptionResolvers> = Aw
 
 export const subscribeToOrigins = <T extends keyof SubscriptionResolvers>(
   { graph, name, context, origins }:
-  { graph: Graph, name: T, context: ServerContext, origins: OriginCtx[] }
+  { graph: InMemoryGraphDatabase, name: T, context: ServerContext, origins: OriginCtx[] }
 ) =>
   combineLatest(
     ...origins
@@ -138,20 +138,17 @@ export const subscribeToOrigins = <T extends keyof SubscriptionResolvers>(
               try {
                 const handles = getHandles(result.data) ?? []
                 for (const handle of handles) {
-                  const id = getNodeId(handle)
-                  const existingHandle = graph.getNode(id)
+                  const existingHandle = graph.findOne({ uri: handle.uri })
                   if (existingHandle) {
-                    existingHandle.set(handle)
+                    graph.updateOne({ uri: handle.uri }, { $set: { ...recursiveRemoveNullable(handle) } })
                     continue
                   } else {
-                    graph.makeNode(handle)
+                    graph.insertOne(handle)
                   }
                 }
               } catch (err) {
                 console.error(err)
               }
-              // recursive loop thru data, check for objects that match __typename and run `keyResolvers` on them
-              // then add them to the graph
             }
           })
         )
@@ -179,16 +176,16 @@ export const mergeOriginSubscriptionResults = <T extends keyof SubscriptionResol
           mergeHandles
         })
 
-        try {
-          const existingNode = graph.getNode(getNodeId(scannarHandle))
-          if (existingNode) {
-            existingNode.set(scannarHandle)
-          } else {
-            graph.makeNode(scannarHandle)
-          }
-        } catch (err) {
-          console.error(err)
-        }
+        // try {
+        //   const existingNode = graph.getNode(getNodeId(scannarHandle))
+        //   if (existingNode) {
+        //     existingNode.set(scannarHandle)
+        //   } else {
+        //     graph.makeNode(scannarHandle)
+        //   }
+        // } catch (err) {
+        //   console.error(err)
+        // }
 
         return {
           [name]: scannarHandle

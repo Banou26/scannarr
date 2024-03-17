@@ -1,7 +1,7 @@
 import type { Cache, ResolveInfo } from '@urql/exchange-graphcache'
 
 import type { ServerResolverParameters } from './server'
-import { HandleRelation, type MediaPage, type Resolvers } from '../generated/graphql'
+import { HandleRelation, Media, type MediaPage, type Resolvers } from '../generated/graphql'
 
 import { map, mergeMap, tap } from 'rxjs/operators'
 
@@ -11,6 +11,7 @@ import { observableToAsyncIterable } from '../utils/observableToAsyncIterable'
 import { getNodeId, mergeOriginSubscriptionResults, subscribeToOrigins } from '../utils/origin'
 import { groupBy, isScannarrUri } from '../utils'
 import { combineLatest } from 'rxjs'
+import { Node } from './graph'
 
 export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolverParameters) => ({
   Media: {
@@ -74,7 +75,7 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
       resolve: (parent) => parent?.media
     },
     mediaPage: {
-      subscribe: (_, __, context) =>
+      subscribe: (_, __, context, info) =>
         observableToAsyncIterable(
           subscribeToOrigins({
             graph,
@@ -96,17 +97,81 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                       handles,
                       mergeHandles
                     })
-                  )
+                  ) as Media[]
 
-              for (const handle of scannarrHandles) {
-                const existingNode = graph.getNode(handle.id)
-                if (existingNode) {
-                  existingNode.set(handle)
-                } else {
-                  graph.makeNode(handle)
+              for (const scannarrHandle of scannarrHandles) {
+                const handles =
+                  scannarrHandle
+                    .handles
+                    .edges
+                    .map(edge => edge.node)
+
+                const handleNodes =
+                  handles
+                    .map(handle =>
+                      graph.findOne({ uri: handle.uri }, { returnNode: true })
+                      ?? graph.insertOne(handle, { returnNode: true })
+                    )
+                // console.log('handleNodes', handleNodes)
+                
+                const foundScannarrHandleNode =
+                  handleNodes
+                    .flatMap(node =>
+                      (node.data as Media)
+                        .handles
+                        ?.edges
+                        .map(edge => edge.node as Node<Media>)
+                        .filter(handleNode => handleNode.origin === 'scannarr')
+                        ?? []
+                    )
+                    .at(0)
+
+                const existingScannarrHandleNode =
+                  foundScannarrHandleNode
+                  ?? graph.insertOne(scannarrHandle, { returnNode: true })
+
+                for (const handleNode of handleNodes) {
+                  const handleNodeData = handleNode.data as Media
+                  // if (handleNodeData.handles?.edges.some(edge => edge.node.origin === 'scannarr')) continue
+                  // console.log('TEST', handleNodeData, handleNodeData.handles?.edges.some(edge => edge.node.origin === 'scannarr'))
+                  graph.updateOne(
+                    { _id: handleNode._id },
+                    {
+                      $set: {
+                        handles: {
+                          edges: [
+                            ...handleNodeData.handles?.edges.map(edge => ({
+                              ...edge,
+                              node: graph.findOne({ uri: edge.node.uri }, { returnNode: true })
+                            })) ?? [],
+                            ...handleNodeData.handles?.edges.some(edge => edge.node.origin === 'scannarr')
+                              ? []
+                              : [{ handleRelationType: HandleRelation.Identical, node: existingScannarrHandleNode }]
+                          ]
+                        }
+                      }
+                    }
+                  )
                 }
+                graph.updateOne(
+                  { _id: existingScannarrHandleNode._id },
+                  {
+                    $set: {
+                      handles: {
+                        edges: [
+                          ...handleNodes.map(handleNode => ({
+                            handleRelationType: HandleRelation.Identical,
+                            node: handleNode
+                          }))
+                        ]
+                      }
+                    }
+                  }
+                )
               }
 
+
+              console.log('info', info)
               return {
                 mediaPage: {
                   edges: scannarrHandles.map(media => ({ node: media })),
