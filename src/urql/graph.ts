@@ -25,6 +25,7 @@ export type NodeData =
   { [key: string]: any }
 
 export type Node<NodeDataType extends NodeData> = {
+  __graph_type__: 'Node'
   _id: string
   $: Observable<NodeDataType>
   subject: Subject<NodeDataType>
@@ -41,12 +42,26 @@ type ExtractObservableType<T> =
   never
 
 export const getObservables = <T>(value: T): ExtractObservableType<T> => {
+  const objects = new Set()
   const observables: Observable<T>[] = []
-  const recurse = (value: any) =>
-    value instanceof Observable ? observables.push(value) :
-    Array.isArray(value) ? value.map(recurse) :
-    value && typeof value === 'object' ? Object.values(value).map(recurse) :
-    undefined
+  // const recurse = (value: any) =>
+  //   value instanceof Observable ? observables.push(value) :
+  //   Array.isArray(value) ? value.map(recurse) :
+  //   value && typeof value === 'object' ? Object.values(value).map(recurse) :
+  //   undefined
+
+  const recurse = (value: any) => {
+    if (value instanceof Observable) {
+      observables.push(value)
+      return
+    }
+    if (Array.isArray(value)) return value.map(recurse)
+    if (value && typeof value === 'object') {
+      if (objects.has(value)) return
+      objects.add(value)
+      Object.values(value).map(recurse)
+    }
+  }
 
   recurse(value)
   return observables as ExtractObservableType<T>
@@ -79,6 +94,14 @@ const deepEqual = (a: any, b: any) => {
   return true
 }
 
+// one sided deepEqual, only checks if a is a subset of b
+const deepEqualSubset = (a: any, b: any) => {
+  if (a === b) return true
+  if (typeof a !== 'object' || typeof b !== 'object') return false
+  for (const key in a) if (!deepEqual(a[key], b[key])) return false
+  return true
+}
+
 type Indexer<NodeType extends NodeData> = {
   findOne: ({ filter, filteredNodes }: { filter: Partial<NodeType>, filteredNodes: Node<NodeType>[] }) => Node<NodeType> | undefined
   insertOne: (node: Node<NodeType>) => void
@@ -97,7 +120,7 @@ const deepEqualIndexer = <NodeType extends NodeData>(): Indexer<NodeType> => {
   return {
     findOne: ({ filter, filteredNodes }) =>
       filteredNodes
-        .find(_node => deepEqual(filter, _node.data)),
+        .find(_node => deepEqualSubset(filter, _node.data)),
     insertOne: (node) => {
       nodes = [...nodes, node]
     }
