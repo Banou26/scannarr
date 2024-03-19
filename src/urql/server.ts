@@ -90,7 +90,28 @@ export const makeScannarrServer = (
                     userMediaPage: { subscribe: async function*() {} }
                   }
                 } satisfies Resolvers,
-                origin.resolvers
+                origin.resolvers,
+                // {
+                //   Subscription: {
+                //     mediaPage: {
+                //       subscribe: async function*(...args) {
+                //         if (!origin.resolvers.Subscription?.mediaPage?.subscribe) return
+                //         const asyncIterator = origin.resolvers.Subscription!.mediaPage.subscribe!(...args)
+                //         for await (const value of asyncIterator) {
+                //           console.log('value', value)
+                //           const { mediaPage } = value
+                //           const res = {
+                //             mediaPage: {
+                //               nodes: await Promise.all(mediaPage.nodes?.map(async node => ({ _id: (await node).uri, ...await node })))
+                //             }
+                //           }
+                //           console.log('new result', origin.name, res)
+                //           yield res
+                //         }
+                //       }
+                //     },
+                //   }
+                // } satisfies Resolvers
               ) as Resolvers
           })
         })

@@ -1,7 +1,7 @@
 export const schema = `#graphql
 
 type Resource implements Handle {
-  _id: String!
+  _id: String
   # Handle properties
   origin: String!
   id: String!

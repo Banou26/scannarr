@@ -138,7 +138,13 @@ export const subscribeToOrigins = <T extends keyof SubscriptionResolvers>(
               try {
                 const handles = getHandles(result.data) ?? []
                 for (const handle of handles) {
+                  if (handle.uri === 'mal:52741') {
+                    console.log('updating handle', handle)
+                  }
                   const existingHandle = graph.findOne({ uri: handle.uri })
+                  if (handle.uri === 'mal:52741') {
+                    console.log('updated handle', graph.findOne({ uri: handle.uri }, { returnNode: true }))
+                  }
                   if (existingHandle) {
                     graph.updateOne({ uri: handle.uri }, { $set: { ...recursiveRemoveNullable(handle) } })
                     continue

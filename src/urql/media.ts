@@ -107,6 +107,13 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                       .handles
                       .edges
                       .map(edge => edge.node)
+                    ?? (
+                      scannarrHandle
+                        .handles
+                        .nodes
+                        .map(node => ({ node, handleRelationType: HandleRelation.Identical }))
+                    )
+                    ?? []
 
                   const handleNodes =
                     handles
@@ -134,6 +141,12 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
 
                   for (const handleNode of handleNodes) {
                     const handleNodeData = handleNode.data as Media
+
+                    const edges =
+                      handleNodeData.handles?.edges
+                      ?? handleNodeData.handles?.nodes.map(node => ({ node, handleRelationType: HandleRelation.Identical }))
+                      ?? []
+                  
                     // if (handleNodeData.handles?.edges.some(edge => edge.node.origin === 'scannarr')) continue
                     // console.log('TEST', handleNodeData, handleNodeData.handles?.edges.some(edge => edge.node.origin === 'scannarr'))
                     graph.updateOne(
@@ -142,18 +155,28 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                         $set: {
                           handles: {
                             edges: [
-                              ...handleNodeData.handles?.edges.map(edge => ({
+                              ...edges.map(edge => ({
                                 ...edge,
                                 node: graph.findOne({ uri: edge.node.uri }, { returnNode: true })
                               })) ?? [],
-                              ...handleNodeData.handles?.edges.some(edge => edge.node.origin === 'scannarr')
+                              ...edges.some(edge => edge.node.origin === 'scannarr')
                                 ? []
                                 : [{ handleRelationType: HandleRelation.Identical, node: existingScannarrHandleNode }]
+                            ],
+                            nodes: [
+                              ...edges.map(edge => graph.findOne({ uri: edge.node.uri }, { returnNode: true })) ?? [],
+                              ...edges.some(edge => edge.node.origin === 'scannarr')
+                                ? []
+                                : [existingScannarrHandleNode]
                             ]
                           }
                         }
                       }
                     )
+
+                    if (handleNodeData.uri === 'mal:52741') {
+                      console.log('uAAAAAAAAAAAAAAAAAApdating handle', handleNode)
+                    }
                   }
                   graph.updateOne(
                     { _id: existingScannarrHandleNode._id },
@@ -165,6 +188,9 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                               handleRelationType: HandleRelation.Identical,
                               node: handleNode
                             }))
+                          ],
+                          nodes: [
+                            ...handleNodes
                           ]
                         }
                       }

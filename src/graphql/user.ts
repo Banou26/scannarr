@@ -144,7 +144,7 @@ type UserMediaEpisode {
 }
 
 type UserMedia {
-  _id: String!
+  _id: String
   # Handle properties
   origin: String!
   id: String!
