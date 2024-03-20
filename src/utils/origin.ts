@@ -3,7 +3,7 @@ import type { OriginCtx, ServerContext } from '../urql/server'
 import { combineLatest, from } from 'rxjs'
 import { map, tap } from 'rxjs/operators'
 import { gql } from 'graphql-tag'
-import { Handle, ResolversTypes, SubscriptionResolverObject, SubscriptionResolvers } from '../generated/graphql'
+import { Handle, HandleRelation, ResolversTypes, SubscriptionResolverObject, SubscriptionResolvers } from '../generated/graphql'
 import { makeScannarrHandle2 } from '../urql'
 import { Graph, InMemoryGraphDatabase, recursiveRemoveNullable } from '../urql/graph'
 import { merge } from './deep-merge'
@@ -138,15 +138,65 @@ export const subscribeToOrigins = <T extends keyof SubscriptionResolvers>(
               try {
                 const handles = getHandles(result.data) ?? []
                 for (const handle of handles) {
-                  if (handle.uri === 'mal:52741') {
-                    console.log('updating handle', handle)
-                  }
+                  // if (handle.uri === 'mal:52741') {
+                  //   console.log('updating handle', handle)
+                  // }
                   const existingHandle = graph.findOne({ uri: handle.uri })
-                  if (handle.uri === 'mal:52741') {
-                    console.log('updated handle', graph.findOne({ uri: handle.uri }, { returnNode: true }))
-                  }
                   if (existingHandle) {
-                    graph.updateOne({ uri: handle.uri }, { $set: { ...recursiveRemoveNullable(handle) } })
+                    const nonNullFieldsHandle = recursiveRemoveNullable(handle)
+
+                    const existingHandles =
+                      existingHandle
+                        .handles
+                        ?.edges
+                        .map(edge => edge.node)
+                      ?? existingHandle.handles?.nodes
+                      ?? []
+
+                    const _handles =
+                      nonNullFieldsHandle
+                        .handles
+                        ?.edges
+                        .map(edge => edge.node)
+                      ?? nonNullFieldsHandle.handles?.nodes
+                      ?? []
+
+                    const mergedHandlesItems = [
+                      ...existingHandles,
+                      ...(
+                        _handles
+                          .filter(handle =>
+                            !existingHandles.some(existingHandle =>
+                              existingHandle.__graph_type__
+                                ? existingHandle.data.uri === handle.uri
+                                : existingHandle.uri === handle.uri
+                            )
+                          )
+                      )
+                    ]
+
+                    // console.log('mergedHandlesItems', existingHandle, mergedHandlesItems)
+
+                    const handles = {
+                      edges: mergedHandlesItems.map(handle => ({
+                        node: handle,
+                        handleRelationType: HandleRelation.Identical
+                      })),
+                      nodes: mergedHandlesItems
+                    }
+
+                    graph.updateOne(
+                      { uri: handle.uri },
+                      {
+                        $set: {
+                          ...nonNullFieldsHandle,
+                          handles
+                        }
+                      }
+                    )
+                    // if (handle.uri === 'mal:52741') {
+                    //   console.log('updated handle', graph.findOne({ uri: handle.uri }, { returnNode: true }))
+                    // }
                     continue
                   } else {
                     graph.insertOne(handle)
