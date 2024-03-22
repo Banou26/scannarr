@@ -100,211 +100,221 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                     })
                   ) as Media[]
 
-              const scannarrHandleNodes =
-                scannarrHandles.map(scannarrHandle => {
-                  const handles =
-                    scannarrHandle
-                      .handles
-                      .edges
-                      .map(edge => edge.node)
-                    ?? (
-                      scannarrHandle
-                        .handles
-                        .nodes
-                        .map(node => ({ node, handleRelationType: HandleRelation.Identical }))
-                    )
-                    ?? []
+              // const scannarrHandleNodes =
+              //   scannarrHandles.map(scannarrHandle => {
+              //     const handles =
+              //       scannarrHandle
+              //         .handles
+              //         .edges
+              //         .map(edge => edge.node)
+              //       ?? (
+              //         scannarrHandle
+              //           .handles
+              //           .nodes
+              //           .map(node => ({ node, handleRelationType: HandleRelation.Identical }))
+              //       )
+              //       ?? []
 
-                  const handleNodes =
-                    handles
-                      .map(handle =>
-                        graph.findOne({ uri: handle.uri }, { returnNode: true })
-                        ?? graph.insertOne(handle, { returnNode: true })
-                      )
-                  // console.log('handleNodes', handleNodes)
+              //     const handleNodes =
+              //       handles
+              //         .map(handle =>
+              //           graph.findOne({ uri: handle.uri }, { returnNode: true })
+              //           ?? graph.insertOne(handle, { returnNode: true })
+              //         )
+              //     // console.log('handleNodes', handleNodes)
                   
-                  const foundScannarrHandleNode =
-                    handleNodes
-                      .flatMap(node =>
-                        (node.data as Media)
-                          .handles
-                          ?.edges
-                          .map(edge => edge.node as Node<Media>)
-                          .filter(handleNode => handleNode.origin === 'scannarr')
-                          ?? []
-                      )
-                      .at(0)
+              //     const foundScannarrHandleNode =
+              //       handleNodes
+              //         .flatMap(node =>
+              //           (node.data as Media)
+              //             .handles
+              //             ?.edges
+              //             .map(edge => edge.node as Node<Media>)
+              //             .filter(handleNode => handleNode.origin === 'scannarr')
+              //             ?? []
+              //         )
+              //         .at(0)
 
-                  const existingScannarrHandleNode =
-                    foundScannarrHandleNode
-                    ?? graph.insertOne(scannarrHandle, { returnNode: true })
+              //     const existingScannarrHandleNode =
+              //       foundScannarrHandleNode
+              //       ?? graph.insertOne(scannarrHandle, { returnNode: true })
 
-                  for (const handleNode of handleNodes) {
-                    const handleNodeData = handleNode.data as Media
+              //     if (existingScannarrHandleNode.data.uri.includes('mal:52741')) {
+              //       existingScannarrHandleNode.$.subscribe(val => console.log('scannarr node updated', val))
+              //     }
 
-                    const edges =
-                      handleNodeData.handles?.edges
-                      ?? handleNodeData.handles?.nodes.map(node => ({ node, handleRelationType: HandleRelation.Identical }))
-                      ?? []
+              //     for (const handleNode of handleNodes) {
+              //       const handleNodeData = handleNode.data as Media
+
+              //       const edges =
+              //         handleNodeData.handles?.edges
+              //         ?? handleNodeData.handles?.nodes.map(node => ({ node, handleRelationType: HandleRelation.Identical }))
+              //         ?? []
                   
-                    // if (handleNodeData.handles?.edges.some(edge => edge.node.origin === 'scannarr')) continue
-                    // console.log('TEST', handleNodeData, handleNodeData.handles?.edges.some(edge => edge.node.origin === 'scannarr'))
-                    graph.updateOne(
-                      { _id: handleNode._id },
-                      {
-                        $set: {
-                          handles: {
-                            edges: [
-                              ...edges.map(edge => ({
-                                ...edge,
-                                node: graph.findOne({ uri: edge.node.uri }, { returnNode: true })
-                              })) ?? [],
-                              ...edges.some(edge => edge.node.origin === 'scannarr')
-                                ? []
-                                : [{ handleRelationType: HandleRelation.Identical, node: existingScannarrHandleNode }]
-                            ],
-                            nodes: [
-                              ...edges.map(edge => graph.findOne({ uri: edge.node.uri }, { returnNode: true })) ?? [],
-                              ...edges.some(edge => edge.node.origin === 'scannarr')
-                                ? []
-                                : [existingScannarrHandleNode]
-                            ]
-                          }
-                        }
-                      }
-                    )
+              //       // if (handleNodeData.handles?.edges.some(edge => edge.node.origin === 'scannarr')) continue
+              //       // console.log('TEST', handleNodeData, handleNodeData.handles?.edges.some(edge => edge.node.origin === 'scannarr'))
+              //       graph.updateOne(
+              //         { _id: handleNode._id },
+              //         {
+              //           $set: {
+              //             handles: {
+              //               edges: [
+              //                 ...edges.map(edge => ({
+              //                   ...edge,
+              //                   node: graph.findOne({ uri: edge.node.uri }, { returnNode: true })
+              //                 })) ?? [],
+              //                 ...edges.some(edge => edge.node.origin === 'scannarr')
+              //                   ? []
+              //                   : [{ handleRelationType: HandleRelation.Identical, node: existingScannarrHandleNode }]
+              //               ],
+              //               nodes: [
+              //                 ...edges.map(edge => graph.findOne({ uri: edge.node.uri }, { returnNode: true })) ?? [],
+              //                 ...edges.some(edge => edge.node.origin === 'scannarr')
+              //                   ? []
+              //                   : [existingScannarrHandleNode]
+              //               ]
+              //             }
+              //           }
+              //         }
+              //       )
 
-                    if (handleNodeData.uri === 'mal:52741') {
-                      console.log('uAAAAAAAAAAAAAAAAAApdating handle', handleNode)
-                    }
-                  }
-                  graph.updateOne(
-                    { _id: existingScannarrHandleNode._id },
-                    {
-                      $set: {
-                        handles: {
-                          edges: [
-                            ...handleNodes.map(handleNode => ({
-                              handleRelationType: HandleRelation.Identical,
-                              node: handleNode
-                            }))
-                          ],
-                          nodes: [
-                            ...handleNodes
-                          ]
-                        }
-                      }
-                    }
-                  )
+              //       if (handleNodeData.uri === 'mal:52741') {
+              //         console.log('uAAAAAAAAAAAAAAAAAApdating handle', handleNode)
+              //       }
+              //     }
+              //     graph.updateOne(
+              //       { _id: existingScannarrHandleNode._id },
+              //       {
+              //         $set: {
+              //           handles: {
+              //             edges: [
+              //               ...handleNodes.map(handleNode => ({
+              //                 handleRelationType: HandleRelation.Identical,
+              //                 node: handleNode
+              //               }))
+              //             ],
+              //             nodes: [
+              //               ...handleNodes
+              //             ]
+              //           }
+              //         }
+              //       }
+              //     )
 
-                  return existingScannarrHandleNode
-                })
+              //     return existingScannarrHandleNode
+              //   })
 
 
               // console.log('info', info)
               // console.log('scannarrHandleNodes', scannarrHandleNodes.map(node => [node.data.uri, node]))
               // console.log('scannarrHandles', scannarrHandles.map(handle => [handle.uri, graph.findOne({ uri: handle.uri }, { returnNode: true })]))
+              // return {
+              //   mediaPage: {
+              //     edges: scannarrHandleNodes.map(media => ({ node: media })),//.slice(0, 1),
+              //     nodes: scannarrHandleNodes//.slice(0, 1)
+              //   }
+              // }
               return {
                 mediaPage: {
-                  edges: scannarrHandleNodes.map(media => ({ node: media })),//.slice(0, 1),
-                  nodes: scannarrHandleNodes//.slice(0, 1)
+                  edges: scannarrHandles.map(media => ({ node: media })),
+                  nodes: scannarrHandles
                 }
               }
             }),
-            mergeMap(({ mediaPage }) =>
-              combineLatest(
-                mediaPage
-                  .nodes
-                  .map(node => {
-                    const isFieldNode = (node: SelectionNode): node is FieldNode => node.kind === 'Field'
-                    const isFragmentSpreadNode = (node: SelectionNode): node is FragmentSpreadNode => node.kind === 'FragmentSpread'
+          //   mergeMap(({ mediaPage }) =>
+          //     combineLatest(
+          //       mediaPage
+          //         .nodes
+          //         .map(node => {
+          //           const isFieldNode = (node: SelectionNode): node is FieldNode => node.kind === 'Field'
+          //           const isFragmentSpreadNode = (node: SelectionNode): node is FragmentSpreadNode => node.kind === 'FragmentSpread'
 
-                    const mapNodeToSelection = <T extends Node<any>>(currentNode: T, selection: SelectionSetNode | FragmentSpreadNode) => {
-                      // console.log('currentNode', currentNode, selection)
-                      if (Array.isArray(currentNode)) {
-                        return currentNode.map(nodeValue => mapNodeToSelection(nodeValue, selection))
-                      }
+          //           const mapNodeToSelection = <T extends Node<any>>(currentNode: T, selection: SelectionSetNode | FragmentSpreadNode) => {
+          //             // console.log('currentNode', currentNode, selection)
+          //             if (Array.isArray(currentNode)) {
+          //               return currentNode.map(nodeValue => mapNodeToSelection(nodeValue, selection))
+          //             }
 
-                      if (!currentNode) return null
-                      const selections =
-                        selection.kind === 'FragmentSpread'
-                          ? info.fragments[selection.name.value]?.selectionSet.selections
-                          : selection.selections
+          //             if (!currentNode) return null
+          //             const selections =
+          //               selection.kind === 'FragmentSpread'
+          //                 ? info.fragments[selection.name.value]?.selectionSet.selections
+          //                 : selection.selections
 
-                      if (!selections) throw new Error('No selections')
+          //             if (!selections) throw new Error('No selections')
 
-                      const buildObjectWithValue = (nodeValue: T) => ({
-                        ...nodeValue,
-                        ...selections
-                          .filter(isFieldNode)
-                          .reduce((result, node) => ({
-                            ...result,
-                            [node.name.value]:
-                              node.selectionSet
-                                ? mapNodeToSelection(nodeValue[node.name.value], node.selectionSet)
-                                : nodeValue[node.name.value]
-                          }), {}),
-                        ...selections
-                          .filter(isFragmentSpreadNode)
-                          .reduce((result, node) => ({
-                            ...result,
-                            ...Object.fromEntries(
-                              (info.fragments[node.name.value]?.selectionSet.selections ?? [])
-                                .filter(isFieldNode)
-                                .map(node => [
-                                  node.name.value,
-                                  node.selectionSet
-                                    ? mapNodeToSelection(nodeValue[node.name.value], node.selectionSet)
-                                    : nodeValue[node.name.value]
-                                ])
-                            )
-                          }), {})
-                      })
+          //             const buildObjectWithValue = (nodeValue: T) => ({
+          //               ...nodeValue,
+          //               ...selections
+          //                 .filter(isFieldNode)
+          //                 .reduce((result, node) => ({
+          //                   ...result,
+          //                   [node.name.value]:
+          //                     node.selectionSet
+          //                       ? mapNodeToSelection(nodeValue[node.name.value], node.selectionSet)
+          //                       : nodeValue[node.name.value]
+          //                 }), {}),
+          //               ...selections
+          //                 .filter(isFragmentSpreadNode)
+          //                 .reduce((result, node) => ({
+          //                   ...result,
+          //                   ...Object.fromEntries(
+          //                     (info.fragments[node.name.value]?.selectionSet.selections ?? [])
+          //                       .filter(isFieldNode)
+          //                       .map(node => [
+          //                         node.name.value,
+          //                         node.selectionSet
+          //                           ? mapNodeToSelection(nodeValue[node.name.value], node.selectionSet)
+          //                           : nodeValue[node.name.value]
+          //                       ])
+          //                   )
+          //                 }), {})
+          //             })
 
-                      if (!currentNode?.__graph_type__) {
-                        return buildObjectWithValue(currentNode)
-                      }
-                      const res = currentNode.map(buildObjectWithValue)
-                      // console.log('res', res, currentNode)
-                      return res
-                    }
+          //             if (!currentNode?.__graph_type__) {
+          //               return buildObjectWithValue(currentNode)
+          //             }
+          //             const res = currentNode.map(buildObjectWithValue)
+          //             // console.log('res', res, currentNode)
+          //             return res
+          //           }
 
-                    const rootSelectionSet =
-                      info
-                        .fieldNodes
-                        .find(node => node.name.value === 'mediaPage')
-                        ?.selectionSet
-                        ?.selections
-                        .filter(isFieldNode)
-                        ?.find(node => node.name.value === 'edges' || node.name.value === 'nodes')
-                        ?.selectionSet
+          //           const rootSelectionSet =
+          //             info
+          //               .fieldNodes
+          //               .find(node => node.name.value === 'mediaPage')
+          //               ?.selectionSet
+          //               ?.selections
+          //               .filter(isFieldNode)
+          //               ?.find(node => node.name.value === 'edges' || node.name.value === 'nodes')
+          //               ?.selectionSet
 
-                    if (!rootSelectionSet) throw new Error('No rootSelectionSet')
+          //           if (!rootSelectionSet) throw new Error('No rootSelectionSet')
 
-                    const mappedSelection = mapNodeToSelection(node, rootSelectionSet)
-                    // console.log('node', node)
-                    // console.log('nodeValue', nodeValue)
-                    console.log('mappedSelection', node, mappedSelection)
-                    return mappedSelection
-                  })
-              )
-            ),
-            map((results) => console.log('results', results) || ({
-              mediaPage: {
-                edges: results.map(node => ({ node })),
-                nodes: results
-              }
-            })),
-            catchError(err => {
-              console.error(err)
-              return {
-                mediaPage: {
-                  edges: [],
-                  nodes: []
-                }
-              }
-            })
-          )
+          //           const mappedSelection = mapNodeToSelection(node, rootSelectionSet)
+          //           // console.log('node', node)
+          //           // console.log('nodeValue', nodeValue)
+          //           console.log('mappedSelection', node, mappedSelection)
+          //           return mappedSelection
+          //         })
+          //     )
+          //   ),
+          //   map((results) => console.log('results', results) || ({
+          //     mediaPage: {
+          //       edges: results.map(node => ({ node })),
+          //       nodes: results
+          //     }
+          //   })),
+          //   catchError(err => {
+          //     console.error(err)
+          //     return {
+          //       mediaPage: {
+          //         edges: [],
+          //         nodes: []
+          //       }
+          //     }
+          //   })
+          // )
         )
     }
   }

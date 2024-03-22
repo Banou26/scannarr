@@ -86,41 +86,32 @@ export const replaceObservablePairs = <T>(value: T, replacementPairs: [Observabl
   ) :
   value
 
-const deepEqual = (a: any, b: any) => {
-  if (a === b) return true
-  if (typeof a !== 'object' || typeof b !== 'object') return false
-  if (Object.keys(a).length !== Object.keys(b).length) return false
-  for (const key in a) if (!deepEqual(a[key], b[key])) return false
-  return true
-}
-
-// one sided deepEqual, only checks if a is a subset of b
-const deepEqualSubset = (a: any, b: any) => {
-  if (a === b) return true
-  if (typeof a !== 'object' || typeof b !== 'object') return false
-  for (const key in a) if (!deepEqual(a[key], b[key])) return false
-  return true
-}
-
 type Indexer<NodeType extends NodeData> = {
+  find: ({ filter, filteredNodes }: { filter: Partial<NodeType>, filteredNodes: Node<NodeType>[] }) => Node<NodeType>[]
   findOne: ({ filter, filteredNodes }: { filter: Partial<NodeType>, filteredNodes: Node<NodeType>[] }) => Node<NodeType> | undefined
   insertOne: (node: Node<NodeType>) => void
 }
 
 export const makePropertyIndexer = <NodeType extends NodeData, Property extends keyof NodeType>(property: Property): Indexer<NodeType> => {
-  const nodesMap = new Map<string, Node<NodeType>>()
+  const nodesMap = new Map<string, Node<NodeType>[]>()
   return {
-    findOne: ({ filter }) => filter[property] ? nodesMap.get(filter[property]) : undefined,
-    insertOne: (node) => nodesMap.set(node.data[property], node)
+    find: ({ filter }) => filter[property] ? nodesMap.get(filter[property]!) ?? [] : [],
+    findOne: ({ filter }) => filter[property] ? nodesMap.get(filter[property]!)?.at(0) : undefined,
+    insertOne: (node) => nodesMap.set(node.data[property], [...nodesMap.get(node.data[property]) ?? [], node])
   }
 }
 
 const deepEqualIndexer = <NodeType extends NodeData>(): Indexer<NodeType> => {
   let nodes: Node<NodeType>[] = []
   return {
+    find: ({ filter, filteredNodes }) =>
+      filteredNodes.length
+        ? filteredNodes.filter(_node => deepEqualSubset(filter, _node.data))
+        : nodes.filter(_node => deepEqualSubset(filter, _node.data)),
     findOne: ({ filter, filteredNodes }) =>
-      filteredNodes
-        .find(_node => deepEqualSubset(filter, _node.data)),
+      filteredNodes.length
+        ? filteredNodes.find(_node => deepEqualSubset(filter, _node.data))
+        : nodes.find(_node => deepEqualSubset(filter, _node.data)),
     insertOne: (node) => {
       nodes = [...nodes, node]
     }
@@ -203,6 +194,26 @@ export const makeInMemoryGraphDatabase = <NodeType extends NodeData>(
     deepEqualIndexer<NodeType>()
   ]
   const nodes = new Map<string, Node<NodeType>>()
+
+  const find = (filter: Partial<NodeType>) => {
+    const allNodes = [...nodes.values()]
+    const filteredNodes =
+      indexers
+        .reduce(
+          (filteredNodes, indexer) => {
+            const indexResult = indexer.find({ filteredNodes, filter })
+            return (
+              indexResult
+                ? [indexResult]
+                : filteredNodes
+            )
+          },
+          allNodes
+        )
+
+    if (allNodes === filteredNodes) return undefined
+    return filteredNodes
+  }
 
   const findNodeOne = (filter: Partial<NodeType>) => {
     const allNodes = [...nodes.values()]

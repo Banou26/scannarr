@@ -131,6 +131,7 @@ export const subscribeToOrigins = <T extends keyof SubscriptionResolvers>(
               : { ...result, origin }
           ),
           tap(result => {
+            console.log('AAAAAAAAAAAA', result)
             if (result.error) {
               console.warn('Error in origin', result.origin.origin.name)
               console.error(result.error)
