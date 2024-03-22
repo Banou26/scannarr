@@ -314,7 +314,7 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
           //       }
           //     }
           //   })
-          // )
+          )
         )
     }
   }

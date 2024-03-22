@@ -569,6 +569,14 @@
         "name": "Handle",
         "fields": [
           {
+            "name": "_id",
+            "type": {
+              "kind": "SCALAR",
+              "name": "Any"
+            },
+            "args": []
+          },
+          {
             "name": "handles",
             "type": {
               "kind": "NON_NULL",

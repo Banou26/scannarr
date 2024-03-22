@@ -238,6 +238,7 @@ export type FuzzyDateInput = {
 
 /**  A Handle represents a unique identifier for a resource.  */
 export type Handle = {
+  _id?: Maybe<Scalars['String']['output']>;
   handles: HandleConnection;
   /**  The id of the resource, e.g: 'react' for the React package  */
   id: Scalars['String']['output'];
@@ -1435,6 +1436,7 @@ export interface FuzzyDateIntScalarConfig extends GraphQLScalarTypeConfig<Resolv
 
 export type HandleResolvers<ContextType = any, ParentType extends ResolversParentTypes['Handle'] = ResolversParentTypes['Handle']> = {
   __resolveType?: TypeResolveFn<'Episode' | 'Media' | 'MediaAiringSchedule' | 'MediaExternalLink' | 'MediaTrailer' | 'PlaybackSource' | 'Resource' | 'Team', ParentType, ContextType>;
+  _id?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   handles?: Resolver<ResolversTypes['HandleConnection'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   origin?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
