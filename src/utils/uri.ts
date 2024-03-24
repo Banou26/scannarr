@@ -1,11 +1,8 @@
-import { Handle as GraphQLHandle, HandleEdge } from '../generated/graphql'
+import { Handle as GraphQLHandle } from '../generated/graphql'
 import { groupBy } from './groupBy'
 
 export type Handle = Omit<GraphQLHandle, 'handles'> & {
-  handles: {
-    edges: HandleEdge[]
-    nodes?: Handle[]
-  }
+  handles: Handle[]
 }
 
 export type Uri = `${string}:${string}`
@@ -62,10 +59,7 @@ export const populateHandle = <T extends Partial<Pick<Handle, 'uri' | 'handles'>
   uri: toUri({ origin: handle.origin, id: handle.id }),
   url: handle.url ?? null,
   ...handle,
-  handles: {
-    edges: handle.handles?.edges ?? [],
-    nodes: handle.handles?.edges.map(({ node }) => node) ?? []
-  }
+  handles: handle.handles ?? []
 })
 
 export type ScannarrUri = `scannarr:(${Uris})${''|`-${string}`}`

@@ -3,7 +3,6 @@ import deepmerge from 'deepmerge'
 import { fromScannarrUri, fromUri, isScannarrUri, toScannarrId, toScannarrUri } from '../utils/uri'
 import { YogaInitialContext } from 'graphql-yoga'
 import { Handle } from '../generated/graphql'
-import { getEdges } from '../utils/handle'
 import { ServerContext } from './client'
 import { HandleType } from './server'
 import { groupBy, merge } from '../utils'
@@ -22,19 +21,19 @@ export const indexHandles = <T extends Handle[]>({ results: _results }: { result
     }
 
     if (!index[parentHandle.uri]) index[parentHandle.uri] = [parentHandle.uri]
-    const identicalHandles = getEdges(parentHandle.handles) ?? []
+    const identicalHandles = parentHandle.handles ?? []
     for (const handle of identicalHandles) {
-      if (!index[handle.node.uri]) index[handle.node.uri] = [handle.node.uri]
+      if (!index[handle.uri]) index[handle.uri] = [handle.uri]
 
-      if (!index[parentHandle.uri]?.includes(handle.node.uri)) index[parentHandle.uri]?.push(handle.node.uri)
-      if (!index[handle.node.uri]?.includes(handle.node.uri)) index[handle.node.uri]?.push(parentHandle.uri)
+      if (!index[parentHandle.uri]?.includes(handle.uri)) index[parentHandle.uri]?.push(handle.uri)
+      if (!index[handle.uri]?.includes(handle.uri)) index[handle.uri]?.push(parentHandle.uri)
       for (const uri of index[parentHandle.uri] ?? []) {
-        if (!index[uri]?.includes(handle.node.uri)) index[uri]?.push(handle.node.uri)
+        if (!index[uri]?.includes(handle.uri)) index[uri]?.push(handle.uri)
       }
-      for (const uri of index[handle.node.uri] ?? []) {
+      for (const uri of index[handle.uri] ?? []) {
         if (!index[uri]?.includes(parentHandle.uri)) index[uri]?.push(parentHandle.uri)
       }
-      addHandleRecursiveToIndex(handle.node)
+      addHandleRecursiveToIndex(handle)
     }
   }
 
@@ -120,10 +119,9 @@ const recursiveRemoveNullable = <T>(obj: T): T =>
 
 export const makeScannarrHandle2 = ({ handles, mergeHandles }: { handles: HandleType[], mergeHandles: <T2 extends HandleType[]>(handles: T2) => T2[number] }) => {
   const getRecursiveHandles = (handle: Handle): Handle[] => {
-    const identicalHandles = handle.handles
     return [
       handle,
-      ...identicalHandles.flatMap(handle => getRecursiveHandles(handle))
+      ...handle.handles?.flatMap(handle => getRecursiveHandles(handle)) ?? []
     ]
   }
 
@@ -151,19 +149,20 @@ export const makeScannarrHandle2 = ({ handles, mergeHandles }: { handles: Handle
 }
 
 export const makeScannarrHandle = ({ typename, handles, readField }: { typename: string, handles: Handle[], readField?: any }) => {
-  const getRecursiveHandles = (handle: Handle) => {
-    const identicalHandles = getEdges(handle.handles) ?? []
-    return [
-      handle,
-      ...identicalHandles.flatMap(handle => getRecursiveHandles(handle.node))
-    ]
-  }
+  const getRecursiveHandles = (handle: Handle) => [
+    handle,
+    ...(
+      handle
+        .handles
+        .flatMap(getRecursiveHandles)
+    )
+  ]
 
   const handleUris = handles.flatMap(handle => getRecursiveHandles(handle)).map(handle => handle.uri)
   const id = toScannarrId(handleUris)
   const uri = toScannarrId(handleUris)
-
-  const res = ({
+  
+  return ({
     __typename: typename,
     origin: 'scannarr',
     // id,
@@ -173,10 +172,6 @@ export const makeScannarrHandle = ({ typename, handles, readField }: { typename:
     url: '',
     handles
   })
-
-  // console.log('makeScannarrHandle', res, handles)
-  
-  return res
 }
 
 export const getOriginResult = async (

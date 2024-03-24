@@ -158,7 +158,7 @@ export const subscribeToOrigins = <T extends ValidSubscriptionKeys>(
                     const nonNullFieldsHandle = recursiveRemoveNullable(handle)
 
                     const mergedHandlesItems = [
-                      ...existingHandle.handles,
+                      ...existingHandle.handles ?? [],
                       ...(
                         (nonNullFieldsHandle.handles ?? [])
                           .filter(handle =>

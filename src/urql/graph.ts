@@ -221,6 +221,11 @@ export const makeInMemoryGraphDatabase = () => {
       if (!foundNode) throw new Error(`No node found for ${JSON.stringify(filter)}`)
       return mapNode(foundNode, fn)
     },
+    // onChanges: <T extends NodeData>(filter: (value: NodeData, node: Node<NodeData>) => boolean) => {
+    //   const node = findOne(filter)
+    //   if (!node) throw new Error(`No node found for ${JSON.stringify(filter)}`)
+    //   return node.$ as Observable<T>
+    // },
     insertOne: <T extends Omit<NodeData, '_id'>>(_node: T) => {
       const _id = globalThis.crypto.randomUUID() as string
       const data = { ..._node, _id }

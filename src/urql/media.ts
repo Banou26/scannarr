@@ -20,8 +20,8 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
       const originHandles =
         parent
           .episodes
-          .flatMap(episode => episode.handles)
-          
+          .flatMap(episode => episode.handles ?? [])
+
       const groupedEpisodes = [
         ...groupBy(
           originHandles,
@@ -88,7 +88,6 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
 
               return {
                 mediaPage: {
-                  edges: scannarrHandles.map(media => ({ node: media })),
                   nodes: scannarrHandles
                 }
               }

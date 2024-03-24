@@ -52,7 +52,6 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                   )
               return {
                 playbackSourcePage: {
-                  edges: scannarrHandles.map(media => ({ node: media })),
                   nodes: scannarrHandles
                 }
               }

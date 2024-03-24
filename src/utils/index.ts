@@ -1,6 +1,5 @@
 export * from './uri'
 export * from './groupBy'
-export * from './handle'
 export * from './observableToAsyncIterable'
 export * from './deep-merge'
 export * from './origin'

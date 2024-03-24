@@ -113,8 +113,8 @@ export const serverResolvers = ({ graph, origins, context, mergeHandles }: Serve
                 const userMediaScannarHandles = scannarrHandles.map(media => {
                   const matchingUserMedias =
                     userMedias.filter(userMedia =>
-                      media.handles.edges.some(handle =>
-                        handle.node.uri === userMedia.media.uri
+                      media.handles.some(handle =>
+                        handle.uri === userMedia.media.uri
                       )
                     )
                   const scannarrHandles =
@@ -131,7 +131,6 @@ export const serverResolvers = ({ graph, origins, context, mergeHandles }: Serve
   
                 return {
                   userMediaPage: {
-                    edges: userMediaScannarHandles.map(media => ({ node: media })),
                     nodes: userMediaScannarHandles
                   }
                 }
