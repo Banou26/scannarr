@@ -150,7 +150,7 @@ type UserMedia {
   id: String!
   uri: Uri!
   url: String
-  handles: MediaConnection!
+  handles: [Media!]!
 
   media: Media!
   status: UserMediaStatus!

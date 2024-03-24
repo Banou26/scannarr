@@ -52,7 +52,6 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                   )
               return {
                 episodePage: {
-                  edges: scannarrHandles.map(episode => ({ node: episode })),
                   nodes: scannarrHandles
                 }
               }

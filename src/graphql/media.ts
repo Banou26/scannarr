@@ -108,7 +108,7 @@ type Media implements Handle {
   id: String!
   uri: Uri!
   url: String
-  handles: MediaConnection!
+  handles: [Media!]!
 
   # Media properties
   """The official titles of the media in various languages"""
@@ -181,7 +181,7 @@ type Media implements Handle {
 
     """The amount of entries per page, max 25"""
     perPage: Int
-  ): EpisodeConnection
+  ): [Episode!]!
 
   # """The media's entire airing schedule"""
   # airingSchedule(
@@ -273,7 +273,7 @@ type Episode implements Handle  {
   id: String!
   uri: Uri!
   url: String
-  handles: EpisodeConnection!
+  handles: [Episode!]!
 
   # Episode properties
   """The time the episode airs at"""
@@ -301,24 +301,8 @@ type Episode implements Handle  {
   timeUntilAiring: Float
 
   """The playback information for the episode"""
-  playback: PlaybackSourceConnection
+  playback: [PlaybackSource!]!
 }
-
-# """Media connection edge"""
-# type PlaybackSourceConnection {
-#   edges: [PlaybackSourceEdge]
-#   nodes: [PlaybackSource]
-
-#   """The pagination information"""
-#   pageInfo: PageInfo
-# }
-
-# """PlaybackSource connection edge"""
-# type PlaybackSourceEdge {
-#   """The uri of the connection"""
-#   uri: Int
-#   node: PlaybackSource
-# }
 
 input PlaybackSourcePageInput {
   """Filter by the media id"""
@@ -408,7 +392,7 @@ type Team implements Handle {
   id: String!
   uri: Uri!
   url: String
-  handles: HandleConnection!
+  handles: [Team!]!
 
   # Team properties
   name: String
@@ -424,7 +408,7 @@ type PlaybackSource implements Handle {
   id: String!
   uri: Uri!
   url: String
-  handles: PlaybackSourceConnection!
+  handles: [PlaybackSource!]!
 
   # PlaybackSource properties
 
@@ -469,40 +453,6 @@ type PlaybackSource implements Handle {
   data: String
 }
 
-"""PlaybackSource connection edge"""
-type PlaybackSourceEdge {
-  """The uri of the connection"""
-  uri: Int
-  node: PlaybackSource
-}
-
-type PlaybackSourceEdge implements HandleEdge {
-  node: PlaybackSource!
-
-  """The relation between the two handles"""
-  handleRelationType: HandleRelation!
-}
-
-type PlaybackSourceConnection implements HandleConnection {
-  edges: [PlaybackSourceEdge!]!
-  nodes: [PlaybackSource!]!
-}
-
-type EpisodeConnection implements HandleConnection {
-  edges: [EpisodeEdge!]!
-  nodes: [Episode!]!
-}
-
-"""Episode connection edge"""
-type EpisodeEdge implements HandleEdge {
-  """The uri of the connection"""
-  uri: Int
-  node: Episode!
-
-  """The relation between the two handles"""
-  handleRelationType: HandleRelation!
-}
-
 """
 Media Airing Schedule. NOTE: We only aim to guarantee that FUTURE airing data is present and accurate.
 """
@@ -513,7 +463,7 @@ type MediaAiringSchedule implements Handle {
   id: String!
   uri: Uri!
   url: String
-  handles: HandleConnection!
+  handles: [MediaAiringSchedule!]!
 
   # MediaAiringSchedule properties
   """The time the episode airs at"""
@@ -539,30 +489,6 @@ type MediaAiringSchedule implements Handle {
 
   """The description of the episode"""
   description: String
-}
-
-type MediaAiringScheduleConnection {
-  edges: [MediaAiringScheduleEdge]
-  nodes: [MediaAiringSchedule]
-}
-
-"""MediaAiringSchedule connection edge"""
-type MediaAiringScheduleEdge {
-  """The uri of the connection"""
-  uri: Int
-  node: MediaAiringSchedule
-}
-
-type MediaEdge implements HandleEdge {
-  node: Media!
-
-  """The relation between the two handles"""
-  handleRelationType: HandleRelation!
-}
-
-type MediaConnection implements HandleConnection {
-  edges: [MediaEdge!]!
-  nodes: [Media!]!
 }
 
 """The cover images of the media"""
@@ -594,7 +520,7 @@ type MediaExternalLink implements Handle {
   id: String!
   uri: Uri!
   url: String
-  handles: HandleConnection!
+  handles: [MediaExternalLink!]!
 
   # MediaExternalLink properties
   color: String
@@ -619,7 +545,7 @@ type MediaTrailer implements Handle {
   id: String!
   uri: Uri!
   url: String
-  handles: HandleConnection!
+  handles: [MediaTrailer!]!
 
   # MediaTrailer properties
   """The url for the thumbnail image of the video"""

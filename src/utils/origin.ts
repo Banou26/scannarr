@@ -3,9 +3,9 @@ import type { OriginCtx, ServerContext } from '../urql/server'
 import { combineLatest, from } from 'rxjs'
 import { map, tap } from 'rxjs/operators'
 import { gql } from 'graphql-tag'
-import { Handle, HandleRelation, ResolversTypes, SubscriptionResolverObject, SubscriptionResolvers } from '../generated/graphql'
+import { Episode, EpisodePage, Handle, Media, MediaPage, PlaybackSource, PlaybackSourcePage, ResolversTypes, SubscriptionResolvers, UserMediaPage } from '../generated/graphql'
 import { makeScannarrHandle2 } from '../urql'
-import { Graph, InMemoryGraphDatabase, recursiveRemoveNullable } from '../urql/graph'
+import { InMemoryGraphDatabase, NodeData, recursiveRemoveNullable } from '../urql/graph'
 import { merge } from './deep-merge'
 import { keyResolvers } from '../urql/client'
 
@@ -22,7 +22,6 @@ type KeyResolverHandler = {
   [K in Exclude<keyof KeyResolversMap, NullKeyResolvers>]: Exclude<KeyResolvers[K], (...args: any) => null>
 }
 
-
 type HandleResolvers = {
   [K in keyof KeyResolverHandler]: Awaited<ResolversTypes[K]>
 }
@@ -32,10 +31,14 @@ type HandleTypename = NonNullable<HandleResolvers[keyof HandleResolvers]['__type
 export type Handle2 = HandleResolvers[keyof HandleResolvers]
 
 type ExtractHandleType<T> =
+  // T extends NodeData ? T :
   T extends Handle2 ? T :
-  T extends Array<infer U> ? ExtractHandleType<U>[] :
+  T extends Promise<infer U> ? ExtractHandleType<U> :
+  T extends Array<infer U> ? ExtractHandleType<U> :
   T extends object ? { [key in keyof T]: ExtractHandleType<T[key]> }[keyof T] :
   never
+
+type NonUndefinable<T> = Exclude<T, undefined | null>
 
 const handleTypeNames =
   Object
@@ -46,7 +49,7 @@ const handleTypeNames =
 export const getNodeId = (handle: Handle2) =>
   `${handle.__typename}:${keyResolvers[handle.__typename!](handle)}`
 
-export const getHandles = <T>(value: T): ExtractHandleType<T> => {
+export const getHandles = <T>(value: T): NonUndefinable<ExtractHandleType<T>>[] => {
   const handlesMap = new Map<string, Handle2>()
 
   const recurse = (value: any) => {
@@ -76,40 +79,52 @@ export const getHandles = <T>(value: T): ExtractHandleType<T> => {
   }
 
   recurse(value)
-  return [...handlesMap.values()] as ExtractHandleType<T>
+  return [...handlesMap.values()] as ExtractHandleType<T>[]
 }
 
-type SubscriptionResolverValue<T extends keyof SubscriptionResolvers> =
-  Extract<
-      Awaited<
-        ReturnType<
-          ReturnType<
-            Awaited<
-              ReturnType<
-                Exclude<
-                  ReturnType<
-                    Extract<
-                      SubscriptionResolvers[T],
-                      Function
-                    >
-                  >,
-                  SubscriptionResolverObject<any, any, any, any>
-                >['subscribe']
-              >
-            >[typeof Symbol['asyncIterator']]
-          >['next']
-        >
-      >,
-      IteratorYieldResult<any>
-    >['value']
+type ValidSubscriptionKeys = Exclude<keyof SubscriptionResolvers, '_empty'>
 
-// todo: check why this isnt valid, probably some TS dark magic
-// @ts-expect-error
-type SubscriptionResolverInnerValue<T extends keyof SubscriptionResolvers> = SubscriptionResolverValue<T>[T]
+// type SubscriptionResolverValue<T extends ValidSubscriptionKeys> =
+//   Extract<
+//       Awaited<
+//         ReturnType<
+//           ReturnType<
+//             Awaited<
+//               ReturnType<
+//                 Exclude<
+//                   ReturnType<
+//                     Extract<
+//                       SubscriptionResolvers[T],
+//                       Function
+//                     >
+//                   >,
+//                   SubscriptionResolverObject<any, any, any, any>
+//                 >['subscribe']
+//               >
+//             >[typeof Symbol['asyncIterator']]
+//           >['next']
+//         >
+//       >,
+//       IteratorYieldResult<any>
+//     >['value']
 
-type SubscriptionResolverHandleValue<T extends keyof SubscriptionResolvers> = Awaited<SubscriptionResolverInnerValue<T>>
 
-export const subscribeToOrigins = <T extends keyof SubscriptionResolvers>(
+
+// type SubscriptionResolverInnerValue<T extends ValidSubscriptionKeys> = SubscriptionResolverValue<T>[keyof SubscriptionResolverValue<T>]
+
+// type SubscriptionResolverHandleValue<T extends ValidSubscriptionKeys> = NonUndefinable<Awaited<SubscriptionResolverInnerValue<T>>>
+
+type QueryNameToData<T extends ValidSubscriptionKeys> =
+  T extends 'media' ? { media: Media } :
+  T extends 'mediaPage' ? { mediaPage: MediaPage } :
+  T extends 'episode' ? { episode: Episode } :
+  T extends 'episodePage' ? { episodePage: EpisodePage } :
+  T extends 'playbackSource' ? { playbackSource: PlaybackSource } :
+  T extends 'playbackSourcePage' ? { playbackSourcePage: PlaybackSourcePage } :
+  T extends 'userMediaPage' ? { userMediaPage: UserMediaPage } :
+  never
+
+export const subscribeToOrigins = <T extends ValidSubscriptionKeys>(
   { graph, name, context, origins }:
   { graph: InMemoryGraphDatabase, name: T, context: ServerContext, origins: OriginCtx[] }
 ) =>
@@ -119,85 +134,49 @@ export const subscribeToOrigins = <T extends keyof SubscriptionResolvers>(
         from(
           origin
             .client
-              .subscription<SubscriptionResolverValue<T>>(
+              .subscription<QueryNameToData<T>>(
                 gql([context.params.query]),
                 context.params.variables
               )
         )
         .pipe(
           map(result =>
-            result.error?.message === '[Network] No Content'
+            (result.error?.message === '[Network] No Content'
               ? { ...result, data: { [name]: null } as { [K in T]: null }, error: undefined, origin }
-              : { ...result, origin }
+              : { ...result, origin }) as typeof result & { origin: OriginCtx }
           ),
-          tap(result => {
-            console.log('AAAAAAAAAAAA', result)
+          tap((result) => {
             if (result.error) {
               console.warn('Error in origin', result.origin.origin.name)
               console.error(result.error)
             } else if (result.data) {
               try {
-                const handles = getHandles(result.data) ?? []
+                const handles = getHandles(result.data)
                 for (const handle of handles) {
-                  // if (handle.uri === 'mal:52741') {
-                  //   console.log('updating handle', handle)
-                  // }
-                  const existingHandle = graph.findOne({ uri: handle.uri })
+                  const existingHandle = graph.findOne(node => node.uri === handle.uri)
                   if (existingHandle) {
                     const nonNullFieldsHandle = recursiveRemoveNullable(handle)
 
-                    const existingHandles =
-                      existingHandle
-                        .handles
-                        ?.edges
-                        .map(edge => edge.node)
-                      ?? existingHandle.handles?.nodes
-                      ?? []
-
-                    const _handles =
-                      nonNullFieldsHandle
-                        .handles
-                        ?.edges
-                        .map(edge => edge.node)
-                      ?? nonNullFieldsHandle.handles?.nodes
-                      ?? []
-
                     const mergedHandlesItems = [
-                      ...existingHandles,
+                      ...existingHandle.handles,
                       ...(
-                        _handles
+                        (nonNullFieldsHandle.handles ?? [])
                           .filter(handle =>
-                            !existingHandles.some(existingHandle =>
-                              existingHandle.__graph_type__
-                                ? existingHandle.data.uri === handle.uri
-                                : existingHandle.uri === handle.uri
-                            )
+                            !existingHandle
+                              .handles
+                              .some(existingHandle => existingHandle.uri === handle.uri)
                           )
                       )
                     ]
 
-                    // console.log('mergedHandlesItems', existingHandle, mergedHandlesItems)
-
-                    const handles = {
-                      edges: mergedHandlesItems.map(handle => ({
-                        node: handle,
-                        handleRelationType: HandleRelation.Identical
-                      })),
-                      nodes: mergedHandlesItems
-                    }
-
                     graph.updateOne(
-                      { uri: handle.uri },
-                      {
-                        $set: {
-                          ...nonNullFieldsHandle,
-                          handles
-                        }
-                      }
+                      node => node.uri === handle.uri,
+                      node => ({
+                        ...node,
+                        ...nonNullFieldsHandle,
+                        handles: mergedHandlesItems
+                      } as NodeData)
                     )
-                    // if (handle.uri === 'mal:52741') {
-                    //   console.log('updated handle', graph.findOne({ uri: handle.uri }, { returnNode: true }))
-                    // }
                     continue
                   } else {
                     graph.insertOne(handle)
@@ -212,9 +191,9 @@ export const subscribeToOrigins = <T extends keyof SubscriptionResolvers>(
       )
   )
 
-export const mergeOriginSubscriptionResults = <T extends keyof SubscriptionResolvers>(
+export const mergeOriginSubscriptionResults = <T extends ValidSubscriptionKeys>(
   { graph, name, results, mergeHandles }:
-  { graph: Graph, name: T, results: ReturnType<typeof subscribeToOrigins>, mergeHandles: <T2 extends Handle[]>(handles: T2) => T2[number] }
+  { graph: InMemoryGraphDatabase, name: T, results: ReturnType<typeof subscribeToOrigins>, mergeHandles: <T2 extends Handle[]>(handles: T2) => T2[number] }
 ) =>
   results
     .pipe(
@@ -233,19 +212,8 @@ export const mergeOriginSubscriptionResults = <T extends keyof SubscriptionResol
           mergeHandles
         })
 
-        // try {
-        //   const existingNode = graph.getNode(getNodeId(scannarHandle))
-        //   if (existingNode) {
-        //     existingNode.set(scannarHandle)
-        //   } else {
-        //     graph.makeNode(scannarHandle)
-        //   }
-        // } catch (err) {
-        //   console.error(err)
-        // }
-
         return {
           [name]: scannarHandle
-        } as unknown as { [K in T]: SubscriptionResolverHandleValue<K> }
+        } as unknown as { [K in T]: QueryNameToData<T> }
       })
     )

@@ -2,7 +2,7 @@ import deepmerge from 'deepmerge'
 
 import { fromScannarrUri, fromUri, isScannarrUri, toScannarrId, toScannarrUri } from '../utils/uri'
 import { YogaInitialContext } from 'graphql-yoga'
-import { Handle, HandleRelation } from '../generated/graphql'
+import { Handle } from '../generated/graphql'
 import { getEdges } from '../utils/handle'
 import { ServerContext } from './client'
 import { HandleType } from './server'
@@ -119,11 +119,11 @@ const recursiveRemoveNullable = <T>(obj: T): T =>
   ) as unknown as T
 
 export const makeScannarrHandle2 = ({ handles, mergeHandles }: { handles: HandleType[], mergeHandles: <T2 extends HandleType[]>(handles: T2) => T2[number] }) => {
-  const getRecursiveHandles = (handle: HandleType): HandleType[] => {
-    const identicalHandles = getEdges(handle.handles) ?? []
+  const getRecursiveHandles = (handle: Handle): Handle[] => {
+    const identicalHandles = handle.handles
     return [
       handle,
-      ...identicalHandles.flatMap(handle => getRecursiveHandles(handle.node))
+      ...identicalHandles.flatMap(handle => getRecursiveHandles(handle))
     ]
   }
 
@@ -146,13 +146,7 @@ export const makeScannarrHandle2 = ({ handles, mergeHandles }: { handles: Handle
     id,
     uri,
     url: null,
-    handles: {
-      edges: uniqueHandles.map((handle) => ({
-        handleRelationType: HandleRelation.Identical,
-        node: handle
-      })),
-      nodes: uniqueHandles
-    }
+    handles: uniqueHandles
   })
 }
 
@@ -177,23 +171,7 @@ export const makeScannarrHandle = ({ typename, handles, readField }: { typename:
     id: '()',
     uri: 'scannarr:()',
     url: '',
-    handles: {
-      __typename: `${typename}Connection`,
-      edges: handles.map((handle) => ({
-        __typename: `${typename}Edge`,
-        handleRelationType: HandleRelation.Identical,
-        node: {
-          __typename: typename,
-          ...handle,
-          uri: readField ? readField('uri', handle) : handle.uri
-        }
-      })),
-      nodes: handles.map((handle) => ({
-        __typename: typename,
-        ...handle,
-        uri: readField ? readField('uri', handle) : handle.uri
-      }))
-    }
+    handles
   })
 
   // console.log('makeScannarrHandle', res, handles)

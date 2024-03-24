@@ -12,7 +12,7 @@ import { serverResolvers as makePlaybackSourceServerResolvers } from './playback
 import { serverResolvers as makeUserServerResolvers } from './user'
 import { Episode, Handle, Media, MutationResolvers, QueryResolvers, Resolvers, SubscriptionResolvers, UserMedia } from '../generated/graphql'
 import { merge } from '../utils/deep-merge'
-import { InMemoryGraphDatabase, makeInMemoryGraphDatabase } from './graph'
+import { InMemoryGraphDatabase, NodeData, makeInMemoryGraphDatabase } from './graph'
 
 export type SimpleRoot = QueryResolvers & MutationResolvers
 export type ResolverArgs =
@@ -51,7 +51,7 @@ export type OriginCtx = {
   client: Client
 }
 
-export type HandleType = UserMedia | Media | Episode
+export type HandleType = NodeData // Media | Episode
 export type MergeHandleFunction = (handles: (HandleType)[]) => HandleType
 
 export type ServerResolverParameters = {

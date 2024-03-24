@@ -230,9 +230,15 @@
             "type": {
               "kind": "NON_NULL",
               "ofType": {
-                "kind": "OBJECT",
-                "name": "EpisodeConnection",
-                "ofType": null
+                "kind": "LIST",
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "ofType": {
+                    "kind": "OBJECT",
+                    "name": "Episode",
+                    "ofType": null
+                  }
+                }
               }
             },
             "args": []
@@ -287,9 +293,18 @@
           {
             "name": "playback",
             "type": {
-              "kind": "OBJECT",
-              "name": "PlaybackSourceConnection",
-              "ofType": null
+              "kind": "NON_NULL",
+              "ofType": {
+                "kind": "LIST",
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "ofType": {
+                    "kind": "OBJECT",
+                    "name": "PlaybackSource",
+                    "ofType": null
+                  }
+                }
+              }
             },
             "args": []
           },
@@ -342,97 +357,6 @@
           {
             "kind": "INTERFACE",
             "name": "Handle"
-          }
-        ]
-      },
-      {
-        "kind": "OBJECT",
-        "name": "EpisodeConnection",
-        "fields": [
-          {
-            "name": "edges",
-            "type": {
-              "kind": "NON_NULL",
-              "ofType": {
-                "kind": "LIST",
-                "ofType": {
-                  "kind": "NON_NULL",
-                  "ofType": {
-                    "kind": "OBJECT",
-                    "name": "EpisodeEdge",
-                    "ofType": null
-                  }
-                }
-              }
-            },
-            "args": []
-          },
-          {
-            "name": "nodes",
-            "type": {
-              "kind": "NON_NULL",
-              "ofType": {
-                "kind": "LIST",
-                "ofType": {
-                  "kind": "NON_NULL",
-                  "ofType": {
-                    "kind": "OBJECT",
-                    "name": "Episode",
-                    "ofType": null
-                  }
-                }
-              }
-            },
-            "args": []
-          }
-        ],
-        "interfaces": [
-          {
-            "kind": "INTERFACE",
-            "name": "HandleConnection"
-          }
-        ]
-      },
-      {
-        "kind": "OBJECT",
-        "name": "EpisodeEdge",
-        "fields": [
-          {
-            "name": "handleRelationType",
-            "type": {
-              "kind": "NON_NULL",
-              "ofType": {
-                "kind": "SCALAR",
-                "name": "Any"
-              }
-            },
-            "args": []
-          },
-          {
-            "name": "node",
-            "type": {
-              "kind": "NON_NULL",
-              "ofType": {
-                "kind": "OBJECT",
-                "name": "Episode",
-                "ofType": null
-              }
-            },
-            "args": []
-          },
-          {
-            "name": "uri",
-            "type": {
-              "kind": "SCALAR",
-              "name": "Any"
-            },
-            "args": []
-          }
-        ],
-        "interfaces": [
-          {
-            "kind": "INTERFACE",
-            "name": "HandleEdge"
           }
         ]
       },
@@ -581,9 +505,15 @@
             "type": {
               "kind": "NON_NULL",
               "ofType": {
-                "kind": "INTERFACE",
-                "name": "HandleConnection",
-                "ofType": null
+                "kind": "LIST",
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "ofType": {
+                    "kind": "INTERFACE",
+                    "name": "Handle",
+                    "ofType": null
+                  }
+                }
               }
             },
             "args": []
@@ -667,115 +597,6 @@
         ]
       },
       {
-        "kind": "INTERFACE",
-        "name": "HandleConnection",
-        "fields": [
-          {
-            "name": "edges",
-            "type": {
-              "kind": "NON_NULL",
-              "ofType": {
-                "kind": "LIST",
-                "ofType": {
-                  "kind": "NON_NULL",
-                  "ofType": {
-                    "kind": "INTERFACE",
-                    "name": "HandleEdge",
-                    "ofType": null
-                  }
-                }
-              }
-            },
-            "args": []
-          },
-          {
-            "name": "nodes",
-            "type": {
-              "kind": "NON_NULL",
-              "ofType": {
-                "kind": "LIST",
-                "ofType": {
-                  "kind": "NON_NULL",
-                  "ofType": {
-                    "kind": "INTERFACE",
-                    "name": "Handle",
-                    "ofType": null
-                  }
-                }
-              }
-            },
-            "args": []
-          }
-        ],
-        "interfaces": [],
-        "possibleTypes": [
-          {
-            "kind": "OBJECT",
-            "name": "EpisodeConnection"
-          },
-          {
-            "kind": "OBJECT",
-            "name": "MediaConnection"
-          },
-          {
-            "kind": "OBJECT",
-            "name": "PlaybackSourceConnection"
-          },
-          {
-            "kind": "OBJECT",
-            "name": "ResourceConnection"
-          }
-        ]
-      },
-      {
-        "kind": "INTERFACE",
-        "name": "HandleEdge",
-        "fields": [
-          {
-            "name": "handleRelationType",
-            "type": {
-              "kind": "NON_NULL",
-              "ofType": {
-                "kind": "SCALAR",
-                "name": "Any"
-              }
-            },
-            "args": []
-          },
-          {
-            "name": "node",
-            "type": {
-              "kind": "NON_NULL",
-              "ofType": {
-                "kind": "INTERFACE",
-                "name": "Handle",
-                "ofType": null
-              }
-            },
-            "args": []
-          }
-        ],
-        "interfaces": [],
-        "possibleTypes": [
-          {
-            "kind": "OBJECT",
-            "name": "EpisodeEdge"
-          },
-          {
-            "kind": "OBJECT",
-            "name": "MediaEdge"
-          },
-          {
-            "kind": "OBJECT",
-            "name": "PlaybackSourceEdge"
-          },
-          {
-            "kind": "OBJECT",
-            "name": "ResourceEdge"
-          }
-        ]
-      },
-      {
         "kind": "OBJECT",
         "name": "Media",
         "fields": [
@@ -854,9 +675,18 @@
           {
             "name": "episodes",
             "type": {
-              "kind": "OBJECT",
-              "name": "EpisodeConnection",
-              "ofType": null
+              "kind": "NON_NULL",
+              "ofType": {
+                "kind": "LIST",
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "ofType": {
+                    "kind": "OBJECT",
+                    "name": "Episode",
+                    "ofType": null
+                  }
+                }
+              }
             },
             "args": [
               {
@@ -907,9 +737,15 @@
             "type": {
               "kind": "NON_NULL",
               "ofType": {
-                "kind": "OBJECT",
-                "name": "MediaConnection",
-                "ofType": null
+                "kind": "LIST",
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "ofType": {
+                    "kind": "OBJECT",
+                    "name": "Media",
+                    "ofType": null
+                  }
+                }
               }
             },
             "args": []
@@ -1113,9 +949,15 @@
             "type": {
               "kind": "NON_NULL",
               "ofType": {
-                "kind": "INTERFACE",
-                "name": "HandleConnection",
-                "ofType": null
+                "kind": "LIST",
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "ofType": {
+                    "kind": "OBJECT",
+                    "name": "MediaAiringSchedule",
+                    "ofType": null
+                  }
+                }
               }
             },
             "args": []
@@ -1213,109 +1055,6 @@
       },
       {
         "kind": "OBJECT",
-        "name": "MediaAiringScheduleConnection",
-        "fields": [
-          {
-            "name": "edges",
-            "type": {
-              "kind": "LIST",
-              "ofType": {
-                "kind": "OBJECT",
-                "name": "MediaAiringScheduleEdge",
-                "ofType": null
-              }
-            },
-            "args": []
-          },
-          {
-            "name": "nodes",
-            "type": {
-              "kind": "LIST",
-              "ofType": {
-                "kind": "OBJECT",
-                "name": "MediaAiringSchedule",
-                "ofType": null
-              }
-            },
-            "args": []
-          }
-        ],
-        "interfaces": []
-      },
-      {
-        "kind": "OBJECT",
-        "name": "MediaAiringScheduleEdge",
-        "fields": [
-          {
-            "name": "node",
-            "type": {
-              "kind": "OBJECT",
-              "name": "MediaAiringSchedule",
-              "ofType": null
-            },
-            "args": []
-          },
-          {
-            "name": "uri",
-            "type": {
-              "kind": "SCALAR",
-              "name": "Any"
-            },
-            "args": []
-          }
-        ],
-        "interfaces": []
-      },
-      {
-        "kind": "OBJECT",
-        "name": "MediaConnection",
-        "fields": [
-          {
-            "name": "edges",
-            "type": {
-              "kind": "NON_NULL",
-              "ofType": {
-                "kind": "LIST",
-                "ofType": {
-                  "kind": "NON_NULL",
-                  "ofType": {
-                    "kind": "OBJECT",
-                    "name": "MediaEdge",
-                    "ofType": null
-                  }
-                }
-              }
-            },
-            "args": []
-          },
-          {
-            "name": "nodes",
-            "type": {
-              "kind": "NON_NULL",
-              "ofType": {
-                "kind": "LIST",
-                "ofType": {
-                  "kind": "NON_NULL",
-                  "ofType": {
-                    "kind": "OBJECT",
-                    "name": "Media",
-                    "ofType": null
-                  }
-                }
-              }
-            },
-            "args": []
-          }
-        ],
-        "interfaces": [
-          {
-            "kind": "INTERFACE",
-            "name": "HandleConnection"
-          }
-        ]
-      },
-      {
-        "kind": "OBJECT",
         "name": "MediaCoverImage",
         "fields": [
           {
@@ -1371,41 +1110,6 @@
       },
       {
         "kind": "OBJECT",
-        "name": "MediaEdge",
-        "fields": [
-          {
-            "name": "handleRelationType",
-            "type": {
-              "kind": "NON_NULL",
-              "ofType": {
-                "kind": "SCALAR",
-                "name": "Any"
-              }
-            },
-            "args": []
-          },
-          {
-            "name": "node",
-            "type": {
-              "kind": "NON_NULL",
-              "ofType": {
-                "kind": "OBJECT",
-                "name": "Media",
-                "ofType": null
-              }
-            },
-            "args": []
-          }
-        ],
-        "interfaces": [
-          {
-            "kind": "INTERFACE",
-            "name": "HandleEdge"
-          }
-        ]
-      },
-      {
-        "kind": "OBJECT",
         "name": "MediaExternalLink",
         "fields": [
           {
@@ -1429,9 +1133,15 @@
             "type": {
               "kind": "NON_NULL",
               "ofType": {
-                "kind": "INTERFACE",
-                "name": "HandleConnection",
-                "ofType": null
+                "kind": "LIST",
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "ofType": {
+                    "kind": "OBJECT",
+                    "name": "MediaExternalLink",
+                    "ofType": null
+                  }
+                }
               }
             },
             "args": []
@@ -1733,9 +1443,15 @@
             "type": {
               "kind": "NON_NULL",
               "ofType": {
-                "kind": "INTERFACE",
-                "name": "HandleConnection",
-                "ofType": null
+                "kind": "LIST",
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "ofType": {
+                    "kind": "OBJECT",
+                    "name": "MediaTrailer",
+                    "ofType": null
+                  }
+                }
               }
             },
             "args": []
@@ -2035,9 +1751,15 @@
             "type": {
               "kind": "NON_NULL",
               "ofType": {
-                "kind": "OBJECT",
-                "name": "PlaybackSourceConnection",
-                "ofType": null
+                "kind": "LIST",
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "ofType": {
+                    "kind": "OBJECT",
+                    "name": "PlaybackSource",
+                    "ofType": null
+                  }
+                }
               }
             },
             "args": []
@@ -2166,97 +1888,6 @@
           {
             "kind": "INTERFACE",
             "name": "Handle"
-          }
-        ]
-      },
-      {
-        "kind": "OBJECT",
-        "name": "PlaybackSourceConnection",
-        "fields": [
-          {
-            "name": "edges",
-            "type": {
-              "kind": "NON_NULL",
-              "ofType": {
-                "kind": "LIST",
-                "ofType": {
-                  "kind": "NON_NULL",
-                  "ofType": {
-                    "kind": "OBJECT",
-                    "name": "PlaybackSourceEdge",
-                    "ofType": null
-                  }
-                }
-              }
-            },
-            "args": []
-          },
-          {
-            "name": "nodes",
-            "type": {
-              "kind": "NON_NULL",
-              "ofType": {
-                "kind": "LIST",
-                "ofType": {
-                  "kind": "NON_NULL",
-                  "ofType": {
-                    "kind": "OBJECT",
-                    "name": "PlaybackSource",
-                    "ofType": null
-                  }
-                }
-              }
-            },
-            "args": []
-          }
-        ],
-        "interfaces": [
-          {
-            "kind": "INTERFACE",
-            "name": "HandleConnection"
-          }
-        ]
-      },
-      {
-        "kind": "OBJECT",
-        "name": "PlaybackSourceEdge",
-        "fields": [
-          {
-            "name": "handleRelationType",
-            "type": {
-              "kind": "NON_NULL",
-              "ofType": {
-                "kind": "SCALAR",
-                "name": "Any"
-              }
-            },
-            "args": []
-          },
-          {
-            "name": "node",
-            "type": {
-              "kind": "NON_NULL",
-              "ofType": {
-                "kind": "OBJECT",
-                "name": "PlaybackSource",
-                "ofType": null
-              }
-            },
-            "args": []
-          },
-          {
-            "name": "uri",
-            "type": {
-              "kind": "SCALAR",
-              "name": "Any"
-            },
-            "args": []
-          }
-        ],
-        "interfaces": [
-          {
-            "kind": "INTERFACE",
-            "name": "HandleEdge"
           }
         ]
       },
@@ -2484,7 +2115,7 @@
                   "kind": "NON_NULL",
                   "ofType": {
                     "kind": "OBJECT",
-                    "name": "ResourceConnection",
+                    "name": "Resource",
                     "ofType": null
                   }
                 }
@@ -2497,9 +2128,15 @@
             "type": {
               "kind": "NON_NULL",
               "ofType": {
-                "kind": "OBJECT",
-                "name": "ResourceConnection",
-                "ofType": null
+                "kind": "LIST",
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "ofType": {
+                    "kind": "OBJECT",
+                    "name": "Resource",
+                    "ofType": null
+                  }
+                }
               }
             },
             "args": []
@@ -2558,89 +2195,6 @@
           {
             "kind": "INTERFACE",
             "name": "Handle"
-          }
-        ]
-      },
-      {
-        "kind": "OBJECT",
-        "name": "ResourceConnection",
-        "fields": [
-          {
-            "name": "edges",
-            "type": {
-              "kind": "NON_NULL",
-              "ofType": {
-                "kind": "LIST",
-                "ofType": {
-                  "kind": "NON_NULL",
-                  "ofType": {
-                    "kind": "OBJECT",
-                    "name": "ResourceEdge",
-                    "ofType": null
-                  }
-                }
-              }
-            },
-            "args": []
-          },
-          {
-            "name": "nodes",
-            "type": {
-              "kind": "NON_NULL",
-              "ofType": {
-                "kind": "LIST",
-                "ofType": {
-                  "kind": "NON_NULL",
-                  "ofType": {
-                    "kind": "OBJECT",
-                    "name": "Resource",
-                    "ofType": null
-                  }
-                }
-              }
-            },
-            "args": []
-          }
-        ],
-        "interfaces": [
-          {
-            "kind": "INTERFACE",
-            "name": "HandleConnection"
-          }
-        ]
-      },
-      {
-        "kind": "OBJECT",
-        "name": "ResourceEdge",
-        "fields": [
-          {
-            "name": "handleRelationType",
-            "type": {
-              "kind": "NON_NULL",
-              "ofType": {
-                "kind": "SCALAR",
-                "name": "Any"
-              }
-            },
-            "args": []
-          },
-          {
-            "name": "node",
-            "type": {
-              "kind": "NON_NULL",
-              "ofType": {
-                "kind": "OBJECT",
-                "name": "Resource",
-                "ofType": null
-              }
-            },
-            "args": []
-          }
-        ],
-        "interfaces": [
-          {
-            "kind": "INTERFACE",
-            "name": "HandleEdge"
           }
         ]
       },
@@ -2804,9 +2358,15 @@
             "type": {
               "kind": "NON_NULL",
               "ofType": {
-                "kind": "INTERFACE",
-                "name": "HandleConnection",
-                "ofType": null
+                "kind": "LIST",
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "ofType": {
+                    "kind": "OBJECT",
+                    "name": "Team",
+                    "ofType": null
+                  }
+                }
               }
             },
             "args": []
@@ -2948,9 +2508,15 @@
             "type": {
               "kind": "NON_NULL",
               "ofType": {
-                "kind": "OBJECT",
-                "name": "MediaConnection",
-                "ofType": null
+                "kind": "LIST",
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "ofType": {
+                    "kind": "OBJECT",
+                    "name": "Media",
+                    "ofType": null
+                  }
+                }
               }
             },
             "args": []

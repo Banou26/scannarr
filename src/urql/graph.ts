@@ -2,8 +2,16 @@ import type { Episode, Media, MediaExternalLink, MediaTrailer, PlaybackSource, T
 
 import { Observable, Subject, combineLatest, map, of, shareReplay, startWith, switchMap } from 'rxjs'
 
-export const recursiveRemoveNullable = (obj) =>
-  Array.isArray(obj)
+
+export type NonUndefinable<T> = Exclude<T, undefined | null>
+
+export type RemoveNullable<T> =
+  T extends Array<infer U> ? RemoveNullable<NonUndefinable<U>>[] :
+  T extends object ? { [key in keyof T]: RemoveNullable<NonUndefinable<T[key]>> } :
+  NonUndefinable<T>
+
+export const recursiveRemoveNullable = <T>(obj: T): RemoveNullable<T> =>
+  (Array.isArray(obj)
     ? obj.map(recursiveRemoveNullable)
     : (
       typeof obj === 'object'
@@ -17,7 +25,7 @@ export const recursiveRemoveNullable = (obj) =>
             )
         )
         : obj
-    )
+    )) as RemoveNullable<T>
 
 export type NodeData =
   Media | Episode | UserMedia | PlaybackSource |
@@ -132,10 +140,10 @@ const isNodeData = (value: ScannarrTypes): value is NodeData =>
   value && typeof value === 'object' &&
   '__typename' in value && '_id' in value
 
-const replaceNodeToData = (value: Node<NodeData>) => {
+const replaceNodeToData = <T extends NodeData>(value: Node<T>): T => {
   const refMap = new Map<Node<NodeData>, NodeData>()
 
-  const recurse = (value: Node<NodeData> | ScannarrTypes) => {
+  const recurse = <T extends NodeData>(value: Node<T> | ScannarrTypes) => {
     if (Array.isArray(value)) return value.map(val => recurse(val))
     if (isNode(value)) {
       if (refMap.has(value)) return refMap.get(value)
@@ -198,8 +206,16 @@ export const makeInMemoryGraphDatabase = () => {
   return {
     nodes,
     mapNode,
-    findOne: (filter: (value: NodeData, node: Node<NodeData>) => boolean) => findOne(filter)?.data,
-    find: (filter: (value: NodeData, node: Node<NodeData>) => boolean) => find(filter).map(node => node.data),
+    findNodeOne: <T extends Node<NodeData>>(filter: (value: NodeData, node: Node<NodeData>) => boolean) => findOne(filter) as T | undefined,
+    findOne: <T extends NodeData>(filter: (value: NodeData, node: Node<NodeData>) => boolean) => {
+      const node = findOne(filter)
+      if (!node) return
+      return replaceNodeToData(node) as T
+    },
+    findNode: <T extends Node<NodeData>>(filter: (value: NodeData, node: Node<NodeData>) => boolean) => find(filter) as T[],
+    find: <T extends NodeData>(filter: (value: NodeData, node: Node<NodeData>) => boolean) =>
+      find(filter)
+        .map(node => replaceNodeToData(node)) as T[],
     mapOne: <T extends (nodeData: NodeData, node: Node<NodeData>) => NodeData>(filter: (value: NodeData, node: Node<NodeData>) => boolean, fn: T) => {
       const foundNode = findOne(filter)
       if (!foundNode) throw new Error(`No node found for ${JSON.stringify(filter)}`)
