@@ -53,7 +53,8 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                 graph,
                 origins,
                 context,
-                name: 'media'
+                name: 'media',
+                mergeHandles
               }),
             mergeHandles,
             name: 'media'
@@ -68,7 +69,8 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
             graph,
             origins,
             context,
-            name: 'mediaPage'
+            name: 'mediaPage',
+            mergeHandles
           }).pipe(
             map(results => {
               const { handleGroups } = groupRelatedHandles({
