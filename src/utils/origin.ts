@@ -5,7 +5,7 @@ import { map, tap } from 'rxjs/operators'
 import { gql } from 'graphql-tag'
 import { Episode, EpisodePage, Handle, Media, MediaPage, PlaybackSource, PlaybackSourcePage, ResolversTypes, SubscriptionResolvers, UserMediaPage } from '../generated/graphql'
 import { groupRelatedHandles, makeScannarrHandle2 } from '../urql'
-import { InMemoryGraphDatabase, NodeData, recursiveRemoveNullable } from '../urql/graph'
+import { InMemoryGraphDatabase, NodeData, getNodes, recursiveRemoveNullable, replaceNodePairs } from '../urql/graph'
 import { merge } from './deep-merge'
 import { keyResolvers } from '../urql/client'
 
@@ -153,108 +153,130 @@ export const subscribeToOrigins = <T extends ValidSubscriptionKeys>(
               try {
                 const handles = getHandles(result.data)
                 for (const handle of handles) {
-                  const existingHandle = graph.findOne(node => node.uri === handle.uri)
-                  if (existingHandle) {
-                    const nonNullFieldsHandle = recursiveRemoveNullable(handle)
+                  const handleNode = graph.findOne(node => node.uri === handle.uri) ?? graph.insertOne(handle)
 
-                    const mergedHandlesItems = [
-                      ...existingHandle.handles ?? [],
-                      ...(
-                        (nonNullFieldsHandle.handles ?? [])
-                          .filter(handle =>
-                            !existingHandle
-                              .handles
-                              .some(existingHandle => existingHandle.uri === handle.uri)
-                          )
-                      )
-                    ]
-
-                    graph.updateOne(
-                      node => node.uri === handle.uri,
-                      node => ({
-                        ...node,
-                        ...nonNullFieldsHandle,
-                        handles: mergedHandlesItems
-                      } as NodeData)
+                  const nonNullFieldsHandle = recursiveRemoveNullable(handle)
+                  const mergedHandlesItems = [
+                    ...handleNode.handles ?? [],
+                    ...(
+                      (nonNullFieldsHandle.handles ?? [])
+                        .filter(handle =>
+                          !handleNode
+                            .handles
+                            ?.some(existingHandle => existingHandle.uri === handle.uri)
+                        )
                     )
-                    continue
-                  } else {
-                    graph.insertOne(handle)
-                  }
-                }
-
-                const typename = handles[0]?.__typename
-
-                if (typename) {
-                  const similarTypeAllHandles = graph.find(node => node.__typename === typename && node.origin !== 'scannarr')
-
-                  const { handleGroups } = groupRelatedHandles({ results: similarTypeAllHandles })
-  
-                  const scannarrHandles =
-                    handleGroups
-                      .map(handles =>
-                        makeScannarrHandle2({
-                          handles,
-                          mergeHandles
-                        })
-                      )
-
-                  for (const scannarrHandle of scannarrHandles) {
-                    const handleUris = scannarrHandle.handles.map(handle => handle.uri)
-                    const existingScannarrHandle =
-                      graph
-                        .findOne(node =>
-                          node.origin === 'scannarr' &&
-                          node.handles.some(handle => handleUris.includes(handle.uri))
-                        )
-                    if (existingScannarrHandle) {
-                      const nonNullFieldsHandle = recursiveRemoveNullable(scannarrHandle)
-
-                      const mergedHandlesItems = [
-                        ...existingScannarrHandle.handles ?? [],
-                        ...(
-                          (nonNullFieldsHandle.handles ?? [])
-                            .filter(handle =>
-                              !existingScannarrHandle
-                                .handles
-                                .some(existingHandle => existingHandle.uri === handle.uri)
-                            )
-                        )
-                      ].filter(node => node.origin !== 'scannarr')
-
-                      const updatedExistingScannarrHandle = ({
-                        ...existingScannarrHandle,
-                        ...nonNullFieldsHandle,
-                        handles: mergedHandlesItems
-                      })
-
-                      graph.updateOne(
-                        node => node.uri === existingScannarrHandle.uri,
-                        node => ({
-                          ...node,
-                          ...nonNullFieldsHandle,
-                          handles: mergedHandlesItems
-                        } as NodeData)
-                      )
-
-                      for (const nonScannarrHandle of mergedHandlesItems) {
-                        graph.updateOne(
-                          node => node.uri === nonScannarrHandle.uri,
-                          node => ({
+                  ].map(handle => {
+                    const childNodes = getNodes(handle)
+                    const replacementNodes = childNodes.map(childNode => {
+                      const existingNode = graph.findOne(node => node.uri === childNode.uri)
+                      if (existingNode) {
+                        return graph.updateOne(
+                          existingNode._id,
+                          (node) => ({
                             ...node,
-                            handles: [
-                              ...(node.handles ?? []).filter(handle => handle.origin !== 'scannarr'),
-                              updatedExistingScannarrHandle
-                            ]
+                            ...recursiveRemoveNullable(childNode)
                           } as NodeData)
                         )
                       }
-                      continue
-                    } else {
-                      graph.insertOne(scannarrHandle)
-                    }
-                  }
+                      return graph.insertOne(childNode)
+                    })
+                    
+                    const newHandle = replaceNodePairs(
+                      handle,
+                      handle
+                        .handles
+                        ?.map((handle, i) => [handle, replacementNodes[i]])
+                      ?? []
+                    )
+                    const node = graph.findOne(node => node.uri === newHandle?.uri)
+                    if (!node) return graph.insertOne(newHandle)
+                    return graph.updateOne(node._id, (node) => ({ ...node, ...recursiveRemoveNullable(newHandle) } as NodeData))
+                  })
+
+                  graph.updateOne(
+                    handleNode._id,
+                    node => ({
+                      ...node,
+                      ...nonNullFieldsHandle,
+                      handles: mergedHandlesItems
+                    } as NodeData)
+                  )
+                  continue
                 }
+
+                // const typename = handles[0]?.__typename
+
+                // if (typename) {
+                //   const similarTypeAllHandles = graph.find(node => node.__typename === typename && node.origin !== 'scannarr')
+
+                //   const { handleGroups } = groupRelatedHandles({ results: similarTypeAllHandles })
+  
+                //   const scannarrHandles =
+                //     handleGroups
+                //       .map(handles =>
+                //         makeScannarrHandle2({
+                //           handles,
+                //           mergeHandles
+                //         })
+                //       )
+
+                //   for (const scannarrHandle of scannarrHandles) {
+                //     const handleUris = scannarrHandle.handles.map(handle => handle.uri)
+                //     const existingScannarrHandle =
+                //       graph
+                //         .findOne(node =>
+                //           node.origin === 'scannarr' &&
+                //           node.handles.some(handle => handleUris.includes(handle.uri))
+                //         )
+                //     if (existingScannarrHandle) {
+                //       const nonNullFieldsHandle = recursiveRemoveNullable(scannarrHandle)
+
+                //       const mergedHandlesItems = [
+                //         ...existingScannarrHandle.handles ?? [],
+                //         ...(
+                //           (nonNullFieldsHandle.handles ?? [])
+                //             .filter(handle =>
+                //               !existingScannarrHandle
+                //                 .handles
+                //                 .some(existingHandle => existingHandle.uri === handle.uri)
+                //             )
+                //         )
+                //       ].filter(node => node.origin !== 'scannarr')
+
+                //       const updatedExistingScannarrHandle = ({
+                //         ...existingScannarrHandle,
+                //         ...nonNullFieldsHandle,
+                //         handles: mergedHandlesItems
+                //       })
+
+                //       graph.updateOne(
+                //         node => node.uri === existingScannarrHandle.uri,
+                //         node => ({
+                //           ...node,
+                //           ...nonNullFieldsHandle,
+                //           handles: mergedHandlesItems
+                //         } as NodeData)
+                //       )
+
+                //       for (const nonScannarrHandle of mergedHandlesItems) {
+                //         graph.updateOne(
+                //           node => node.uri === nonScannarrHandle.uri,
+                //           node => ({
+                //             ...node,
+                //             handles: [
+                //               ...(node.handles ?? []).filter(handle => handle.origin !== 'scannarr'),
+                //               updatedExistingScannarrHandle
+                //             ]
+                //           } as NodeData)
+                //         )
+                //       }
+                //       continue
+                //     } else {
+                //       graph.insertOne(scannarrHandle)
+                //     }
+                //   }
+                // }
 
               } catch (err) {
                 console.error(err)
