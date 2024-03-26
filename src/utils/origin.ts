@@ -151,59 +151,40 @@ export const subscribeToOrigins = <T extends ValidSubscriptionKeys>(
               console.error(result.error)
             } else if (result.data) {
               try {
-                const handles = getHandles(result.data)
-                for (const handle of handles) {
-                  const handleNode = graph.findOne(node => node.uri === handle.uri) ?? graph.insertOne(handle)
-
-                  const nonNullFieldsHandle = recursiveRemoveNullable(handle)
-                  const mergedHandlesItems = [
-                    ...handleNode.handles ?? [],
-                    ...(
-                      (nonNullFieldsHandle.handles ?? [])
-                        .filter(handle =>
-                          !handleNode
-                            .handles
-                            ?.some(existingHandle => existingHandle.uri === handle.uri)
-                        )
-                    )
-                  ].map(handle => {
-                    const childNodes = getNodes(handle)
-                    const replacementNodes = childNodes.map(childNode => {
+                const nodes =
+                  getNodes(result.data)
+                    .map(childNode => {
                       const existingNode = graph.findOne(node => node.uri === childNode.uri)
                       if (existingNode) {
                         return graph.updateOne(
                           existingNode._id,
-                          (node) => ({
+                          (node) => merge({
                             ...node,
                             ...recursiveRemoveNullable(childNode)
-                          } as NodeData)
+                          }) as NodeData
                         )
                       }
                       return graph.insertOne(childNode)
                     })
-                    
-                    const newHandle = replaceNodePairs(
-                      handle,
-                      handle
-                        .handles
-                        ?.map((handle, i) => [handle, replacementNodes[i]])
-                      ?? []
-                    )
-                    const node = graph.findOne(node => node.uri === newHandle?.uri)
-                    if (!node) return graph.insertOne(newHandle)
-                    return graph.updateOne(node._id, (node) => ({ ...node, ...recursiveRemoveNullable(newHandle) } as NodeData))
-                  })
 
-                  graph.updateOne(
-                    handleNode._id,
-                    node => ({
-                      ...node,
-                      ...nonNullFieldsHandle,
-                      handles: mergedHandlesItems
-                    } as NodeData)
-                  )
-                  continue
-                }
+                const newNodes =
+                  nodes
+                    .map(node =>
+                      graph.updateOne(
+                        node._id,
+                        node => {
+                          const handles =
+                            node
+                              .handles
+                              ?.map(handle => graph.findOne(node => node.uri === handle.uri))
+                              ?? []
+                          return ({
+                            ...node,
+                            handles
+                          })
+                        }
+                      )
+                    )
 
                 // const typename = handles[0]?.__typename
 

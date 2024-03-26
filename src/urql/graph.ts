@@ -130,6 +130,7 @@ export const getNodes = <T>(value: T): ExtractNode<T>[] => {
     if (isNode(value)) {
       nodes.push(value as ExtractNode<T>)
       objects.add(value)
+      Object.values(value).map(recurse)
       return
     }
     if (Array.isArray(value)) return value.map(recurse)
@@ -254,7 +255,7 @@ export const makeInMemoryGraphDatabase = () => {
         console.log('No node found for', filter)
         return
       }
-      node.data = Object.assign(node.data, merge(node.data, updateFunction(node.data, node)))
+      node.data = Object.assign(node.data, updateFunction(node.data, node))
       node.subject.next(node.data)
       return node.data
     }
