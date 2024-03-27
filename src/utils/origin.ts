@@ -151,114 +151,56 @@ export const subscribeToOrigins = <T extends ValidSubscriptionKeys>(
               console.error(result.error)
             } else if (result.data) {
               try {
+                console.log('getNodes', getNodes(result.data))
                 const nodes =
                   getNodes(result.data)
                     .map(childNode => {
                       const existingNode = graph.findOne(node => node.uri === childNode.uri)
                       if (existingNode) {
+                        // if (childNode.uri === 'mal:52299') {
+                        //   console.log('childNode', childNode)
+                        //   console.log('existingNode', existingNode)
+                        //   console.log(
+                        //     'merge result',
+                        //     mergeHandles([
+                        //       existingNode,
+                        //       recursiveRemoveNullable(childNode)
+                        //     ])
+                        //   )
+                        // }
                         return graph.updateOne(
                           existingNode._id,
-                          (node) => merge({
+                          (node) => ({
                             ...node,
                             ...recursiveRemoveNullable(childNode)
                           }) as NodeData
+                          // (node) => mergeHandles([
+                          //   node,
+                          //   recursiveRemoveNullable(childNode)
+                          // ]) as NodeData
                         )
                       }
                       return graph.insertOne(childNode)
                     })
+                    
+                console.log('nodes', nodes)
 
-                const newNodes =
-                  nodes
-                    .map(node =>
-                      graph.updateOne(
-                        node._id,
-                        node => {
-                          const handles =
-                            node
-                              .handles
-                              ?.map(handle => graph.findOne(node => node.uri === handle.uri))
-                              ?? []
-                          return ({
-                            ...node,
-                            handles
-                          })
-                        }
-                      )
-                    )
-
-                // const typename = handles[0]?.__typename
-
-                // if (typename) {
-                //   const similarTypeAllHandles = graph.find(node => node.__typename === typename && node.origin !== 'scannarr')
-
-                //   const { handleGroups } = groupRelatedHandles({ results: similarTypeAllHandles })
-  
-                //   const scannarrHandles =
-                //     handleGroups
-                //       .map(handles =>
-                //         makeScannarrHandle2({
-                //           handles,
-                //           mergeHandles
-                //         })
-                //       )
-
-                //   for (const scannarrHandle of scannarrHandles) {
-                //     const handleUris = scannarrHandle.handles.map(handle => handle.uri)
-                //     const existingScannarrHandle =
-                //       graph
-                //         .findOne(node =>
-                //           node.origin === 'scannarr' &&
-                //           node.handles.some(handle => handleUris.includes(handle.uri))
-                //         )
-                //     if (existingScannarrHandle) {
-                //       const nonNullFieldsHandle = recursiveRemoveNullable(scannarrHandle)
-
-                //       const mergedHandlesItems = [
-                //         ...existingScannarrHandle.handles ?? [],
-                //         ...(
-                //           (nonNullFieldsHandle.handles ?? [])
-                //             .filter(handle =>
-                //               !existingScannarrHandle
-                //                 .handles
-                //                 .some(existingHandle => existingHandle.uri === handle.uri)
-                //             )
-                //         )
-                //       ].filter(node => node.origin !== 'scannarr')
-
-                //       const updatedExistingScannarrHandle = ({
-                //         ...existingScannarrHandle,
-                //         ...nonNullFieldsHandle,
-                //         handles: mergedHandlesItems
-                //       })
-
-                //       graph.updateOne(
-                //         node => node.uri === existingScannarrHandle.uri,
-                //         node => ({
-                //           ...node,
-                //           ...nonNullFieldsHandle,
-                //           handles: mergedHandlesItems
-                //         } as NodeData)
-                //       )
-
-                //       for (const nonScannarrHandle of mergedHandlesItems) {
-                //         graph.updateOne(
-                //           node => node.uri === nonScannarrHandle.uri,
-                //           node => ({
-                //             ...node,
-                //             handles: [
-                //               ...(node.handles ?? []).filter(handle => handle.origin !== 'scannarr'),
-                //               updatedExistingScannarrHandle
-                //             ]
-                //           } as NodeData)
-                //         )
-                //       }
-                //       continue
-                //     } else {
-                //       graph.insertOne(scannarrHandle)
-                //     }
-                //   }
-                // }
-
+                for(const node of nodes) {
+                  graph.updateOne(
+                    node._id,
+                    node => {
+                      const handles =
+                        node
+                          .handles
+                          ?.map(handle => graph.findOne(node => node.uri === handle.uri))
+                          ?? []
+                      return ({
+                        ...node,
+                        handles
+                      })
+                    }
+                  )
+                }
               } catch (err) {
                 console.error(err)
               }

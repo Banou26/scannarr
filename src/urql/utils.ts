@@ -6,6 +6,7 @@ import { Handle } from '../generated/graphql'
 import { ServerContext } from './client'
 import { HandleType } from './server'
 import { groupBy, merge } from '../utils'
+import { recursiveRemoveNullable } from './graph'
 
 export const indexHandles = <T extends Handle[]>({ results: _results }: { results: T }) => {
   let results = [...new Map(_results.map(item => [item.uri, item])).values()]
@@ -98,30 +99,39 @@ export const groupRelatedHandles = <T extends Handle>({ results: _results }: { r
   }
 }
 
-const recursiveRemoveNullable = <T>(obj: T): T =>
-  (
-    Array.isArray(obj)
-      ? obj.map(recursiveRemoveNullable)
-      : (
-        typeof obj === 'object'
-          ? (
-            Object
-              .fromEntries(
-                Object
-                  .entries(obj as Object)
-                  .filter(([_, value]) => value !== null && value !== undefined)
-                  .map(([key, value]) => [key, recursiveRemoveNullable(value)])
-              )
-          )
-          : obj
-      )
-  ) as unknown as T
+// const recursiveRemoveNullable = <T>(obj: T): T =>
+//   (
+//     Array.isArray(obj)
+//       ? obj.map(recursiveRemoveNullable)
+//       : (
+//         typeof obj === 'object'
+//           ? (
+//             Object
+//               .fromEntries(
+//                 Object
+//                   .entries(obj as Object)
+//                   .filter(([_, value]) => value !== null && value !== undefined)
+//                   .map(([key, value]) => [key, recursiveRemoveNullable(value)])
+//               )
+//           )
+//           : obj
+//       )
+//   ) as unknown as T
 
 export const makeScannarrHandle2 = ({ handles, mergeHandles }: { handles: HandleType[], mergeHandles: <T2 extends HandleType[]>(handles: T2) => T2[number] }) => {
+  const handlesSet = new Set()
   const getRecursiveHandles = (handle: Handle): Handle[] => {
+    if (handlesSet.has(handle.uri)) return []
+    handlesSet.add(handle.uri)
+
     return [
       handle,
-      ...handle.handles?.flatMap(handle => getRecursiveHandles(handle)) ?? []
+      ...(
+        handle
+          .handles
+          ?.flatMap(handle => getRecursiveHandles(handle))
+        ?? []
+      )
     ]
   }
 

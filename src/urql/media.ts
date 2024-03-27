@@ -73,25 +73,40 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
             mergeHandles
           }).pipe(
             map(results => {
-              const { handleGroups } = groupRelatedHandles({
-                results:
+              try {
+                const handles =
                   results
                     .map(result => result.data?.mediaPage as MediaPage)
                     .flatMap(mediaPage => mediaPage?.nodes ?? [])
-              })
-              const scannarrHandles =
-                handleGroups
-                  .map(handles =>
-                    makeScannarrHandle2({
-                      handles,
-                      mergeHandles
-                    })
-                  ) as Media[]
 
-              return {
-                mediaPage: {
-                  nodes: scannarrHandles
+                const handleNodes =
+                  handles
+                    .map(mediaHandle =>
+                      graph.findOne((node) => node.uri === mediaHandle.uri)
+                    )
+
+                // console.log('handles', handles)
+                // console.log('handleNodes', handleNodes)
+
+                const { handleGroups } = groupRelatedHandles({ results: handleNodes })
+                const scannarrHandles =
+                  handleGroups
+                    .map(handles =>
+                      makeScannarrHandle2({
+                        handles,
+                        mergeHandles
+                      })
+                    ) as Media[]
+
+                console.log('scannarrHandles', scannarrHandles)
+
+                return {
+                  mediaPage: {
+                    nodes: scannarrHandles
+                  }
                 }
+              } catch (err) {
+                console.error(err)
               }
             })
           )
