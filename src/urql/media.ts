@@ -3,13 +3,14 @@ import type { Cache, ResolveInfo } from '@urql/exchange-graphcache'
 import type { ServerResolverParameters } from './server'
 import { Media, type MediaPage, type Resolvers } from '../generated/graphql'
 
-import { map } from 'rxjs/operators'
+import { map, switchMap, tap } from 'rxjs/operators'
 
 import { makeScannarrHandle2, groupRelatedHandles } from './utils'
 import { ServerContext } from './client'
 import { observableToAsyncIterable } from '../utils/observableToAsyncIterable'
 import { mergeOriginSubscriptionResults, subscribeToOrigins } from '../utils/origin'
-import { groupBy, isScannarrUri } from '../utils'
+import { fromScannarrUri, groupBy, isScannarrUri } from '../utils'
+import { combineLatest, lastValueFrom, of } from 'rxjs'
 
 export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolverParameters) => ({
   Media: {
@@ -72,7 +73,7 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
             name: 'mediaPage',
             mergeHandles
           }).pipe(
-            map(results => {
+            switchMap(results => {
               try {
                 const handles =
                   results
@@ -88,6 +89,7 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                 // console.log('handles', handles)
                 // console.log('handleNodes', handleNodes)
 
+                // const { handleGroups } = groupRelatedHandles({ results: handles })
                 const { handleGroups } = groupRelatedHandles({ results: handleNodes })
                 const scannarrHandles =
                   handleGroups
@@ -98,15 +100,56 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                       })
                     ) as Media[]
 
-                console.log('scannarrHandles', scannarrHandles)
+                const scannarrNodes = scannarrHandles.map(handle => {
+                  const node = graph.findOne((node) =>
+                    node.origin === 'scannarr' &&
+                    fromScannarrUri(handle.uri)
+                      ?.handleUris
+                      .some(handleUri => node.uri.includes(handleUri))
+                  )
 
-                return {
-                  mediaPage: {
-                    nodes: scannarrHandles
+                  if (node) {
+                    return graph.updateOne(node._id, (node) => mergeHandles(node, handle))
+                  } else {
+                    return graph.insertOne(handle)
                   }
-                }
+                })
+
+                console.log('scannarrHandles', scannarrHandles)
+                // console.log('scannarrNodes', scannarrNodes)
+
+                console.log('obs', scannarrNodes.map(node => graph.findOne(node!._id)))
+                // console.log('obs', scannarrNodes.map(node => lastValueFrom(graph.mapOne(node!._id, (data) => data))))
+
+                combineLatest(scannarrNodes.map(node => graph.mapOne(node!._id, (data) => data)))
+                    .pipe(
+                      map(results => ({
+                        mediaPage: {
+                          nodes: results
+                        }
+                      })),
+                      tap(val => console.log('val', val))
+                    )
+                    .subscribe(val => console.log('sub', val))
+
+                return (
+                  combineLatest(scannarrNodes.map(node => graph.mapOne(node!._id, (data) => data)))
+                    .pipe(
+                      map(results => ({
+                        mediaPage: {
+                          nodes: results
+                        }
+                      })),
+                      tap(val => console.log('val', val))
+                    )
+                )
               } catch (err) {
                 console.error(err)
+                return of({
+                  mediaPage: {
+                    nodes: []
+                  }
+                })
               }
             })
           )

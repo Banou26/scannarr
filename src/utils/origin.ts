@@ -151,23 +151,11 @@ export const subscribeToOrigins = <T extends ValidSubscriptionKeys>(
               console.error(result.error)
             } else if (result.data) {
               try {
-                console.log('getNodes', getNodes(result.data))
                 const nodes =
                   getNodes(result.data)
                     .map(childNode => {
                       const existingNode = graph.findOne(node => node.uri === childNode.uri)
                       if (existingNode) {
-                        // if (childNode.uri === 'mal:52299') {
-                        //   console.log('childNode', childNode)
-                        //   console.log('existingNode', existingNode)
-                        //   console.log(
-                        //     'merge result',
-                        //     mergeHandles([
-                        //       existingNode,
-                        //       recursiveRemoveNullable(childNode)
-                        //     ])
-                        //   )
-                        // }
                         return graph.updateOne(
                           existingNode._id,
                           (node) => ({
@@ -183,8 +171,6 @@ export const subscribeToOrigins = <T extends ValidSubscriptionKeys>(
                       return graph.insertOne(childNode)
                     })
                     
-                console.log('nodes', nodes)
-
                 for(const node of nodes) {
                   graph.updateOne(
                     node._id,

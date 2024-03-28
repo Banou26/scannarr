@@ -204,8 +204,22 @@ export const makeInMemoryGraphDatabase = () => {
   return {
     nodes,
     mapNode,
-    findNodeOne: <T extends InternalNode<Node>>(filter: (value: Node, node: InternalNode<Node>) => boolean) => findOne(filter) as (T & { _id: string }) | undefined,
-    findOne: <T extends Node>(filter: (value: Node, node: InternalNode<Node>) => boolean) => findOne(filter)?.data as (T & { _id: string }) | undefined,
+    findNodeOne: <T extends InternalNode<Node>>(filter: (value: Node, node: InternalNode<Node>) => boolean) => {
+      const foundNode =
+        typeof filter === 'string'
+          ? nodes.get(filter)
+          : findOne(filter)
+
+      return foundNode as (T & { _id: string }) | undefined
+    },
+    findOne: <T extends Node>(filter: (value: Node, node: InternalNode<Node>) => boolean) => {
+      const foundNode =
+        typeof filter === 'string'
+          ? nodes.get(filter)
+          : findOne(filter)
+
+      return foundNode?.data as (T & { _id: string }) | undefined
+    },
     findNode: <T extends InternalNode<Node>>(filter: (value: Node, node: InternalNode<Node>) => boolean) => find(filter) as (T & { _id: string })[],
     find: <T extends Node>(filter: (value: Node, node: InternalNode<Node>) => boolean) =>
       find(filter).map(node => node.data) as (T & { _id: string })[],
