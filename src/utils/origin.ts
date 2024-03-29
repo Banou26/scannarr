@@ -8,6 +8,7 @@ import { groupRelatedHandles, makeScannarrHandle2 } from '../urql'
 import { InMemoryGraphDatabase, NodeData, getNodes, recursiveRemoveNullable, replaceNodePairs } from '../urql/graph'
 import { merge } from './deep-merge'
 import { keyResolvers } from '../urql/client'
+import { fromScannarrUri } from './uri'
 
 type KeyResolvers = typeof keyResolvers
 type KeyResolversMap = {
@@ -187,6 +188,70 @@ export const subscribeToOrigins = <T extends ValidSubscriptionKeys>(
                     }
                   )
                 }
+
+                const __typename = nodes[0]?.__typename
+
+                if (__typename) {
+                  const allScannarrNodes = graph.find(node => node.origin === 'scannarr' && node.__typename === __typename)
+
+                  for (const node of nodes) {
+                    const scannarrNode = allScannarrNodes.find(scannarrNode =>
+                      fromScannarrUri(node.uri)
+                        ?.handleUris
+                        .some(handleUri => scannarrNode.uri.includes(handleUri))
+                    )
+
+                    if (scannarrNode) {
+                      graph.updateOne(
+                        scannarrNode._id,
+                        scannarrNode => mergeHandles([scannarrNode, node])
+                      )
+                    } else {
+                      const scannarrNode = graph.insertOne(
+                        makeScannarrHandle2({
+                          handles: [node],
+                          mergeHandles
+                        })
+                      )
+                      allScannarrNodes.push(scannarrNode)
+                    }
+                  }
+
+                }
+
+
+
+                // const handleGroups = groupRelatedHandles({ results: nodes })
+                // for (const handles of handleGroups.handleGroups) {
+                //   mergeHandles(handles)
+                // }
+
+
+
+                // const { handleGroups } = groupRelatedHandles({ results: nodes })
+                // const scannarrHandles =
+                //   handleGroups
+                //     .map(handles =>
+                //       makeScannarrHandle2({
+                //         handles,
+                //         mergeHandles
+                //       })
+                //     ) as Media[]
+
+                // const scannarrNodes = scannarrHandles.map(handle => {
+                //   const node = graph.findOne((node) =>
+                //     node.origin === 'scannarr' &&
+                //     fromScannarrUri(handle.uri)
+                //       ?.handleUris
+                //       .some(handleUri => node.uri.includes(handleUri))
+                //   )
+
+                //   if (node) {
+                //     return graph.updateOne(node._id, (node) => mergeHandles(node, handle))
+                //   } else {
+                //     return graph.insertOne(handle)
+                //   }
+                // })
               } catch (err) {
                 console.error(err)
               }

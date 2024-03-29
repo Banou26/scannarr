@@ -3,7 +3,7 @@ import type { Cache, ResolveInfo } from '@urql/exchange-graphcache'
 import type { ServerResolverParameters } from './server'
 import { Media, type MediaPage, type Resolvers } from '../generated/graphql'
 
-import { map, switchMap, tap } from 'rxjs/operators'
+import { catchError, map, switchMap, tap } from 'rxjs/operators'
 
 import { makeScannarrHandle2, groupRelatedHandles } from './utils'
 import { ServerContext } from './client'
@@ -73,7 +73,7 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
             name: 'mediaPage',
             mergeHandles
           }).pipe(
-            switchMap(results => {
+            map(results => {
               try {
                 const handles =
                   results
@@ -86,10 +86,6 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                       graph.findOne((node) => node.uri === mediaHandle.uri)
                     )
 
-                // console.log('handles', handles)
-                // console.log('handleNodes', handleNodes)
-
-                // const { handleGroups } = groupRelatedHandles({ results: handles })
                 const { handleGroups } = groupRelatedHandles({ results: handleNodes })
                 const scannarrHandles =
                   handleGroups
@@ -100,56 +96,132 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                       })
                     ) as Media[]
 
-                const scannarrNodes = scannarrHandles.map(handle => {
-                  const node = graph.findOne((node) =>
+                const scannarrNodes = scannarrHandles.map(handle =>
+                  graph.findOne((node) =>
                     node.origin === 'scannarr' &&
                     fromScannarrUri(handle.uri)
                       ?.handleUris
                       .some(handleUri => node.uri.includes(handleUri))
                   )
+                )
 
-                  if (node) {
-                    return graph.updateOne(node._id, (node) => mergeHandles(node, handle))
-                  } else {
-                    return graph.insertOne(handle)
+                console.log('scannarrNodes', scannarrNodes)
+
+                return ({
+                  mediaPage: {
+                    nodes: scannarrNodes
                   }
                 })
 
-                console.log('scannarrHandles', scannarrHandles)
-                // console.log('scannarrNodes', scannarrNodes)
-
-                console.log('obs', scannarrNodes.map(node => graph.findOne(node!._id)))
-                // console.log('obs', scannarrNodes.map(node => lastValueFrom(graph.mapOne(node!._id, (data) => data))))
-
-                combineLatest(scannarrNodes.map(node => graph.mapOne(node!._id, (data) => data)))
-                    .pipe(
-                      map(results => ({
-                        mediaPage: {
-                          nodes: results
-                        }
-                      })),
-                      tap(val => console.log('val', val))
-                    )
-                    .subscribe(val => console.log('sub', val))
-
-                return (
-                  combineLatest(scannarrNodes.map(node => graph.mapOne(node!._id, (data) => data)))
-                    .pipe(
-                      map(results => ({
-                        mediaPage: {
-                          nodes: results
-                        }
-                      })),
-                      tap(val => console.log('val', val))
-                    )
-                )
+                // return (
+                //   combineLatest(scannarrNodes.map(node => graph.mapOne(node!._id, (data) => data)))
+                //     .pipe(
+                //       map(results => ({
+                //         mediaPage: {
+                //           nodes: results
+                //         }
+                //       })),
+                //       tap(val => console.log('val', val))
+                //     )
+                // )
               } catch (err) {
                 console.error(err)
-                return of({
+                return ({
                   mediaPage: {
                     nodes: []
                   }
                 })
+              }
+            }),
+            switchMap(({ mediaPage }) =>
+              combineLatest(
+                mediaPage
+                  .nodes
+                  .map(node => {
+                    const isFieldNode = (node: SelectionNode): node is FieldNode => node.kind === 'Field'
+                    const isFragmentSpreadNode = (node: SelectionNode): node is FragmentSpreadNode => node.kind === 'FragmentSpread'
+
+                    const mapNodeToSelection = <T extends Node<any>>(currentNode: T, selection: SelectionSetNode | FragmentSpreadNode) => {
+                      // console.log('currentNode', currentNode, selection)
+                      if (Array.isArray(currentNode)) {
+                        return currentNode.map(nodeValue => mapNodeToSelection(nodeValue, selection))
+                      }
+
+                      if (!currentNode) return null
+                      const selections =
+                        selection.kind === 'FragmentSpread'
+                          ? info.fragments[selection.name.value]?.selectionSet.selections
+                          : selection.selections
+
+                      if (!selections) throw new Error('No selections')
+
+                      const buildObjectWithValue = (nodeValue: T) => ({
+                        ...nodeValue,
+                        ...selections
+                          .filter(isFieldNode)
+                          .reduce((result, node) => ({
+                            ...result,
+                            [node.name.value]:
+                              node.selectionSet
+                                ? mapNodeToSelection(nodeValue[node.name.value], node.selectionSet)
+                                : nodeValue[node.name.value]
+                          }), {}),
+                        ...selections
+                          .filter(isFragmentSpreadNode)
+                          .reduce((result, node) => ({
+                            ...result,
+                            ...Object.fromEntries(
+                              (info.fragments[node.name.value]?.selectionSet.selections ?? [])
+                                .filter(isFieldNode)
+                                .map(node => [
+                                  node.name.value,
+                                  node.selectionSet
+                                    ? mapNodeToSelection(nodeValue[node.name.value], node.selectionSet)
+                                    : nodeValue[node.name.value]
+                                ])
+                            )
+                          }), {})
+                      })
+
+                      if (!currentNode?.__graph_type__) {
+                        return buildObjectWithValue(currentNode)
+                      }
+                      const res = currentNode.map(buildObjectWithValue)
+                      // console.log('res', res, currentNode)
+                      return res
+                    }
+
+                    const rootSelectionSet =
+                      info
+                        .fieldNodes
+                        .find(node => node.name.value === 'mediaPage')
+                        ?.selectionSet
+                        ?.selections
+                        .filter(isFieldNode)
+                        ?.find(node => node.name.value === 'nodes')
+                        ?.selectionSet
+
+                    if (!rootSelectionSet) throw new Error('No rootSelectionSet')
+
+                    // const mappedSelection = mapNodeToSelection(node, rootSelectionSet)
+                    // console.log('node', node)
+                    // console.log('nodeValue', nodeValue)
+                    // console.log('mappedSelection', node, mappedSelection)
+                    return graph.mapOne(node._id, (data) => mapNodeToSelection(data, rootSelectionSet))
+                  })
+              )
+            ),
+            map((results) => console.log('results', results) || ({
+              mediaPage: {
+                nodes: results
+              }
+            })),
+            catchError(err => {
+              console.error(err)
+              return {
+                mediaPage: {
+                  nodes: []
+                }
               }
             })
           )
