@@ -192,30 +192,95 @@ export const subscribeToOrigins = <T extends ValidSubscriptionKeys>(
                 const __typename = nodes[0]?.__typename
 
                 if (__typename) {
-                  const allScannarrNodes = graph.find(node => node.origin === 'scannarr' && node.__typename === __typename)
+                  const { handleGroups } = groupRelatedHandles({
+                    results:
+                      graph.find(node =>
+                        node.origin !== 'scannarr' &&
+                        node.__typename === __typename
+                      )
+                  })
+                  console.log('handleGroups', handleGroups)
 
-                  for (const node of nodes) {
-                    const scannarrNode = allScannarrNodes.find(scannarrNode =>
-                      fromScannarrUri(node.uri)
-                        ?.handleUris
-                        .some(handleUri => scannarrNode.uri.includes(handleUri))
-                    )
+                  // const allScannarrNodes = graph.find(node => node.origin === 'scannarr' && node.__typename === __typename)
+                  // console.log('allScannarrNodes', allScannarrNodes)
+
+                  for (const groupedHandles of handleGroups) {
+                    const scannarrNode =
+                      graph.findOne((scannarrNode) =>
+                        scannarrNode.origin === 'scannarr' &&
+                        fromScannarrUri(scannarrNode.uri)
+                          ?.handleUris
+                          .some(handleUri =>
+                            groupedHandles
+                              .some(handle => handleUri === handle.uri)
+                          )
+                      )
 
                     if (scannarrNode) {
                       graph.updateOne(
                         scannarrNode._id,
-                        scannarrNode => mergeHandles([scannarrNode, node])
+                        (node) => mergeHandles([node, ...groupedHandles])
                       )
                     } else {
-                      const scannarrNode = graph.insertOne(
+                      graph.insertOne(
                         makeScannarrHandle2({
-                          handles: [node],
+                          handles: groupedHandles,
                           mergeHandles
                         })
                       )
-                      allScannarrNodes.push(scannarrNode)
                     }
                   }
+
+                  // for (const node of nodes) {
+                  //   // const scannarrNode = allScannarrNodes.find(scannarrNode =>
+                  //   //   fromScannarrUri(scannarrNode.uri)
+                  //   //     ?.handleUris
+                  //   //     .some(handleUri => node.uri === handleUri)
+                  //   // )
+
+                  //   // if (node.uri === 'anilist:170953' || node.uri === 'cr:G6WEM1V36' || node.uri === 'mal:57180') {
+                  //   //   console.log('scannarrNode AAAAAAAAAAA', node, scannarrNode, { ...scannarrNode, handles: [...scannarrNode?.handles ?? []] })
+                  //   // }
+
+                  //   const scannarrNode = graph.findOne((scannarrNode) =>
+                  //     scannarrNode.origin === 'scannarr' &&
+                  //     fromScannarrUri(scannarrNode.uri)
+                  //       ?.handleUris
+                  //       .some(handleUri => node.uri.includes(handleUri))
+                  //   )
+
+                  //   if (scannarrNode) {
+                  //     // console.log('scannarrNode AAAAAAAAAAA', node, scannarrNode)
+                  //     const updatedNode = graph.updateOne(
+                  //       scannarrNode._id,
+                  //       scannarrNode => {
+                  //         const res = mergeHandles([scannarrNode, node, ...scannarrNode.handles])
+                  //         // if (node.uri === 'anilist:170953' || node.uri === 'cr:G6WEM1V36' || node.uri === 'mal:57180') {
+                  //         //   console.log('updated scannarrNode RES', res)
+                  //         // }
+                  //         return res
+                  //       }
+                  //     )
+
+                  //     allScannarrNodes.splice(allScannarrNodes.indexOf(scannarrNode), 1)
+                  //     allScannarrNodes.push(updatedNode)
+                  //     // if (node.uri === 'anilist:170953' || node.uri === 'cr:G6WEM1V36' || node.uri === 'mal:57180') {
+                  //     //   console.log('updated scannarrNode', updatedNode, { ...updatedNode, handles: [...updatedNode?.handles ?? []] })
+                  //     // }
+                  //     // console.log('updated scannarrNode', updatedNode)
+                  //   } else {
+                  //     const scannarrNode = graph.insertOne(
+                  //       makeScannarrHandle2({
+                  //         handles: [node],
+                  //         mergeHandles
+                  //       })
+                  //     )
+                  //     allScannarrNodes.push(scannarrNode)
+                  //     if (node.uri === 'anilist:170953' || node.uri === 'cr:G6WEM1V36' || node.uri === 'mal:57180') {
+                  //       console.log('INSERTING scannarrNode RES', node, scannarrNode)
+                  //     }
+                  //   }
+                  // }
 
                 }
 

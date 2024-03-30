@@ -220,9 +220,13 @@ export const makeInMemoryGraphDatabase = () => {
 
       return foundNode?.data as (T & { _id: string }) | undefined
     },
-    findNode: <T extends InternalNode<Node>>(filter: (value: Node, node: InternalNode<Node>) => boolean) => find(filter) as (T & { _id: string })[],
+    findNode: <T extends InternalNode<Node>>(filter: (value: Node, node: InternalNode<Node>) => boolean) =>
+      find(filter)
+        .filter(Boolean) as (T & { _id: string })[],
     find: <T extends Node>(filter: (value: Node, node: InternalNode<Node>) => boolean) =>
-      find(filter).map(node => node.data) as (T & { _id: string })[],
+      find(filter)
+        .map(node => node.data)
+        .filter(Boolean) as (T & { _id: string })[],
     mapOne: <T extends (nodeData: Node, node: InternalNode<Node>) => Node & { _id: string }>(filter: string | ((value: Node, node: InternalNode<Node>) => boolean), fn: T) => {
       const foundNode =
         typeof filter === 'string'
@@ -269,7 +273,11 @@ export const makeInMemoryGraphDatabase = () => {
         console.log('No node found for', filter)
         return
       }
+      const _data = { ...node.data, handles: node.data.handles }
       node.data = Object.assign(node.data, updateFunction(node.data, node))
+      if (node.data.origin === 'scannarr' && (node.data.id.includes('anilist:170953') || node.data.id.includes('cr:G6WEM1V36') || node.data.id.includes('mal:57180'))) {
+        console.log('updated scannarrNode', _data, { ...node.data, handles: node.data.handles })
+      }
       node.subject.next(node.data)
       return node.data
     }

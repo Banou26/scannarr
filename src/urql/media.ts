@@ -96,16 +96,60 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                       })
                     ) as Media[]
 
-                const scannarrNodes = scannarrHandles.map(handle =>
-                  graph.findOne((node) =>
+                // const allScannarrNodes = graph.find(node => node.origin === 'scannarr' && node.__typename === 'Media')
+                // const scannarrNodes = allScannarrNodes.map(handle =>
+
+                // if (
+                //   nodes.some(node =>
+                //     node.id.includes('anilist:170953') ||
+                //     node.id.includes('cr:G6WEM1V36') ||
+                //     node.id.includes('mal:57180')  
+                //   )
+                // ) {
+                //   console.log('GHMMMMMMMMM', nodes[0]?.__typename === 'Media', handles)
+                //   console.log('scannarrEpisodeHandles', handles, handleGroups)
+                // }
+
+                const scannarrNodes = scannarrHandles.map(handle => {
+                  const res = graph.findOne((node) =>
+                    // (handle.uri === 'scannarr:(anilist:170953,cr:G6WEM1V36,mal:57180)' ? console.log('BRRRRRRRRRRRRRRRRRRRR', handle, node) : null) ||
                     node.origin === 'scannarr' &&
-                    fromScannarrUri(handle.uri)
+                    fromScannarrUri(node.uri)
                       ?.handleUris
-                      .some(handleUri => node.uri.includes(handleUri))
+                      .some(handleUri =>
+                        fromScannarrUri(handle.uri)
+                          ?.handleUris
+                          .some(handleUri2 =>
+                            handleUri === handleUri2
+                          )
+                      )
                   )
-                )
+
+                  if (!res) {
+                    console.log('handle', handle)
+
+                    graph.findOne((node) =>
+                      node.origin === 'scannarr' &&
+                      // (console.log('BRRRRRRRRRRRRRRRRRRRR', handle, node) ||
+                        fromScannarrUri(node.uri)
+                          ?.handleUris
+                          .some(handleUri =>
+                            fromScannarrUri(handle.uri)
+                              ?.handleUris
+                              .some(handleUri2 =>
+                                handleUri === handleUri2
+                              )
+                          )
+                      // )
+                    )
+                  }
+
+                  
+                  return res
+                })
 
                 console.log('scannarrNodes', scannarrNodes)
+                console.log('scannarrHandles', scannarrHandles)
 
                 return ({
                   mediaPage: {
