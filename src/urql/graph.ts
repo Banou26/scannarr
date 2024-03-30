@@ -14,25 +14,12 @@ export type RemoveNullable<T> =
 export const recursiveRemoveNullable = <T>(obj: T): RemoveNullable<T> => {
   const ref = new Set()
 
-  // const recurse = (obj: any): any =>
-  //   (Array.isArray(obj)
-  //     ? obj.map(recursiveRemoveNullable)
-  //     : (
-  //       typeof obj === 'object'
-  //         ? (
-  //           Object
-  //             .fromEntries(
-  //               Object
-  //                 .entries(obj)
-  //                 .filter(([_, value]) => value !== null && value !== undefined)
-  //                 .map(([key, value]) => [key, recursiveRemoveNullable(value)])
-  //             )
-  //         )
-  //         : obj
-  //     )) as RemoveNullable<T>
-
   const recurse = (obj: any): any => {
-    if (Array.isArray(obj)) return obj.map(recurse)
+    if (Array.isArray(obj)) {
+      if (ref.has(obj)) return
+      ref.add(obj)
+      return obj.map(recurse)
+    }
     if (obj && typeof obj === 'object') {
       if (ref.has(obj)) return
       ref.add(obj)
@@ -273,11 +260,7 @@ export const makeInMemoryGraphDatabase = () => {
         console.log('No node found for', filter)
         return
       }
-      const _data = { ...node.data, handles: node.data.handles }
       node.data = Object.assign(node.data, updateFunction(node.data, node))
-      if (node.data.origin === 'scannarr' && (node.data.id.includes('anilist:170953') || node.data.id.includes('cr:G6WEM1V36') || node.data.id.includes('mal:57180'))) {
-        console.log('updated scannarrNode', _data, { ...node.data, handles: node.data.handles })
-      }
       node.subject.next(node.data)
       return node.data
     }

@@ -121,6 +121,8 @@ export const groupRelatedHandles = <T extends Handle>({ results: _results }: { r
 export const makeScannarrHandle2 = ({ handles, mergeHandles }: { handles: HandleType[], mergeHandles: <T2 extends HandleType[]>(handles: T2) => T2[number] }) => {
   const handlesSet = new Set()
   const getRecursiveHandles = (handle: Handle): Handle[] => {
+    if (handlesSet.has(handle)) return []
+    handlesSet.add(handle)
     if (handlesSet.has(handle.uri)) return []
     handlesSet.add(handle.uri)
 

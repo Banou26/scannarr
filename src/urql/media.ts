@@ -96,23 +96,8 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                       })
                     ) as Media[]
 
-                // const allScannarrNodes = graph.find(node => node.origin === 'scannarr' && node.__typename === 'Media')
-                // const scannarrNodes = allScannarrNodes.map(handle =>
-
-                // if (
-                //   nodes.some(node =>
-                //     node.id.includes('anilist:170953') ||
-                //     node.id.includes('cr:G6WEM1V36') ||
-                //     node.id.includes('mal:57180')  
-                //   )
-                // ) {
-                //   console.log('GHMMMMMMMMM', nodes[0]?.__typename === 'Media', handles)
-                //   console.log('scannarrEpisodeHandles', handles, handleGroups)
-                // }
-
                 const scannarrNodes = scannarrHandles.map(handle => {
                   const res = graph.findOne((node) =>
-                    // (handle.uri === 'scannarr:(anilist:170953,cr:G6WEM1V36,mal:57180)' ? console.log('BRRRRRRRRRRRRRRRRRRRR', handle, node) : null) ||
                     node.origin === 'scannarr' &&
                     fromScannarrUri(node.uri)
                       ?.handleUris
@@ -126,11 +111,8 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                   )
 
                   if (!res) {
-                    console.log('handle', handle)
-
                     graph.findOne((node) =>
                       node.origin === 'scannarr' &&
-                      // (console.log('BRRRRRRRRRRRRRRRRRRRR', handle, node) ||
                         fromScannarrUri(node.uri)
                           ?.handleUris
                           .some(handleUri =>
@@ -140,7 +122,6 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                                 handleUri === handleUri2
                               )
                           )
-                      // )
                     )
                   }
 
@@ -156,18 +137,6 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                     nodes: scannarrNodes
                   }
                 })
-
-                // return (
-                //   combineLatest(scannarrNodes.map(node => graph.mapOne(node!._id, (data) => data)))
-                //     .pipe(
-                //       map(results => ({
-                //         mediaPage: {
-                //           nodes: results
-                //         }
-                //       })),
-                //       tap(val => console.log('val', val))
-                //     )
-                // )
               } catch (err) {
                 console.error(err)
                 return ({
@@ -247,10 +216,6 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
 
                     if (!rootSelectionSet) throw new Error('No rootSelectionSet')
 
-                    // const mappedSelection = mapNodeToSelection(node, rootSelectionSet)
-                    // console.log('node', node)
-                    // console.log('nodeValue', nodeValue)
-                    // console.log('mappedSelection', node, mappedSelection)
                     return graph.mapOne(node._id, (data) => mapNodeToSelection(data, rootSelectionSet))
                   })
               )
