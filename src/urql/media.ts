@@ -3,7 +3,7 @@ import type { Cache, ResolveInfo } from '@urql/exchange-graphcache'
 import type { ServerResolverParameters } from './server'
 import { Media, type MediaPage, type Resolvers } from '../generated/graphql'
 
-import { catchError, map, switchMap, tap } from 'rxjs/operators'
+import { catchError, map, switchMap, tap, throttleTime } from 'rxjs/operators'
 
 import { makeScannarrHandle2, groupRelatedHandles } from './utils'
 import { ServerContext } from './client'
@@ -13,36 +13,36 @@ import { fromScannarrUri, groupBy, isScannarrUri } from '../utils'
 import { combineLatest, lastValueFrom, of } from 'rxjs'
 
 export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolverParameters) => ({
-  Media: {
-    // @ts-expect-error
-    episodes: (parent, args, ctx, info) => {
-      if (!isScannarrUri(parent.uri)) return parent.episodes
+  // Media: {
+  //   // @ts-expect-error
+  //   episodes: (parent, args, ctx, info) => {
+  //     if (!isScannarrUri(parent.uri)) return parent.episodes
 
-      const originHandles =
-        parent
-          .episodes
-          .flatMap(episode => episode.handles ?? [])
+  //     const originHandles =
+  //       parent
+  //         .episodes
+  //         .flatMap(episode => episode.handles ?? [])
 
-      const groupedEpisodes = [
-        ...groupBy(
-          originHandles,
-          episode => episode.number
-        )
-      ]
+  //     const groupedEpisodes = [
+  //       ...groupBy(
+  //         originHandles,
+  //         episode => episode.number
+  //       )
+  //     ]
 
-      const scannarrEpisodes =
-        groupedEpisodes
-          .filter(([episodeNumber]) => episodeNumber !== null && episodeNumber !== undefined)
-          .map(([, handles]) =>
-            makeScannarrHandle2({
-              handles,
-              mergeHandles
-            })
-          )
+  //     const scannarrEpisodes =
+  //       groupedEpisodes
+  //         .filter(([episodeNumber]) => episodeNumber !== null && episodeNumber !== undefined)
+  //         .map(([, handles]) =>
+  //           makeScannarrHandle2({
+  //             handles,
+  //             mergeHandles
+  //           })
+  //         )
 
-      return scannarrEpisodes
-    }
-  },
+  //     return scannarrEpisodes
+  //   }
+  // },
   Subscription: {
     media: {
       subscribe: (_, __, context) =>
@@ -96,23 +96,11 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                       })
                     ) as Media[]
 
-                const scannarrNodes = scannarrHandles.map(handle => {
-                  const res = graph.findOne((node) =>
-                    node.origin === 'scannarr' &&
-                    fromScannarrUri(node.uri)
-                      ?.handleUris
-                      .some(handleUri =>
-                        fromScannarrUri(handle.uri)
-                          ?.handleUris
-                          .some(handleUri2 =>
-                            handleUri === handleUri2
-                          )
-                      )
-                  )
-
-                  if (!res) {
-                    graph.findOne((node) =>
-                      node.origin === 'scannarr' &&
+                const scannarrNodes =
+                  scannarrHandles
+                    .map(handle =>
+                      graph.findOne((node) =>
+                        node.origin === 'scannarr' &&
                         fromScannarrUri(node.uri)
                           ?.handleUris
                           .some(handleUri =>
@@ -122,15 +110,8 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                                 handleUri === handleUri2
                               )
                           )
+                      )
                     )
-                  }
-
-                  
-                  return res
-                })
-
-                console.log('scannarrNodes', scannarrNodes)
-                console.log('scannarrHandles', scannarrHandles)
 
                 return ({
                   mediaPage: {
@@ -155,7 +136,6 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                     const isFragmentSpreadNode = (node: SelectionNode): node is FragmentSpreadNode => node.kind === 'FragmentSpread'
 
                     const mapNodeToSelection = <T extends Node<any>>(currentNode: T, selection: SelectionSetNode | FragmentSpreadNode) => {
-                      // console.log('currentNode', currentNode, selection)
                       if (Array.isArray(currentNode)) {
                         return currentNode.map(nodeValue => mapNodeToSelection(nodeValue, selection))
                       }
@@ -220,7 +200,8 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                   })
               )
             ),
-            map((results) => console.log('results', results) || ({
+            throttleTime(100, undefined, { leading: true, trailing: true }),
+            map((results) => ({
               mediaPage: {
                 nodes: results
               }

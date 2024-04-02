@@ -147,7 +147,6 @@ export const subscribeToOrigins = <T extends ValidSubscriptionKeys>(
               : { ...result, origin }) as typeof result & { origin: OriginCtx }
           ),
           tap((result) => {
-            console.log('new results incoming')
             if (result.error) {
               console.warn('Error in origin', result.origin.origin.name)
               console.error(result.error)
@@ -214,7 +213,7 @@ export const subscribeToOrigins = <T extends ValidSubscriptionKeys>(
                       )
 
                     if (scannarrNode) {
-                      console.log('update scannarrNode', scannarrNode, groupedHandles)
+                      // console.log('update scannarrNode', scannarrNode, groupedHandles)
                       graph.updateOne(
                         scannarrNode._id,
                         (node) => {
@@ -233,20 +232,23 @@ export const subscribeToOrigins = <T extends ValidSubscriptionKeys>(
                               )
                             ]
 
-                          return mergeHandles(uniqueHandles)
+                          const mergedResult = makeScannarrHandle2({
+                            handles: uniqueHandles,
+                            mergeHandles
+                          })
+
+                          return {
+                            ...mergedResult,
+                            _id: node._id
+                          }
                         }
                       )
                     } else {
-                      console.log(
-                        'insert scannarrNode',
-                        graph,
-                        graph.insertOne(
-                          makeScannarrHandle2({
-                            handles: groupedHandles,
-                            mergeHandles
-                          })
-                        ),
-                        groupedHandles
+                      graph.insertOne(
+                        makeScannarrHandle2({
+                          handles: groupedHandles,
+                          mergeHandles
+                        })
                       )
                     }
                   }
