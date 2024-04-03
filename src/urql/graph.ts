@@ -102,17 +102,55 @@ const isNode = (value: any): value is Node =>
   value && typeof value === 'object' &&
   '__typename' in value && '_id' in value
 
+const isNodeType = (value: any): value is Node =>
+  value && typeof value === 'object' &&
+  '__typename' in value && (
+    value.__typename === 'Media' ||
+    value.__typename === 'Episode' ||
+    value.__typename === 'UserMedia' ||
+    value.__typename === 'PlaybackSource' ||
+    value.__typename === 'Team' ||
+    value.__typename === 'MediaExternalLink' ||
+    value.__typename === 'MediaTrailer'
+  )
+
 type ExtractNode<T> =
   T extends Node ? T :
   T extends Array<infer U> ? ExtractNode<U>[] :
   T extends object ? { [key in keyof T]: ExtractNode<T[key]> }[keyof T] :
   never
 
+export const getNodesType = <T>(value: T): ExtractNode<T>[] => {
+  const objects = new Set()
+  const nodes: ExtractNode<T>[] = []
+
+  const recurse = (value: any) => {
+    if (!value || typeof value !== 'object') return
+    if (objects.has(value)) return
+    if (isNodeType(value)) {
+      nodes.push(value as ExtractNode<T>)
+      objects.add(value)
+      Object.values(value).map(recurse)
+      return
+    }
+    if (Array.isArray(value)) return value.map(recurse)
+    if (value && typeof value === 'object') {
+      if (objects.has(value)) return
+      objects.add(value)
+      Object.values(value).map(recurse)
+    }
+  }
+
+  recurse(value)
+  return nodes as ExtractNode<T>[]
+}
+
 export const getNodes = <T>(value: T): ExtractNode<T>[] => {
   const objects = new Set()
   const nodes: ExtractNode<T>[] = []
 
   const recurse = (value: any) => {
+    if (!value || typeof value !== 'object') return
     if (objects.has(value)) return
     if (isNode(value)) {
       nodes.push(value as ExtractNode<T>)

@@ -143,7 +143,10 @@ export const groupRelatedHandles = <T extends Handle>({ results: _results }: { r
 
   const groups = mergeRelatedArrays(_groups)
 
-  const handleGroups = groups.map((uris) => results.filter((handle) => uris.includes(handle.uri)))
+  const handleGroups =
+    groups
+      .map((uris) => results.filter((handle) => uris.includes(handle.uri)))
+      .sort((a, b) => b.length - a.length)
 
   return {
     groups,
