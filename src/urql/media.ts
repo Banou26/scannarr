@@ -5,7 +5,7 @@ import { Media, type MediaPage, type Resolvers } from '../generated/graphql'
 
 import { catchError, map, switchMap, tap, throttleTime } from 'rxjs/operators'
 
-import { makeScannarrHandle2, groupRelatedHandles } from './utils'
+import { makeScannarrHandle2, groupRelatedHandles, mapNodeToSelection, isFieldNode } from './utils'
 import { ServerContext } from './client'
 import { observableToAsyncIterable } from '../utils/observableToAsyncIterable'
 import { mergeOriginSubscriptionResults, subscribeToOrigins } from '../utils/origin'
@@ -16,7 +16,7 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
   // Media: {
   //   // @ts-expect-error
   //   episodes: (parent, args, ctx, info) => {
-  //     if (!isScannarrUri(parent.uri)) return parent.episodes
+  //     if (!isScannarrUri(parent.uri)) return parent.episodes ?? []
 
   //     const originHandles =
   //       parent
@@ -40,12 +40,15 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
   //           })
   //         )
 
-  //     return scannarrEpisodes
+  //     return scannarrEpisodes ?? []
   //   }
   // },
+  Episode: {
+    handles: (parent, args, ctx, info) => parent.handles ?? []
+  },
   Subscription: {
     media: {
-      subscribe: (_, __, context) =>
+      subscribe: (_, __, context, info) =>
         observableToAsyncIterable(
           mergeOriginSubscriptionResults({
             graph,
@@ -59,7 +62,44 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
               }),
             mergeHandles,
             name: 'media'
-          })
+          }).pipe(
+            switchMap((result) => {
+              console.log('result', result)
+              const media = result?.media
+
+              const rootSelectionSet =
+                info
+                  .fieldNodes
+                  .find(node => node.name.value === 'media')
+                  ?.selectionSet
+
+              if (!rootSelectionSet) throw new Error('No rootSelectionSet')
+
+              const scannarrNode =
+                graph.findOne((node) =>
+                  node.origin === 'scannarr' &&
+                  fromScannarrUri(node.uri)
+                    ?.handleUris
+                    .some(handleUri =>
+                      fromScannarrUri(media.uri)
+                        ?.handleUris
+                        .some(handleUri2 =>
+                          handleUri === handleUri2
+                        )
+                    )
+                )
+
+              if (!scannarrNode) return of(null)
+
+              return graph.mapOne(scannarrNode._id, (data) => mapNodeToSelection(graph, info, data, rootSelectionSet))
+            }),
+            throttleTime(100, undefined, { leading: true, trailing: true }),
+            map((result) => console.log('result2', result) || ({ media: result })),
+            catchError(err => {
+              console.error(err)
+              return { media: null }
+            })
+          )
         ),
       resolve: (parent) => parent?.media
     },
@@ -132,58 +172,6 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                 mediaPage
                   .nodes
                   .map(node => {
-                    const isFieldNode = (node: SelectionNode): node is FieldNode => node.kind === 'Field'
-                    const isFragmentSpreadNode = (node: SelectionNode): node is FragmentSpreadNode => node.kind === 'FragmentSpread'
-
-                    const mapNodeToSelection = <T extends Node<any>>(currentNode: T, selection: SelectionSetNode | FragmentSpreadNode) => {
-                      if (Array.isArray(currentNode)) {
-                        return currentNode.map(nodeValue => mapNodeToSelection(nodeValue, selection))
-                      }
-
-                      if (!currentNode) return null
-                      const selections =
-                        selection.kind === 'FragmentSpread'
-                          ? info.fragments[selection.name.value]?.selectionSet.selections
-                          : selection.selections
-
-                      if (!selections) throw new Error('No selections')
-
-                      const buildObjectWithValue = (nodeValue: T) => ({
-                        ...nodeValue,
-                        ...selections
-                          .filter(isFieldNode)
-                          .reduce((result, node) => ({
-                            ...result,
-                            [node.name.value]:
-                              node.selectionSet
-                                ? mapNodeToSelection(nodeValue[node.name.value], node.selectionSet)
-                                : nodeValue[node.name.value]
-                          }), {}),
-                        ...selections
-                          .filter(isFragmentSpreadNode)
-                          .reduce((result, node) => ({
-                            ...result,
-                            ...Object.fromEntries(
-                              (info.fragments[node.name.value]?.selectionSet.selections ?? [])
-                                .filter(isFieldNode)
-                                .map(node => [
-                                  node.name.value,
-                                  node.selectionSet
-                                    ? mapNodeToSelection(nodeValue[node.name.value], node.selectionSet)
-                                    : nodeValue[node.name.value]
-                                ])
-                            )
-                          }), {})
-                      })
-
-                      if (!currentNode?.__graph_type__) {
-                        return buildObjectWithValue(currentNode)
-                      }
-                      const res = currentNode.map(buildObjectWithValue)
-                      // console.log('res', res, currentNode)
-                      return res
-                    }
-
                     const rootSelectionSet =
                       info
                         .fieldNodes
@@ -196,7 +184,7 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
 
                     if (!rootSelectionSet) throw new Error('No rootSelectionSet')
 
-                    return graph.mapOne(node._id, (data) => mapNodeToSelection(data, rootSelectionSet))
+                    return graph.mapOne(node._id, (data) => mapNodeToSelection(graph, info, data, rootSelectionSet))
                   })
               )
             ),

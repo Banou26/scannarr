@@ -6,7 +6,59 @@ import { Handle } from '../generated/graphql'
 import { ServerContext } from './client'
 import { HandleType } from './server'
 import { groupBy, merge } from '../utils'
-import { recursiveRemoveNullable } from './graph'
+import { InMemoryGraphDatabase, Node, recursiveRemoveNullable } from './graph'
+import { FieldNode, FragmentSpreadNode, GraphQLResolveInfo, SelectionNode, SelectionSetNode } from 'graphql'
+
+export const isFieldNode = (node: SelectionNode): node is FieldNode => node.kind === 'Field'
+export const isFragmentSpreadNode = (node: SelectionNode): node is FragmentSpreadNode => node.kind === 'FragmentSpread'
+
+export const mapNodeToSelection = <T extends Node>(graph: InMemoryGraphDatabase, info: GraphQLResolveInfo, currentNode: T, selection: SelectionSetNode | FragmentSpreadNode) => {
+  if (Array.isArray(currentNode)) {
+    return currentNode.map(nodeValue => mapNodeToSelection(graph, info, nodeValue, selection))
+  }
+
+  if (!currentNode) return null
+  const selections =
+    selection.kind === 'FragmentSpread'
+      ? info.fragments[selection.name.value]?.selectionSet.selections
+      : selection.selections
+
+  if (!selections) throw new Error('No selections')
+
+  const buildObjectWithValue = (nodeValue: T) => ({
+    ...nodeValue,
+    ...selections
+      .filter(isFieldNode)
+      .reduce((result, node) => ({
+        ...result,
+        [node.name.value]:
+          node.selectionSet
+            ? mapNodeToSelection(graph, info, nodeValue[node.name.value], node.selectionSet)
+            : nodeValue[node.name.value]
+      }), {}),
+    ...selections
+      .filter(isFragmentSpreadNode)
+      .reduce((result, node) => ({
+        ...result,
+        ...Object.fromEntries(
+          (info.fragments[node.name.value]?.selectionSet.selections ?? [])
+            .filter(isFieldNode)
+            .map(node => [
+              node.name.value,
+              node.selectionSet
+                ? mapNodeToSelection(graph, info, nodeValue[node.name.value], node.selectionSet)
+                : nodeValue[node.name.value]
+            ])
+        )
+      }), {})
+  })
+
+  if (!currentNode?.__graph_type__) {
+    return buildObjectWithValue(currentNode)
+  }
+
+  return graph.mapOne(currentNode._id, data => console.log('mapped data', data) || buildObjectWithValue(data))
+}
 
 export const indexHandles = <T extends Handle[]>({ results: _results }: { results: T }) => {
   let results = [...new Map(_results.map(item => [item.uri, item])).values()]

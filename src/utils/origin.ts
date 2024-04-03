@@ -116,7 +116,7 @@ type ValidSubscriptionKeys = Exclude<keyof SubscriptionResolvers, '_empty'>
 // type SubscriptionResolverHandleValue<T extends ValidSubscriptionKeys> = NonUndefinable<Awaited<SubscriptionResolverInnerValue<T>>>
 
 type QueryNameToData<T extends ValidSubscriptionKeys> =
-  T extends 'media' ? { media: Media } :
+  T extends 'media' ? Media :
   T extends 'mediaPage' ? { mediaPage: MediaPage } :
   T extends 'episode' ? { episode: Episode } :
   T extends 'episodePage' ? { episodePage: EpisodePage } :
