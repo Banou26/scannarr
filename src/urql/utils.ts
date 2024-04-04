@@ -61,7 +61,42 @@ export const mapNodeToSelection = <T extends Node>(graph: InMemoryGraphDatabase,
     return graph.mapOne(currentNode._id, data => buildObjectWithValue(data))
   }
 
-  return graph.mapOne(data => data.uri === currentNode.uri, data => buildObjectWithValue(data))
+
+  // todo: FIX THIS, IT SHOULD NEVER BE THE CASE THAT THIS THROWS, THERES AN ISSUE SOMWEHERE THAT DOESNT INSERT THE NODES INTO THE GRAPH
+  try {
+    return (
+      graph
+        .mapOne(
+          data => data.uri === currentNode.uri,
+          data => buildObjectWithValue(data)
+        )
+    )
+  } catch (err) {
+    return currentNode
+  }
+
+  // return (
+  //   currentNode.origin === 'scannarr'
+  //     ? (
+  //       graph.findOne((scannarrNode) =>
+  //         scannarrNode.origin === 'scannarr' &&
+  //         fromScannarrUri(scannarrNode.uri)
+  //           ?.handleUris
+  //           .some(handleUri =>
+  //             fromScannarrUri(currentNode.uri)
+  //               ?.handleUris
+  //               .some(handle => handleUri === handle.uri)
+  //           )
+  //       )
+  //     )
+  //     : (
+  //       graph
+  //         .mapOne(
+  //           data => data.uri === currentNode.uri,
+  //           data => buildObjectWithValue(data)
+  //         )
+  //     )
+  // )
 }
 
 export const indexHandles = <T extends Handle[]>({ results: _results }: { results: T }) => {

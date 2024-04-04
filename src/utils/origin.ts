@@ -157,6 +157,26 @@ export const subscribeToOrigins = <T extends ValidSubscriptionKeys>(
                     .map(childNode => {
                       const existingNode = graph.findOne(node => node.uri === childNode.uri)
                       if (existingNode) {
+
+                        return childNode
+
+                        // return graph.updateOne(
+                        //   existingNode._id,
+                        //   (node) => ({
+                        //     ...node,
+                        //     ...recursiveRemoveNullable(childNode)
+                        //   }) as NodeData
+                        //   // (node) => mergeHandles([
+                        //   //   node,
+                        //   //   recursiveRemoveNullable(childNode)
+                        //   // ]) as NodeData
+                        // )
+                      }
+                      return graph.insertOne(childNode)
+                    })
+                    .map(childNode => {
+                      const existingNode = graph.findOne(node => node.uri === childNode.uri)
+                      if (existingNode) {
                         return graph.updateOne(
                           existingNode._id,
                           (node) => ({
