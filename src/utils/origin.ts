@@ -196,6 +196,23 @@ export const subscribeToOrigins = <T extends ValidSubscriptionKeys>(
                     )
                 })
 
+                const newNodeDataNodes = getNodesType(handleGroups)
+
+                for (const nodeData of newNodeDataNodes) {
+                  const foundNode = graph.findOne(node => node.uri === nodeData.uri)
+                  if (foundNode) {
+                    graph.updateOne(
+                      foundNode._id,
+                      node => ({
+                        ...node,
+                        ...recursiveRemoveNullable(nodeData)
+                      })
+                    )
+                  } else {
+                    graph.insertOne(nodeData)
+                  }
+                }
+
                 for (const groupedHandles of handleGroups) {
                   const scannarrNode =
                     graph.findOne((scannarrNode) =>
@@ -226,18 +243,65 @@ export const subscribeToOrigins = <T extends ValidSubscriptionKeys>(
                                 .values()
                             )
                           ]
+                          .map(handle => {
+                            const foundNode =
+                              graph.findOne(node => node.uri === handle.uri)
+                              ?? graph.insertOne(handle)
+                            return foundNode
+                          })
+
+                        // if (uniqueHandles.some(data => data === undefined)) {
+                        //   console.log('UNDEFINED NODE', uniqueHandles, [...node.handles, ...groupedHandles])
+                        // }
 
                         const mergedResult = makeScannarrHandle2({
                           handles: uniqueHandles,
                           mergeHandles
                         })
 
+                        // if (mergedResult.uri.includes('anilist:153518')) {
+                        //   console.log('MAKING SCANNARR HANDLE', mergedResult, uniqueHandles)
+                        // }
+                      
                         return {
                           ...mergedResult,
                           _id: node._id
                         }
                       }
                     )
+                    // console.log('after update node', graph.findNodeOne(scannarrNode._id))
+
+                    // const newNodeDataNodes = getNodesType(newNodeData)
+
+                    // for (const nodeData of newNodeDataNodes) {
+                    //   const scannarrNode =
+                    //     graph.findOne((scannarrNode) =>
+                    //       scannarrNode.origin === 'scannarr' &&
+                    //       fromScannarrUri(scannarrNode.uri)
+                    //         ?.handleUris
+                    //         .some(handleUri => nodeData.uri === handleUri)
+                    //     )
+
+                    //   if (scannarrNode) {
+                    //     graph.updateOne(
+                    //       scannarrNode._id,
+                    //       (node) => ({
+                    //         ...node,
+                    //         ...recursiveRemoveNullable(nodeData)
+                    //       })
+                    //     )
+                    //   } else {
+                    //     console.log('inserting node node', nodeData)
+                    //     graph.insertOne(
+                    //       makeScannarrHandle2({
+                    //         handles: [nodeData],
+                    //         mergeHandles
+                    //       })
+                    //     )
+                    //   }
+                    // }
+
+                    // console.log('after update node nodes', newNodeDataNodes)
                   } else {
                     graph.insertOne(
                       makeScannarrHandle2({

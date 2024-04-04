@@ -6,7 +6,7 @@ import { Handle } from '../generated/graphql'
 import { ServerContext } from './client'
 import { HandleType } from './server'
 import { groupBy, merge } from '../utils'
-import { InMemoryGraphDatabase, Node, recursiveRemoveNullable } from './graph'
+import { InMemoryGraphDatabase, Node, isNodeType, recursiveRemoveNullable } from './graph'
 import { FieldNode, FragmentSpreadNode, GraphQLResolveInfo, SelectionNode, SelectionSetNode } from 'graphql'
 
 export const isFieldNode = (node: SelectionNode): node is FieldNode => node.kind === 'Field'
@@ -53,11 +53,15 @@ export const mapNodeToSelection = <T extends Node>(graph: InMemoryGraphDatabase,
       }), {})
   })
 
-  if (!currentNode?.__graph_type__) {
+  if (!isNodeType(currentNode)) {
     return buildObjectWithValue(currentNode)
   }
 
-  return graph.mapOne(currentNode._id, data => console.log('mapped data', data) || buildObjectWithValue(data))
+  if (currentNode._id) {
+    return graph.mapOne(currentNode._id, data => buildObjectWithValue(data))
+  }
+
+  return graph.mapOne(data => data.uri === currentNode.uri, data => buildObjectWithValue(data))
 }
 
 export const indexHandles = <T extends Handle[]>({ results: _results }: { results: T }) => {

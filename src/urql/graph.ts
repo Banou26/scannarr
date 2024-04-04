@@ -102,7 +102,7 @@ const isNode = (value: any): value is Node =>
   value && typeof value === 'object' &&
   '__typename' in value && '_id' in value
 
-const isNodeType = (value: any): value is Node =>
+export const isNodeType = (value: any): value is Node =>
   value && typeof value === 'object' &&
   '__typename' in value && (
     value.__typename === 'Media' ||
