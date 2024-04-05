@@ -86,13 +86,13 @@ type ProjectionOperators = {
   $slice?: number | [number, number]
 }
 
-type QuerySelectors = ComparisonQuerySelectors & LogicalQuerySelectors & ElementQuerySelectors & EvaluationQuerySelectors & ArrayQuerySelectors
+export type QuerySelectors = ComparisonQuerySelectors & LogicalQuerySelectors & ElementQuerySelectors & EvaluationQuerySelectors & ArrayQuerySelectors
 
 export const matches = (query: QuerySelectors, doc: any): boolean =>
   Object
     .entries(query)
     .every(([key, value]) => {
-      const { target, key: targetKey } = toPathValue(doc, key)
+      const { target, key: targetKey } = toPathEntry(doc, key)
       if (key.startsWith('$')) {
         if (key in logicalQuerySelectors) {
           return matchesLogicalQuerySelectors(key as LogicalQuerySelector, value, target, targetKey)
