@@ -1,5 +1,5 @@
 import { deepEqual, deepEqualSubset } from './comparison'
-import { toPathEntry, toPathValue } from './path'
+import { pathToKey, pathToTarget, pathToValue, toPathEntry, toPathValue } from './path'
 
 type ComparisonQuerySelectors = {
   /** Matches values that are equal to a specified value. */
@@ -92,7 +92,8 @@ export const matches = (query: QuerySelectors, doc: any): boolean =>
   Object
     .entries(query)
     .every(([key, value]) => {
-      const { target, key: targetKey } = toPathEntry(doc, key)
+      const target = pathToTarget(doc, key)
+      const targetKey = pathToKey(key)
       if (key.startsWith('$')) {
         if (key in logicalQuerySelectors) {
           return matchesLogicalQuerySelectors(key as LogicalQuerySelector, value, target, targetKey)
@@ -101,6 +102,12 @@ export const matches = (query: QuerySelectors, doc: any): boolean =>
           return matchesComparisonQuerySelectors(key as ComparisonQuerySelector, value, target, targetKey)
         }
       }
+      const targetValue = pathToValue(doc, key)
+
+      if (Array.isArray(targetValue)) {
+        return targetValue.some((targetValue) => targetValue === value)
+      }
+
       return deepEqualSubset(target[targetKey], value)
     }
   )

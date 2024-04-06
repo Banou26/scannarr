@@ -25,8 +25,7 @@ export const makeGraphDatabase = () => {
   ]
 
   const findPreResults = (filter: QuerySelectors) => {
-    const usedIndexers = indexers.filter(indexer => indexer.shouldBeUsed(filter))
-    console.log('findPreResults', filter, usedIndexers)
+    const usedIndexers = indexers.filter(indexer => indexer.shouldBeUsedOnFilter(filter))
     if (usedIndexers.length === 0) {
       return [...nodes.values()]
     }
@@ -62,7 +61,7 @@ export const makeGraphDatabase = () => {
 
     nodes.set(_id, node)
     indexers
-      .filter(indexer => indexer.shouldBeUsed(node))
+      .filter(indexer => indexer.shouldBeUsedOnNode(data))
       .forEach(indexer => indexer.insertOne(node))
 
     return data
@@ -71,9 +70,14 @@ export const makeGraphDatabase = () => {
   const updateOne = (filter: QuerySelectors, updateFunc: (data: NodeData) => NodeData) => {
     const node = findOne(filter)
     if (!node) throw new Error(`updateOne node not found for filter ${JSON.stringify(filter)}`)
-    const neededIndexers = indexers.filter(indexer => indexer.shouldBeUsed(filter))
     const newNodeData = updateFunc(node.data)
-    neededIndexers.forEach(indexer => indexer.updateOne(node, node.data, newNodeData))
+    indexers
+      .filter(indexer =>
+        indexer.shouldBeUsedOnFilter(filter)
+        || indexer.shouldBeUsedOnNode(newNodeData)
+        || indexer.shouldBeUsedOnNode(node.data)
+      )
+      .forEach(indexer => indexer.updateOne(node, node.data, newNodeData))
     Object.assign(node.data, newNodeData)
     node.subject.next(node.data)
   }

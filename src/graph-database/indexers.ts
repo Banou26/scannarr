@@ -1,11 +1,12 @@
 import type { InternalNode, NodeData } from './index'
-import { pathToKey, pathToTarget, pathToValue, toPathEntry } from './path'
+import { filterPathPartToTarget, pathToKey, pathToTarget, pathToValue } from './path'
 import { QuerySelectors } from './query'
 
 type Indexer = {
   __graph_type__: 'Indexer'
   __propertyPath__?: string
-  shouldBeUsed: (filter: QuerySelectors) => boolean
+  shouldBeUsedOnFilter: (filter: QuerySelectors) => boolean
+  shouldBeUsedOnNode: (data: NodeData) => boolean
   find: (filter: QuerySelectors) => InternalNode<NodeData>[]
   findOne: (filter: QuerySelectors) => InternalNode<NodeData> | undefined
   insertOne: (node: InternalNode<NodeData>) => void
@@ -18,19 +19,17 @@ export const makePropertyIndexer = (propertyPath: string): Indexer => {
   return {
     __graph_type__: 'Indexer' as const,
     __propertyPath__: propertyPath,
-    shouldBeUsed: (filter) => {
+    shouldBeUsedOnFilter: (filter) => propertyPath in filter,
+    shouldBeUsedOnNode: (node) => {
       const key = pathToKey(propertyPath)
-      const value = pathToTarget(filter, propertyPath)
+      const value = pathToTarget(node, propertyPath)
+
+      if (Array.isArray(value)) return true
+
       return value && key in value
     },
-    find: (filter) => {
-      const value = pathToValue(filter, propertyPath)
-      return nodesMap.get(value) ?? []
-    },
-    findOne: (filter) => {
-      const value = pathToValue(filter, propertyPath)
-      return nodesMap.get(value)?.[0]
-    },
+    find: (filter) => nodesMap.get(filter[propertyPath]) ?? [],
+    findOne: (filter) => nodesMap.get(filter[propertyPath])?.[0],
     insertOne: (node) => {
       const key = pathToKey(propertyPath)
       const value = pathToTarget(node.data, propertyPath)
@@ -48,8 +47,6 @@ export const makePropertyIndexer = (propertyPath: string): Indexer => {
         return
       }
 
-      console.log('insertOne', value?.[key], node.data, propertyPath)
-
       nodesMap.set(
         value[key],
         [
@@ -61,6 +58,7 @@ export const makePropertyIndexer = (propertyPath: string): Indexer => {
     updateOne: (node, previousData, newData) => {
       const value = pathToValue(previousData, propertyPath)
       const newValue = pathToValue(newData, propertyPath)
+      // todo: handle cases like array values which would never be equal
       if (value === newValue) return
 
       if (Array.isArray(value)) {
@@ -82,16 +80,22 @@ export const makePropertyIndexer = (propertyPath: string): Indexer => {
         return
       }
 
+      if (Array.isArray(newValue)) {
+        newValue.forEach(value => {
+          nodesMap.set(
+            value,
+            [
+              ...nodesMap.get(value) ?? [],
+              node
+            ]
+          )
+        })
+        return
+      }
+
       nodesMap.set(
         value,
         (nodesMap.get(value) ?? []).filter(_node => _node._id !== node._id)
-      )
-      nodesMap.set(
-        newValue,
-        [
-          ...nodesMap.get(newValue) ?? [],
-          node
-        ]
       )
     },
     removeOne: (node) => {
