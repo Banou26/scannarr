@@ -1,8 +1,10 @@
 import type { InternalNode, NodeData } from './index'
-import { toPathEntry } from './path'
+import { pathToKey, pathToTarget, pathToValue, toPathEntry } from './path'
 import { QuerySelectors } from './query'
 
 type Indexer = {
+  __graph_type__: 'Indexer'
+  __propertyPath__?: string
   shouldBeUsed: (filter: QuerySelectors) => boolean
   find: (filter: QuerySelectors) => InternalNode<NodeData>[]
   findOne: (filter: QuerySelectors) => InternalNode<NodeData> | undefined
@@ -17,54 +19,97 @@ export const makePropertyIndexer = (propertyPath: string): Indexer => {
     __graph_type__: 'Indexer' as const,
     __propertyPath__: propertyPath,
     shouldBeUsed: (filter) => {
-      const { target, key } = toPathEntry(filter, propertyPath)
-      return key in target
+      const key = pathToKey(propertyPath)
+      const value = pathToTarget(filter, propertyPath)
+      return value && key in value
     },
     find: (filter) => {
-      const { target, key } = toPathEntry(filter, propertyPath)
-      if (key in target) {
-        return nodesMap.get(target[key]) ?? []
-      }
-      return []
+      const value = pathToValue(filter, propertyPath)
+      return nodesMap.get(value) ?? []
     },
     findOne: (filter) => {
-      const { target, key } = toPathEntry(filter, propertyPath)
-      if (key in target) {
-        return nodesMap.get(target[key])?.[0]
-      }
+      const value = pathToValue(filter, propertyPath)
+      return nodesMap.get(value)?.[0]
     },
     insertOne: (node) => {
-      const { target, key } = toPathEntry(node.data, propertyPath)
+      const key = pathToKey(propertyPath)
+      const value = pathToTarget(node.data, propertyPath)
+
+      if (Array.isArray(value)) {
+        value.forEach(value => {
+          nodesMap.set(
+            value,
+            [
+              ...nodesMap.get(value) ?? [],
+              node
+            ]
+          )
+        })
+        return
+      }
+
+      console.log('insertOne', value?.[key], node.data, propertyPath)
+
       nodesMap.set(
-        target[key],
+        value[key],
         [
-          ...nodesMap.get(target[key]) ?? [],
+          ...nodesMap.get(value[key]) ?? [],
           node
         ]
       )
     },
     updateOne: (node, previousData, newData) => {
-      const { target, key } = toPathEntry(previousData, propertyPath)
-      const { target: newTarget, key: newKey } = toPathEntry(newData, propertyPath)
-      if (target[key] === newTarget[newKey]) return
+      const value = pathToValue(previousData, propertyPath)
+      const newValue = pathToValue(newData, propertyPath)
+      if (value === newValue) return
+
+      if (Array.isArray(value)) {
+        value.forEach(value => {
+          nodesMap.set(
+            value,
+            (nodesMap.get(value) ?? []).filter(_node => _node._id !== node._id)
+          )
+        })
+        newValue.forEach(value => {
+          nodesMap.set(
+            value,
+            [
+              ...nodesMap.get(value) ?? [],
+              node
+            ]
+          )
+        })
+        return
+      }
 
       nodesMap.set(
-        target[key],
-        (nodesMap.get(target[key]) ?? []).filter(_node => _node._id !== node._id)
+        value,
+        (nodesMap.get(value) ?? []).filter(_node => _node._id !== node._id)
       )
       nodesMap.set(
-        newTarget[newKey],
+        newValue,
         [
-          ...nodesMap.get(newTarget[newKey]) ?? [],
+          ...nodesMap.get(newValue) ?? [],
           node
         ]
       )
     },
     removeOne: (node) => {
-      const { target, key } = toPathEntry(node.data, propertyPath)
+      const value = pathToValue(node.data, propertyPath)
+
+      if (Array.isArray(value)) {
+        value.forEach(value => {
+          nodesMap.set(
+            value,
+            (nodesMap.get(value) ?? []).filter(_node => _node._id !== node._id)
+          )
+        })
+        return
+      }
+
       nodesMap.set(
-        target[key],
-        (nodesMap.get(target[key]) ?? []).filter(_node => _node._id !== node._id)
+        value,
+        (nodesMap.get(value) ?? []).filter(_node => _node._id !== node._id)
       )
     }
   }

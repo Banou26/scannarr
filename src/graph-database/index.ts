@@ -19,11 +19,14 @@ export const makeGraphDatabase = () => {
   const nodes = new Map<string, InternalNode<NodeData>>()
   const indexers = [
     makePropertyIndexer('_id'),
-    makePropertyIndexer('_typename')
+    makePropertyIndexer('_typename'),
+    makePropertyIndexer('origin'),
+    makePropertyIndexer('handles.uri')
   ]
 
   const findPreResults = (filter: QuerySelectors) => {
     const usedIndexers = indexers.filter(indexer => indexer.shouldBeUsed(filter))
+    console.log('findPreResults', filter, usedIndexers)
     if (usedIndexers.length === 0) {
       return [...nodes.values()]
     }
@@ -58,7 +61,9 @@ export const makeGraphDatabase = () => {
     } as InternalNode<NodeData>
 
     nodes.set(_id, node)
-    indexers.forEach(indexer => indexer.insertOne(node))
+    indexers
+      .filter(indexer => indexer.shouldBeUsed(node))
+      .forEach(indexer => indexer.insertOne(node))
 
     return data
   }

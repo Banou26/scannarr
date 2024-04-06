@@ -155,7 +155,7 @@ export const subscribeToOrigins = <T extends ValidSubscriptionKeys>(
                 const nodes =
                   getNodesType(result.data)
                     .map(childNode => {
-                      const existingNode = graph.findOne(node => node.uri === childNode.uri)
+                      const existingNode = graph.findOne({ uri: childNode.uri })
                       if (existingNode) {
 
                         return childNode
@@ -175,7 +175,7 @@ export const subscribeToOrigins = <T extends ValidSubscriptionKeys>(
                       return graph.insertOne(childNode)
                     })
                     .map(childNode => {
-                      const existingNode = graph.findOne(node => node.uri === childNode.uri)
+                      const existingNode = graph.findOne({ uri: childNode.uri })
                       if (existingNode) {
                         return graph.updateOne(
                           existingNode._id,
@@ -199,7 +199,7 @@ export const subscribeToOrigins = <T extends ValidSubscriptionKeys>(
                       const handles =
                         node
                           .handles
-                          ?.map(handle => graph.findOne(node => node.uri === handle.uri))
+                          ?.map(handle => graph.findOne({ uri: handle.uri }))
                           ?? []
                       return ({
                         ...node,
@@ -219,7 +219,7 @@ export const subscribeToOrigins = <T extends ValidSubscriptionKeys>(
                 const newNodeDataNodes = getNodesType(handleGroups)
 
                 for (const nodeData of newNodeDataNodes) {
-                  const foundNode = graph.findOne(node => node.uri === nodeData.uri)
+                  const foundNode = graph.findOne({ uri: nodeData.uri })
                   if (foundNode) {
                     graph.updateOne(
                       foundNode._id,
