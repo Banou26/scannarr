@@ -199,18 +199,22 @@ export const subscribeToOrigins = <T extends ValidSubscriptionKeys>(
                   const groupedHandles = _groupedHandles.filter(node => node.origin !== 'scannarr')
 
                   const scannarrNode =
-                    [...graph.nodes.values()]
-                      .map(node => node.data)
-                      .filter(node => node.origin === 'scannarr')
-                      .find((scannarrNode) =>
-                        scannarrNode.origin === 'scannarr' &&
-                        fromScannarrUri(scannarrNode.uri)
-                          ?.handleUris
-                          .some(handleUri =>
-                            groupedHandles
-                              .some(handle => handleUri === handle.uri)
-                          )
-                      )
+                    graph.findOne({
+                      origin: 'scannarr',
+                      'handles.uri': fromScannarrUri(groupedHandles[0].uri)?.handleUris
+                    })
+                    // [...graph.nodes.values()]
+                    //   .map(node => node.data)
+                    //   .filter(node => node.origin === 'scannarr')
+                    //   .find((scannarrNode) =>
+                    //     scannarrNode.origin === 'scannarr' &&
+                    //     fromScannarrUri(scannarrNode.uri)
+                    //       ?.handleUris
+                    //       .some(handleUri =>
+                    //         groupedHandles
+                    //           .some(handle => handleUri === handle.uri)
+                    //       )
+                    //   )
                     // [...graph.nodes.values()]
                     //   .map(node => node.data)
                     //   .find(node =>

@@ -143,17 +143,21 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                 const scannarrNodes =
                   scannarrHandles
                     .map(handle =>
-                      [...graph.nodes.values()]
-                        .map(node => node.data)
-                        .find(node =>
-                          node.__typename === 'Media' &&
-                          node.origin === 'scannarr' &&
-                          node.handles.some(_handle =>
-                            fromScannarrUri(handle.uri)
-                              ?.handleUris
-                              .includes(_handle.uri)
-                          )
-                        )
+                      graph.findOne({
+                        origin: 'scannarr',
+                        'handles.uri': fromScannarrUri(handle.uri)?.handleUris
+                      })
+                      // [...graph.nodes.values()]
+                      //   .map(node => node.data)
+                      //   .find(node =>
+                      //     node.__typename === 'Media' &&
+                      //     node.origin === 'scannarr' &&
+                      //     node.handles.some(_handle =>
+                      //       fromScannarrUri(handle.uri)
+                      //         ?.handleUris
+                      //         .includes(_handle.uri)
+                      //     )
+                      //   )
                       // graph.findOne({
                       //   origin: 'scannarr',
                       //   'handles.uri': fromScannarrUri(handle.uri)?.handleUris

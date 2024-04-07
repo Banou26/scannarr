@@ -20,6 +20,7 @@ export const makeGraphDatabase = () => {
   const indexers = [
     makePropertyIndexer('_id'),
     makePropertyIndexer('_typename'),
+    makePropertyIndexer('uri'),
     makePropertyIndexer('origin'),
     makePropertyIndexer('handles.uri')
   ]
@@ -27,6 +28,7 @@ export const makeGraphDatabase = () => {
   const findPreResults = (filter: QuerySelectors) => {
     const usedIndexers = indexers.filter(indexer => indexer.shouldBeUsedOnFilter(filter))
     if (usedIndexers.length === 0) {
+      console.log('slow query', filter)
       return [...nodes.values()]
     }
     const indexerResults = usedIndexers.map(indexer => indexer.find(filter))
@@ -35,7 +37,11 @@ export const makeGraphDatabase = () => {
   }
 
   const find = (filter: QuerySelectors) => (findPreResults(filter) ?? []).filter(node => matches(filter, node.data))
-  const findOne = (filter: QuerySelectors) => findPreResults(filter)?.find(node => matches(filter, node.data))
+  const findOne = (filter: QuerySelectors) => {
+    const res = findPreResults(filter)
+    // console.log('res', res)
+    return res?.find(node => matches(filter, node.data))
+  }
 
   const insertOne = (nodeData: NodeData): NodeData => {
     const _id = globalThis.crypto.randomUUID() as string

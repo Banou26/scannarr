@@ -67,7 +67,7 @@ export const mapNodeToSelection = <T extends Node>(graph: InMemoryGraphDatabase,
     return (
       graph
         .mapOne(
-          data => data.uri === currentNode.uri,
+          { uri: currentNode.uri },
           data => buildObjectWithValue(data)
         )
     )
