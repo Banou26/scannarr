@@ -1,5 +1,5 @@
 import { deepEqual, deepEqualSubset } from './comparison'
-import { pathToKey, pathToTarget, pathToValue, toPathEntry, toPathValue } from './path'
+import { pathPartsToTarget, pathToKey, pathToTarget, pathToValue, toPathEntry, toPathValue } from './path'
 
 type ComparisonQuerySelectors = {
   /** Matches values that are equal to a specified value. */
@@ -92,18 +92,10 @@ export const matches = (query: QuerySelectors, doc: any): boolean =>
   Object
     .entries(query)
     .every(([key, value]) => {
-      const target = pathToTarget(doc, key)
-      const targetKey = pathToKey(key)
-      if (key.startsWith('$')) {
-        if (key in logicalQuerySelectors) {
-          return matchesLogicalQuerySelectors(key as LogicalQuerySelector, value, target, targetKey)
-        }
-        if (key in comparisonQuerySelectors) {
-          return matchesComparisonQuerySelectors(key as ComparisonQuerySelector, value, target, targetKey)
-        }
-      }
-      const targetValue = pathToValue(doc, key)
-
+      const pathParts = key.split('.')
+      const targetKey = pathParts.pop()!
+      const target = pathPartsToTarget(doc, pathParts)
+      const targetValue = pathPartsToTarget(target, [targetKey])
       if (Array.isArray(targetValue) && Array.isArray(value)) {
         return value.some((value) => targetValue.includes(value))
       }
@@ -115,23 +107,3 @@ export const matches = (query: QuerySelectors, doc: any): boolean =>
       return deepEqualSubset(target[targetKey], value)
     }
   )
-
-const matchesComparisonQuerySelectors = (operator: ComparisonQuerySelector, operatorValue: any, target: any, targetKey: string): boolean => {
-  if (operator === '$eq') return deepEqualSubset(target[targetKey], operatorValue)
-  if (operator === '$ne') return !deepEqualSubset(target[targetKey], operatorValue)
-  if (operator === '$gt') return operatorValue > target[targetKey]
-  if (operator === '$gte') return operatorValue >= target[targetKey]
-  if (operator === '$lt') return operatorValue < target[targetKey]
-  if (operator === '$lte') return operatorValue <= target[targetKey]
-  if (operator === '$in') return operatorValue.includes(target[targetKey])
-  if (operator === '$nin') return !operatorValue.includes(target[targetKey])
-  return false
-}
-
-const matchesLogicalQuerySelectors = (operator: LogicalQuerySelector, operatorValue: QuerySelectors[], target: any, targetKey: string): boolean => {
-  if (operator === '$and') return operatorValue.every((query) => matches(query, target[targetKey]))
-  if (operator === '$or') return operatorValue.some((query) => matches(query, target[targetKey]))
-  if (operator === '$not') return !matches(target[targetKey], operatorValue)
-  if (operator === '$nor') return !operatorValue.some((query) => matches(query, target[targetKey]))
-  return false
-}

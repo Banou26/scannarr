@@ -12,24 +12,45 @@ export const toPathValue = (doc: any, path: string) =>
     .split('.')
     .reduce((doc, key) => doc[key], doc)
 
-export const pathPartToTarget = (doc: any, pathParts: string[]) => {
-  const pathPart = pathParts.at(0)
-  if (!pathPart) return doc
+// export const pathPartsToTarget = (doc: any, pathParts: string[]) => {
+//   const pathPart = pathParts.at(0)
+//   if (!pathPart) return doc
+//   if (Array.isArray(doc)) {
+//     const isPathPartArrayIndex = !isNaN(Number(pathPart))
+//     if (isPathPartArrayIndex) {
+//       return doc[pathPart]
+//     }
+//     return doc.map(doc => pathPartsToTarget(doc, pathParts))
+//   }
+//   if (!doc[pathPart]) return
+//   return pathPartsToTarget(doc[pathPart], pathParts.slice(1))
+// }
+
+export const pathPartsToTarget = (doc: any, pathParts: string[]) => {
+  if (!doc || pathParts.length === 0) return doc;
+
+  const pathPart = pathParts[0];
+  const isPathPartArrayIndex = /^\d+$/.test(pathPart);
+
   if (Array.isArray(doc)) {
-    const isPathPartArrayIndex = !isNaN(Number(pathPart))
     if (isPathPartArrayIndex) {
-      return doc[pathPart]
+      const index = parseInt(pathPart, 10);
+      return pathPartsToTarget(doc[index], pathParts.slice(1));
     }
-    return doc.map(doc => pathPartToTarget(doc, pathParts))
+    return doc.map(doc => pathPartsToTarget(doc, pathParts));
   }
-  return pathPartToTarget(doc[pathPart], pathParts.slice(1))
-}
 
-export const pathToValue = (doc: any, path: string) =>
-  pathPartToTarget(doc, path.split('.'))
+  const nextDoc = doc[pathPart];
+  if (nextDoc === undefined) return undefined;
 
-export const pathToTarget = (doc: any, path: string) =>
-  pathPartToTarget(doc, path.split('.').slice(0, -1))
+  return pathPartsToTarget(nextDoc, pathParts.slice(1));
+};
+
+export const pathToValue = (doc: any, pathParts: string[]) =>
+  pathPartsToTarget(doc, pathParts)
+
+export const pathToTarget = (doc: any, pathParts: string[]) =>
+  pathPartsToTarget(doc, pathParts.slice(0, -1))
 
 export const pathToKey = (path: string) =>
   path.split('.').pop()!

@@ -1,5 +1,5 @@
 import type { InternalNode, NodeData } from './index'
-import { filterPathPartToTarget, pathToKey, pathToTarget, pathToValue } from './path'
+import { pathPartsToTarget, pathToKey, pathToTarget, pathToValue } from './path'
 import { QuerySelectors } from './query'
 
 type Indexer = {
@@ -21,8 +21,9 @@ export const makePropertyIndexer = (propertyPath: string): Indexer => {
     __propertyPath__: propertyPath,
     shouldBeUsedOnFilter: (filter) => propertyPath in filter,
     shouldBeUsedOnNode: (node) => {
-      const key = pathToKey(propertyPath)
-      const value = pathToTarget(node, propertyPath)
+      const pathParts = propertyPath.split('.')
+      const key = pathParts.pop()!
+      const value = pathPartsToTarget(node, pathParts)
 
       if (Array.isArray(value)) return true
 
@@ -46,13 +47,14 @@ export const makePropertyIndexer = (propertyPath: string): Indexer => {
       return nodesMap.get(filter[propertyPath])?.[0]
     },
     insertOne: (node) => {
-      const key = pathToKey(propertyPath)
-      const value = pathToTarget(node.data, propertyPath)
+      const pathParts = propertyPath.split('.')
+      const key = pathParts.pop()!
+      const value = pathPartsToTarget(node.data, pathParts)
 
       if (Array.isArray(value)) {
         value.forEach(value => {
           nodesMap.set(
-            value,
+            value[key],
             [
               ...nodesMap.get(value) ?? [],
               node
@@ -71,8 +73,9 @@ export const makePropertyIndexer = (propertyPath: string): Indexer => {
       )
     },
     updateOne: (node, previousData, newData) => {
-      const value = pathToValue(previousData, propertyPath)
-      const newValue = pathToValue(newData, propertyPath)
+      const pathParts = propertyPath.split('.')
+      const value = pathPartsToTarget(previousData, pathParts)
+      const newValue = pathPartsToTarget(newData, pathParts)
       // todo: handle cases like array values which would never be equal
       if (value === newValue) return
 
@@ -114,7 +117,8 @@ export const makePropertyIndexer = (propertyPath: string): Indexer => {
       )
     },
     removeOne: (node) => {
-      const value = pathToValue(node.data, propertyPath)
+      const pathParts = propertyPath.split('.')
+      const value = pathToValue(node.data, pathParts)
 
       if (Array.isArray(value)) {
         value.forEach(value => {
