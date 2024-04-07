@@ -76,18 +76,22 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
               if (!rootSelectionSet) throw new Error('No rootSelectionSet')
 
               const scannarrNode =
-                graph.findOne((node) =>
-                  node.origin === 'scannarr' &&
-                  fromScannarrUri(node.uri)
-                    ?.handleUris
-                    .some(handleUri =>
-                      fromScannarrUri(media.uri)
-                        ?.handleUris
-                        .some(handleUri2 =>
-                          handleUri === handleUri2
-                        )
-                    )
-                )
+                graph.findOne({
+                  origin: 'scannarr',
+                  'handles.uri': fromScannarrUri(media.uri)?.handleUris
+                })
+                // graph.findOne((node) =>
+                //   node.origin === 'scannarr' &&
+                //   fromScannarrUri(node.uri)
+                //     ?.handleUris
+                //     .some(handleUri =>
+                //       fromScannarrUri(media.uri)
+                //         ?.handleUris
+                //         .some(handleUri2 =>
+                //           handleUri === handleUri2
+                //         )
+                //     )
+                // )
 
               if (!scannarrNode) return of(null)
 
@@ -123,7 +127,7 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                 const handleNodes =
                   handles
                     .map(mediaHandle =>
-                      graph.findOne((node) => node.uri === mediaHandle.uri)
+                      graph.findOne({ uri: mediaHandle.uri })
                     )
 
                 const { handleGroups } = groupRelatedHandles({ results: handleNodes })
@@ -139,20 +143,63 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                 const scannarrNodes =
                   scannarrHandles
                     .map(handle =>
-                      graph.findOne((node) =>
-                        node.origin === 'scannarr' &&
-                        fromScannarrUri(node.uri)
-                          ?.handleUris
-                          .some(handleUri =>
+                      [...graph.nodes.values()]
+                        .map(node => node.data)
+                        .find(node =>
+                          node.__typename === 'Media' &&
+                          node.origin === 'scannarr' &&
+                          node.handles.some(_handle =>
                             fromScannarrUri(handle.uri)
                               ?.handleUris
-                              .some(handleUri2 =>
-                                handleUri === handleUri2
-                              )
+                              .includes(_handle.uri)
                           )
-                      )
+                        )
+                      // graph.findOne({
+                      //   origin: 'scannarr',
+                      //   'handles.uri': fromScannarrUri(handle.uri)?.handleUris
+                      // })
+                      // graph.findOne((node) =>
+                      //   node.origin === 'scannarr' &&
+                      //   fromScannarrUri(node.uri)
+                      //     ?.handleUris
+                      //     .some(handleUri =>
+                      //       fromScannarrUri(handle.uri)
+                      //         ?.handleUris
+                      //         .some(handleUri2 =>
+                      //           handleUri === handleUri2
+                      //         )
+                      //     )
+                      // )
                     )
 
+                  console.log('scannarrHandles', scannarrHandles)
+                  console.log('scannarrNodes', scannarrNodes)
+                //   console.log(
+                //     'scannarrHandles mapped',
+                //     scannarrHandles.map(node => ({
+                //       node,
+                //       origin: 'scannarr',
+                //       'handles.uri': node && fromScannarrUri(node.uri)?.handleUris,
+                //       result:
+                //         graph
+                //           .findOne({
+                //             origin: 'scannarr',
+                //             'handles.uri': fromScannarrUri(node.uri)?.handleUris
+                //           }),
+                //       manualResult:
+                //         [...graph.nodes.values()]
+                //           .map(node => node.data)
+                //           .find(_node =>
+                //             _node.__typename === 'Media' &&
+                //             _node.origin === 'scannarr' &&
+                //             _node.handles.some(handle =>
+                //               fromScannarrUri(node.uri)
+                //                 ?.handleUris
+                //                 .includes(handle.uri)
+                //             )
+                //           )
+                //     }))
+                // )
                 return ({
                   mediaPage: {
                     nodes: scannarrNodes
@@ -184,14 +231,14 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
 
                     if (!rootSelectionSet) throw new Error('No rootSelectionSet')
 
-                    return graph.mapOne(node._id, (data) => mapNodeToSelection(graph, info, data, rootSelectionSet))
+                    return graph.mapOne({ _id: node._id }, (data) => mapNodeToSelection(graph, info, data, rootSelectionSet))
                   })
               )
             ),
             throttleTime(100, undefined, { leading: true, trailing: true }),
-            map((results) => ({
+            map((results) => console.log('results', results.filter(val => !val.episodes)) || ({
               mediaPage: {
-                nodes: results
+                nodes: results.filter(Boolean)
               }
             })),
             catchError(err => {

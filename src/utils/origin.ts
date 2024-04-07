@@ -178,7 +178,7 @@ export const subscribeToOrigins = <T extends ValidSubscriptionKeys>(
                       const existingNode = graph.findOne({ uri: childNode.uri })
                       if (existingNode) {
                         return graph.updateOne(
-                          existingNode._id,
+                          { _id: existingNode._id },
                           (node) => ({
                             ...node,
                             ...recursiveRemoveNullable(childNode)
@@ -193,8 +193,13 @@ export const subscribeToOrigins = <T extends ValidSubscriptionKeys>(
                     })
                     
                 for(const node of nodes) {
+                  if (!node) {
+                    // todo: CHECK WHY
+                    // console.log('NODE IS UNDEFINED', node)
+                    continue
+                  }
                   graph.updateOne(
-                    node._id,
+                    { _id: node._id },
                     node => {
                       const handles =
                         node
@@ -222,7 +227,7 @@ export const subscribeToOrigins = <T extends ValidSubscriptionKeys>(
                   const foundNode = graph.findOne({ uri: nodeData.uri })
                   if (foundNode) {
                     graph.updateOne(
-                      foundNode._id,
+                      { _id: foundNode._id },
                       node => ({
                         ...node,
                         ...recursiveRemoveNullable(nodeData)
@@ -233,21 +238,38 @@ export const subscribeToOrigins = <T extends ValidSubscriptionKeys>(
                   }
                 }
 
-                for (const groupedHandles of handleGroups) {
+                for (const _groupedHandles of handleGroups) {
+                  const groupedHandles = _groupedHandles.filter(node => node.origin !== 'scannarr')
+
                   const scannarrNode =
-                    graph.findOne((scannarrNode) =>
-                      scannarrNode.origin === 'scannarr' &&
-                      fromScannarrUri(scannarrNode.uri)
-                        ?.handleUris
-                        .some(handleUri =>
-                          groupedHandles
-                            .some(handle => handleUri === handle.uri)
+                    [...graph.nodes.values()]
+                      .map(node => node.data)
+                      .find(node =>
+                        node.__typename === 'Media' &&
+                        node.origin === 'scannarr' &&
+                        node.handles.some(_handle =>
+                          fromScannarrUri(groupedHandles[0].uri)
+                            ?.handleUris
+                            .includes(_handle.uri)
                         )
-                    )
+                      )
+                    // graph.findOne({
+                    //   origin: 'scannarr',
+                    //   'handles.uri': fromScannarrUri(groupedHandles[0].uri)?.handleUris
+                    // })
+                    // graph.findOne((scannarrNode) =>
+                    //   scannarrNode.origin === 'scannarr' &&
+                    //   fromScannarrUri(scannarrNode.uri)
+                    //     ?.handleUris
+                    //     .some(handleUri =>
+                    //       groupedHandles
+                    //         .some(handle => handleUri === handle.uri)
+                    //     )
+                    // )
 
                   if (scannarrNode) {
-                    graph.updateOne(
-                      scannarrNode._id,
+                    const result = graph.updateOne(
+                      { _id: scannarrNode._id },
                       (node) => {
                         const uniqueHandles =
                           [
@@ -265,7 +287,7 @@ export const subscribeToOrigins = <T extends ValidSubscriptionKeys>(
                           ]
                           .map(handle => {
                             const foundNode =
-                              graph.findOne(node => node.uri === handle.uri)
+                              graph.findOne({ uri: handle.uri })
                               ?? graph.insertOne(handle)
                             return foundNode
                           })
@@ -282,6 +304,8 @@ export const subscribeToOrigins = <T extends ValidSubscriptionKeys>(
                         // if (mergedResult.uri.includes('anilist:153518')) {
                         //   console.log('MAKING SCANNARR HANDLE', mergedResult, uniqueHandles)
                         // }
+
+                        // console.log('MAKING SCANNARR HANDLE', mergedResult, uniqueHandles)
                       
                         return {
                           ...mergedResult,
@@ -289,6 +313,10 @@ export const subscribeToOrigins = <T extends ValidSubscriptionKeys>(
                         }
                       }
                     )
+                    if (result.__typename === 'Media') {
+                      console.log('update', result)
+                    }
+
                     // console.log('after update node', graph.findNodeOne(scannarrNode._id))
 
                     // const newNodeDataNodes = getNodesType(newNodeData)
@@ -323,12 +351,18 @@ export const subscribeToOrigins = <T extends ValidSubscriptionKeys>(
 
                     // console.log('after update node nodes', newNodeDataNodes)
                   } else {
-                    graph.insertOne(
+                    const result = graph.insertOne(
                       makeScannarrHandle2({
                         handles: groupedHandles,
                         mergeHandles
                       })
                     )
+                    if (result.__typename === 'Media' && result?.id.includes('scannarr')) {
+                      console.log('insert', result, groupedHandles)
+                    }
+                    // if (result.__typename === 'Media') {
+                    //   console.log('insert', result)
+                    // }
                   }
                 }
               } catch (err) {

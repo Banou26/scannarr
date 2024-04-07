@@ -28,8 +28,23 @@ export const makePropertyIndexer = (propertyPath: string): Indexer => {
 
       return value && key in value
     },
-    find: (filter) => nodesMap.get(filter[propertyPath]) ?? [],
-    findOne: (filter) => nodesMap.get(filter[propertyPath])?.[0],
+    find: (filter) => {
+      if (Array.isArray(filter[propertyPath])) {
+        return (
+          filter[propertyPath].reduce((acc, value) => [
+            ...acc,
+            ...(nodesMap.get(value) ?? [])
+          ], [] as InternalNode<NodeData>[])
+        )
+      }
+      return nodesMap.get(filter[propertyPath]) ?? []
+    },
+    findOne: (filter) => {
+      if (Array.isArray(filter[propertyPath])) {
+        return filter[propertyPath].find(value => nodesMap.get(value))?.[0]
+      }
+      return nodesMap.get(filter[propertyPath])?.[0]
+    },
     insertOne: (node) => {
       const key = pathToKey(propertyPath)
       const value = pathToTarget(node.data, propertyPath)

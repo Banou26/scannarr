@@ -58,7 +58,7 @@ export const mapNodeToSelection = <T extends Node>(graph: InMemoryGraphDatabase,
   }
 
   if (currentNode._id) {
-    return graph.mapOne(currentNode._id, data => buildObjectWithValue(data))
+    return graph.mapOne({ _id: currentNode._id }, data => buildObjectWithValue(data))
   }
 
 

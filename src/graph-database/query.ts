@@ -104,6 +104,10 @@ export const matches = (query: QuerySelectors, doc: any): boolean =>
       }
       const targetValue = pathToValue(doc, key)
 
+      if (Array.isArray(targetValue) && Array.isArray(value)) {
+        return value.some((value) => targetValue.includes(value))
+      }
+
       if (Array.isArray(targetValue)) {
         return targetValue.some((targetValue) => targetValue === value)
       }
