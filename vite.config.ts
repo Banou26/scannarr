@@ -14,7 +14,7 @@ export default defineConfig({
       name: 'index',
       fileName: 'index'
     },
-    minify: true,
+    minify: false,
     sourcemap: true,
     outDir: 'build',
     rollupOptions: {
