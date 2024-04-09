@@ -31,17 +31,20 @@ export const makeGraphDatabase = () => {
       console.log('slow query', filter)
       return [...nodes.values()]
     }
-    const indexerResults = usedIndexers.map(indexer => indexer.find(filter))
-    const intersection = indexerResults.reduce((acc, curr) => acc.filter(value => curr.includes(value)), indexerResults[0])
-    return intersection
+    const indexerResults = usedIndexers.map(indexer => indexer.find(filter)).sort((a, b) => a.length - b.length)
+    const intersectionSet = new Set(indexerResults[0])
+
+    for (const index of indexerResults.slice(1)) {
+      for (const node of index) {
+        if (!intersectionSet.has(node)) intersectionSet.delete(node)
+      }
+    }
+
+    return [...intersectionSet]
   }
 
   const find = (filter: QuerySelectors) => (findPreResults(filter) ?? []).filter(node => matches(filter, node.data))
-  const findOne = (filter: QuerySelectors) => {
-    const res = findPreResults(filter)
-    // console.log('res', res)
-    return res?.find(node => matches(filter, node.data))
-  }
+  const findOne = (filter: QuerySelectors) => findPreResults(filter)?.find(node => matches(filter, node.data))
 
   const insertOne = (nodeData: NodeData): NodeData => {
     const _id = globalThis.crypto.randomUUID() as string
