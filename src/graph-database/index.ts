@@ -31,6 +31,23 @@ export const makeGraphDatabase = () => {
       console.log('slow query', filter)
       return [...nodes.values()]
     }
+
+    if (new Set().intersection) {
+      const results =
+        usedIndexers
+          .map(indexer => indexer.find(filter))
+          .sort((a, b) => a.length - b.length)
+          .map(nodes => new Set(nodes))
+
+      return [
+        ...new Set(
+          results
+            .slice(1)
+            .reduce((acc, nodes) => acc.intersection(nodes), results[0])
+        )
+      ]
+    }
+
     const indexerResults = usedIndexers.map(indexer => indexer.find(filter)).sort((a, b) => a.length - b.length)
     const intersectionSet = new Set(indexerResults[0])
 
