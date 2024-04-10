@@ -169,7 +169,6 @@ function mergeRelatedArrays(arrays) {
 
 export const groupRelatedHandles = <T extends Handle>({ results: _results }: { results: T[] }) => {
   const { results, index } = indexHandles({ results: _results })
-
   const _groups =
     [
       ...new Set(

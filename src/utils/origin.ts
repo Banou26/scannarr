@@ -152,7 +152,7 @@ export const subscribeToOrigins = <T extends ValidSubscriptionKeys>(
               console.error(result.error)
             } else if (result.data) {
               try {
-                const nodes =
+                const updatedNodes =
                   getNodesType(result.data)
                     .map(childNode => {
                       const existingNode = graph.findOne({ uri: childNode.uri })
@@ -168,11 +168,20 @@ export const subscribeToOrigins = <T extends ValidSubscriptionKeys>(
                       return graph.insertOne(childNode)
                     })
 
+                // const updatesRelatedScannarrNodesSet = new Set()
+
+                // for (const node of updatedNodes) {
+                //   const scannarrNode = graph.findOne({ origin: 'scannarr', 'handles.uri': [node.uri, ...node?.handles.] })
+                //   if (node.origin === 'scannarr') {
+                //     updatesRelatedScannarrNodesSet.add(node)
+                //   }
+                // }
+
                 const { handleGroups } = groupRelatedHandles({
                   results:
                     [...graph.nodes.values()]
                       .map(node => node.data)
-                      .filter(node => node.origin !== 'scannarr')
+                      .filter(node => node.__typename === 'Media' && node.origin !== 'scannarr')
                 })
 
                 const newNodeDataNodes = getNodesType(handleGroups)
