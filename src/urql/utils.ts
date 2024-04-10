@@ -12,6 +12,92 @@ import { FieldNode, FragmentSpreadNode, GraphQLResolveInfo, SelectionNode, Selec
 export const isFieldNode = (node: SelectionNode): node is FieldNode => node.kind === 'Field'
 export const isFragmentSpreadNode = (node: SelectionNode): node is FragmentSpreadNode => node.kind === 'FragmentSpread'
 
+const isNodeTypename = value =>
+  value === 'Media' ||
+  value === 'Episode' // ||
+  // value === 'UserMedia' ||
+  // value === 'PlaybackSource' ||
+  // value === 'Team' ||
+  // value === 'MediaExternalLink' ||
+  // value === 'MediaTrailer'
+
+const containsNode = (data) =>
+  Object
+    .entries(data)
+    .some(([key, value]) => {
+      if (key === '__typename' && isNodeTypename(value)) return true
+      if (Array.isArray(value)) return value.some(containsNode)
+      if (value && typeof value === 'object') {
+        return containsNode(value)
+      }
+    })
+
+const filterNonNodes = (data) =>
+  Object.fromEntries(
+    Object
+      .entries(data)
+      .filter(([key, value]) => (key === '__typename' && isNodeTypename(value)) || (value && containsNode(value)))
+      .map(([key, value]) => [
+        key,
+        Array.isArray(value) ? value.map(filterNonNodes)
+        : value && typeof value === 'object' ? filterNonNodes(value)
+        : value
+      ])
+  )
+
+export const buildSelectionMap = (info: GraphQLResolveInfo, selection: SelectionSetNode, value: any) => {
+  const selections = selection.selections
+
+  if (Array.isArray(value)) {
+    return (
+      value
+        .slice(0, 1)
+        .map(item => buildSelectionMap(info, selection, item))
+    )
+  }
+
+  return filterNonNodes(
+    selections
+      .reduce((result, node) => {
+        if (isFieldNode(node)) {
+          return {
+            ...result,
+            [node.name.value]:
+              node.selectionSet
+                ? buildSelectionMap(info, node.selectionSet, value[node.name.value])
+                : (
+                  value
+                    ? value[node.name.value]
+                    : value
+                )
+          }
+        }
+    
+        if (isFragmentSpreadNode(node)) {
+          return {
+            ...result,
+            ...Object.fromEntries(
+              (info.fragments[node.name.value]?.selectionSet.selections ?? [])
+                .filter(isFieldNode)
+                .map(node => [
+                  node.name.value,
+                  node.selectionSet
+                    ? buildSelectionMap(info, node.selectionSet, value[node.name.value])
+                    : (
+                      value
+                        ? value[node.name.value]
+                        : value
+                    )
+                ])
+            )
+          }
+        }
+    
+        return result
+      }, {})
+    )
+}
+
 export const mapNodeToSelection = <T extends Node>(graph: InMemoryGraphDatabase, info: GraphQLResolveInfo, currentNode: T, selection: SelectionSetNode | FragmentSpreadNode) => {
   if (Array.isArray(currentNode)) {
     return currentNode.map(nodeValue => mapNodeToSelection(graph, info, nodeValue, selection))

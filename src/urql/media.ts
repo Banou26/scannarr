@@ -5,7 +5,7 @@ import { Media, type MediaPage, type Resolvers } from '../generated/graphql'
 
 import { catchError, map, switchMap, tap, throttleTime } from 'rxjs/operators'
 
-import { makeScannarrHandle2, groupRelatedHandles, mapNodeToSelection, isFieldNode } from './utils'
+import { makeScannarrHandle2, groupRelatedHandles, mapNodeToSelection, isFieldNode, buildSelectionMap } from './utils'
 import { ServerContext } from './client'
 import { observableToAsyncIterable } from '../utils/observableToAsyncIterable'
 import { mergeOriginSubscriptionResults, subscribeToOrigins } from '../utils/origin'
@@ -75,27 +75,18 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
 
               if (!rootSelectionSet) throw new Error('No rootSelectionSet')
 
-              const scannarrNode =
-                graph.findOne({
-                  origin: 'scannarr',
-                  'handles.uri': fromScannarrUri(media.uri)?.handleUris
-                })
-                // graph.findOne((node) =>
-                //   node.origin === 'scannarr' &&
-                //   fromScannarrUri(node.uri)
-                //     ?.handleUris
-                //     .some(handleUri =>
-                //       fromScannarrUri(media.uri)
-                //         ?.handleUris
-                //         .some(handleUri2 =>
-                //           handleUri === handleUri2
-                //         )
-                //     )
-                // )
+              const handleUris = fromScannarrUri(media.uri)?.handleUris
+              if (!handleUris) return of(null)
 
-              if (!scannarrNode) return of(null)
-
-              return graph.mapOne(scannarrNode._id, (data) => mapNodeToSelection(graph, info, data, rootSelectionSet))
+              return (
+                graph.mapOne(
+                  {
+                    origin: 'scannarr',
+                    'handles.uri': handleUris
+                  },
+                  (data) => mapNodeToSelection(graph, info, data, rootSelectionSet)
+                )
+              )
             }),
             throttleTime(100, undefined, { leading: true, trailing: true }),
             map((result) => console.log('result2', result) || ({ media: result })),
@@ -147,63 +138,10 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                         origin: 'scannarr',
                         'handles.uri': fromScannarrUri(handle.uri)?.handleUris
                       })
-                      // [...graph.nodes.values()]
-                      //   .map(node => node.data)
-                      //   .find(node =>
-                      //     node.__typename === 'Media' &&
-                      //     node.origin === 'scannarr' &&
-                      //     node.handles.some(_handle =>
-                      //       fromScannarrUri(handle.uri)
-                      //         ?.handleUris
-                      //         .includes(_handle.uri)
-                      //     )
-                      //   )
-                      // graph.findOne({
-                      //   origin: 'scannarr',
-                      //   'handles.uri': fromScannarrUri(handle.uri)?.handleUris
-                      // })
-                      // graph.findOne((node) =>
-                      //   node.origin === 'scannarr' &&
-                      //   fromScannarrUri(node.uri)
-                      //     ?.handleUris
-                      //     .some(handleUri =>
-                      //       fromScannarrUri(handle.uri)
-                      //         ?.handleUris
-                      //         .some(handleUri2 =>
-                      //           handleUri === handleUri2
-                      //         )
-                      //     )
-                      // )
                     )
 
-                  console.log('scannarrHandles', scannarrHandles)
-                  console.log('scannarrNodes', scannarrNodes)
-                //   console.log(
-                //     'scannarrHandles mapped',
-                //     scannarrHandles.map(node => ({
-                //       node,
-                //       origin: 'scannarr',
-                //       'handles.uri': node && fromScannarrUri(node.uri)?.handleUris,
-                //       result:
-                //         graph
-                //           .findOne({
-                //             origin: 'scannarr',
-                //             'handles.uri': fromScannarrUri(node.uri)?.handleUris
-                //           }),
-                //       manualResult:
-                //         [...graph.nodes.values()]
-                //           .map(node => node.data)
-                //           .find(_node =>
-                //             _node.__typename === 'Media' &&
-                //             _node.origin === 'scannarr' &&
-                //             _node.handles.some(handle =>
-                //               fromScannarrUri(node.uri)
-                //                 ?.handleUris
-                //                 .includes(handle.uri)
-                //             )
-                //           )
-                //     }))
-                // )
+                console.log('scannarrHandles', scannarrHandles)
+                console.log('scannarrNodes', scannarrNodes)
                 return ({
                   mediaPage: {
                     nodes: scannarrNodes
@@ -234,8 +172,15 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                         ?.selectionSet
 
                     if (!rootSelectionSet) throw new Error('No rootSelectionSet')
+                      
+                    
 
-                    return graph.mapOne({ _id: node._id }, (data) => mapNodeToSelection(graph, info, data, rootSelectionSet))
+                    return (
+                      graph.mapOne(
+                        { _id: node._id },
+                        (data) => console.log('mapNodeToSelection', data, info, rootSelectionSet, buildSelectionMap(info, rootSelectionSet, data)) || mapNodeToSelection(graph, info, data, rootSelectionSet)
+                      )
+                    )
                   })
               )
             ),
