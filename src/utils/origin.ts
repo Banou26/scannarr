@@ -195,14 +195,14 @@ export const subscribeToOrigins = <T extends ValidSubscriptionKeys>(
                 for (const _groupedHandles of handleGroups) {
                   const groupedHandles = _groupedHandles.filter(node => node.origin !== 'scannarr')
 
-                  const scannarrNode =
-                    graph.findOne({
-                      origin: 'scannarr',
-                      'handles.uri': fromScannarrUri(groupedHandles[0].uri)?.handleUris
-                    })
-                  if (scannarrNode) {
+                  const handleUris = fromScannarrUri(groupedHandles[0].uri)?.handleUris
+
+                  if (handleUris) {
                     graph.updateOne(
-                      { _id: scannarrNode._id },
+                      {
+                        origin: 'scannarr',
+                        'handles.uri': handleUris
+                      },
                       (node) => {
                         const uniqueHandles =
                           [
