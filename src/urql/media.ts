@@ -178,7 +178,14 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                     return (
                       graph.mapOne(
                         { _id: node._id },
-                        (data) => console.log('mapNodeToSelection', data, info, rootSelectionSet, buildSelectionMap(info, rootSelectionSet, data)) || mapNodeToSelection(graph, info, data, rootSelectionSet)
+                        (data) =>
+                          (
+                            data.uri === 'scannarr:(anilist:176909,mal:58644)' && (
+                              console.log('info', info) ||
+                              console.log('buildSelectionMap(info)', buildSelectionMap(info))
+                            )
+                          ) ||
+                          mapNodeToSelection(graph, info, data, rootSelectionSet)
                       )
                     )
                   })
