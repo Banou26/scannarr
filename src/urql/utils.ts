@@ -49,247 +49,76 @@ const filterNonNodes = (data) =>
 export const buildSelectionMap = (info: GraphQLResolveInfo) => {
   const typeMap = info.schema.getTypeMap()
 
-  const buildFragment = (fragment: FragmentDefinitionNode, currentType: GraphQLObjectType) => ({
-    ...Object.fromEntries(
-      (fragment.selectionSet.selections ?? [])
-        .filter(isFieldNode)
-        .map(node => [
-          node.name.value,
-          node.selectionSet ? recurse(node, currentType)
-          : node.name.value === '__typename' ? currentType.name
-          : undefined
-        ])
-        .filter(([key, value]) => value !== undefined)
-        .map(([key, value]) =>
-          typeof value === 'object'
-            ? (
-              Object.entries(value)
-                .map(([key, value]) => [key, value])
-                .flat()
-            )
-            : [key, value]
-        )
-    ),
-    // __typename: fragment.name.value
-  })
+  const buildSelectionObject = (selection: FieldNode | FragmentDefinitionNode, currentType: GraphQLObjectType) => {
+    const fields = currentType.getFields()
+    return (
+      Object.fromEntries([
+        ...selection
+          ?.selectionSet
+          ?.selections
+          .filter(isFieldNode)
+          .map(fieldSelection =>
+            fieldSelection.name.value === '__typename'
+              ? [fieldSelection.name.value, currentType.name]
+              : [fieldSelection.name.value, recurse(fieldSelection, fields[fieldSelection.name.value].type)]
+          )
+          ?? [],
+        ...selection
+          ?.selectionSet
+          ?.selections
+          .filter(isFragmentSpreadNode)
+          .map(fieldSelection => Object.entries(recurse(fieldSelection, currentType)))
+          .flat()
+          ?? []
+      ])
+    )
+  }
 
-  const recurse = (selection: FieldNode | FieldNode[], currentType: GraphQLObjectType) => {
-    console.log('recurse', selection, currentType)
-    //  NonNullable type
+  const recurse = (selection: FieldNode, currentType: GraphQLObjectType) => {
+    //  NonNullable type, using this method since using the `GraphQLList` instances is not working
     if (currentType.toJSON().endsWith('!')) {
       return recurse(selection, currentType.ofType)
     }
-    if (Array.isArray(selection)) {
-      return selection.map(node => recurse(node, currentType))
-    }
     // Array type
     if (currentType.toJSON().startsWith('[')) {
-      let _typenameCurrentType = currentType
-      while ('ofType' in _typenameCurrentType) {
-        _typenameCurrentType = _typenameCurrentType.ofType
+      if (selection.selectionSet) {
+        return [recurse(selection, currentType.ofType)]
+      } else {
+        return [currentType.ofType.name]
       }
-
-      return [{
-        ...Object.fromEntries(
-          [
-            ...new Set(
-              [recurse(selection.selectionSet.selections, currentType.ofType)]
-                .flat()
-                .filter(Boolean)
-                .map((value) => Object.entries(value))
-                .flat()
-            )
-          ]
-        ),
-        __typename: _typenameCurrentType.name
-      }]
     }
     if (isFieldNode(selection)) {
-      const fields = currentType.getFields()
-      return {
-        [selection.name.value]:
-          selection
-            .selectionSet
-            ?.selections
-            .filter(value => isFieldNode(value) || isFragmentSpreadNode(value))
-            .reduce((result, node) => ({
-              ...result,
-              ...(
-                isFieldNode(node)
-                  ? {
-                    [node.name.value]:
-                      node.selectionSet
-                        ? recurse(node, fields[node.name.value]?.type as GraphQLObjectType)
-                        : (
-                          node.name.value === '__typename'
-                            ? currentType.name
-                            : undefined
-                        )
-                  }
-                  : {}
-              ),
-              ...(
-                isFragmentSpreadNode(node)
-                  ? buildFragment(info.fragments[node.name.value], currentType)
-                  // ? console.log('fragment node', node, selection, currentType) || recurse(info.fragments[node.name.value].selectionSet, typeMap[info.fragments[node.name.value].typeCondition.name.value] as GraphQLObjectType)
-                  : {}
-              )
-            }), {})
+      if (selection.selectionSet) {
+        return buildSelectionObject(selection, currentType)
+      } else {
+        return currentType.name
       }
     }
     if (isFragmentSpreadNode(selection)) {
       const fragment = info.fragments[selection.name.value]
       if (!fragment) throw new Error(`No fragment found for ${selection.name.value}`)
-      return buildFragment(fragment, currentType)
+      return buildSelectionObject(fragment, currentType)
     }
   }
-  return recurse(info.fieldNodes as FieldNode[], info.returnType as GraphQLObjectType)
+
+  const operationType = info.operation.operation
+  const operationSchema = info.schema.getRootType(operationType)
+  if (!operationSchema) throw new Error(`No operation ${operationType} schema found`)
+
+  if (info.fieldNodes.length > 1) throw new Error('Multiple root field nodes not supported')
+
+  return (
+    Object
+      .fromEntries(
+        info
+          .fieldNodes
+          .map(node => [
+            operationType,
+            recurse(node, operationSchema.getFields()[node.name.value].type)
+          ])
+      )
+  )
 }
-
-// export const buildSelectionMap = (info: GraphQLResolveInfo) => {
-//   const typeMap = info.schema.getTypeMap()
-
-//   const recurse = (selection: SelectionNode, currentType: GraphQLObjectType) => {
-//     console.log('recurse', selection, currentType)
-//     if (isFieldNode(selection)) {
-//       const field = currentType.getFields()[selection.name.value]
-//       if (field?.type instanceof GraphQLObjectType) {
-//         return {
-//           [selection.name.value]: recurse(selection.selectionSet, field.type)
-//         }
-//       } else if (field?.type instanceof GraphQLList) {
-//         return {
-//           [selection.name.value]: [
-//             recurse(selection.selectionSet, field.type.ofType as GraphQLObjectType)
-//           ]
-//         }
-//       } else if (field?.type instanceof GraphQLNonNull) {
-//         return {
-//           [selection.name.value]: recurse(selection.selectionSet, field.type.ofType as GraphQLObjectType)
-//         }
-//       } else if (field && 'selectionSet' in field) {
-//         return {
-//           [selection.name.value]:
-//             (selection.selectionSet?.selections ?? [])
-//               .filter(isFieldNode)
-//               .reduce((result, node) => ({
-//                 ...result,
-//                 [node.name.value]: node.selectionSet
-//                   ? recurse(node, currentType)
-//                   : node.name.value === '__typename' ? node.typeCondition.name.value : undefined
-//               }), {})
-//         }
-//       }
-
-//       return selection.name.value
-//     }
-//     if (isFragmentSpreadNode(selection)) {
-//       const fragment = info.fragments[selection.name.value]
-//       return recurse(fragment.selectionSet, typeMap[fragment.typeCondition.name.value] as GraphQLObjectType)
-//     }
-//   }
-//   return (
-//     info
-//       .fieldNodes
-//       .map(fieldNode =>
-//         recurse(
-//           fieldNode,
-//           (info.returnType as GraphQLObjectType).getFields()[fieldNode.name.value]?.type as GraphQLObjectType
-//         )
-//       )
-//   )
-// }
-
-// export const buildSelectionMap = (info: GraphQLResolveInfo, selection: SelectionSetNode) => {
-//   return filterNonNodes(
-//     selection
-//       .selections
-//       .reduce((result, node) => {
-//         if (isFieldNode(node)) {
-//           return {
-//             ...result,
-//             [node.name.value]:
-//               node.selectionSet
-//                 ? buildSelectionMap(info, node.selectionSet)
-//                 : node.name.value === '__typename' ? node.typeCondition.name.value : undefined
-//           }
-//         }
-    
-//         if (isFragmentSpreadNode(node)) {
-//           return {
-//             ...result,
-//             ...Object.fromEntries(
-//               (info.fragments[node.name.value]?.selectionSet.selections ?? [])
-//                 .filter(isFieldNode)
-//                 .map(node => [
-//                   node.name.value,
-//                   node.selectionSet
-//                     ? buildSelectionMap(info, node.selectionSet)
-//                     : node.name.value === '__typename' ? node.typeCondition.name.value : undefined
-//                 ])
-//                 .filter(([key, value]) => value !== undefined)
-//             )
-//           }
-//         }
-    
-//         return result
-//       }, {})
-//     )
-// }
-
-// export const buildSelectionMap = (info: GraphQLResolveInfo, selection: SelectionSetNode) => {
-//   const fieldNodes = info.fieldNodes;
-//   const returnType = info.returnType;
-
-//   const result: GraphQLFieldNode = {};
-
-//   function traverse(node: any, currentType: GraphQLNamedType, currentResult: GraphQLFieldNode) {
-//     if (node.selectionSet) {
-//       const fields = node.selectionSet.selections;
-//       for (const field of fields) {
-//         const fieldName = field.name.value;
-
-//         if (currentType.ofType) {
-//           if (currentType instanceof GraphQLList) {
-//             currentResult[fieldName] = [
-//               {
-//                 __typename: currentType.ofType.name,
-//                 ...traverse(field, currentType.ofType, {})
-//               }
-//             ]
-//           }
-//           if (currentType instanceof GraphQLNonNull) {
-//             currentResult[fieldName] = {
-//               __typename: currentType.ofType.name,
-//               ...traverse(field, currentType.ofType, {})
-//             }
-//           }
-//         } else {
-//         console.log('currentType', fieldName, currentType)
-//         const fieldType = currentType.getFields()[fieldName].type;
-//           const namedType = fieldType.toJSON().name;
-  
-//           if (field.selectionSet) {
-//             currentResult[fieldName] = {
-//               __typename: namedType,
-//               ...traverse(field, fieldType, {}),
-//             };
-//           } else {
-//             currentResult[fieldName] = namedType;
-//           }
-//         }
-//       }
-//     }
-//     return currentResult;
-//   }
-
-//   for (const fieldNode of fieldNodes) {
-//     const operationName = fieldNode.name.value;
-//     result[operationName] = traverse(fieldNode, returnType, {});
-//   }
-
-//   return result;
-// }
 
 export const mapNodeToSelection = <T extends Node>(graph: InMemoryGraphDatabase, info: GraphQLResolveInfo, currentNode: T, selection: SelectionSetNode | FragmentSpreadNode) => {  
   if (Array.isArray(currentNode)) {
