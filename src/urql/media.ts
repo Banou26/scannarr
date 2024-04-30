@@ -5,7 +5,7 @@ import { Media, type MediaPage, type Resolvers } from '../generated/graphql'
 
 import { catchError, map, switchMap, tap, throttleTime } from 'rxjs/operators'
 
-import { makeScannarrHandle2, groupRelatedHandles, mapNodeToSelection, isFieldNode, buildSelectionMap } from './utils'
+import { makeScannarrHandle2, groupRelatedHandles, mapNodeToSelection, isFieldNode, buildSelectionMap, buildNodeSelectionMap, mapNodeToNodeSelection } from './utils'
 import { ServerContext } from './client'
 import { observableToAsyncIterable } from '../utils/observableToAsyncIterable'
 import { mergeOriginSubscriptionResults, subscribeToOrigins } from '../utils/origin'
@@ -180,12 +180,14 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                         { _id: node._id },
                         (data) =>
                           (
-                            data.uri === 'scannarr:(anilist:176909,mal:58644)' && (
+                            // https://myanimelist.net/anime/52701 https://anilist.co/anime/153518
+                            data.uri === 'scannarr:(mal:52701)' && (
                               console.log('info', info) ||
-                              console.log('buildSelectionMap(info)', buildSelectionMap(info))
+                              console.log('buildNodeSelectionMap(info)', buildNodeSelectionMap(info))
                             )
                           ) ||
-                          mapNodeToSelection(graph, info, data, rootSelectionSet)
+                          // mapNodeToSelection(graph, info, data, rootSelectionSet)
+                          mapNodeToNodeSelection(graph, buildNodeSelectionMap(info), data)
                       )
                     )
                   })

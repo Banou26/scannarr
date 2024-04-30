@@ -46,8 +46,30 @@ const filterNonNodes = (data) =>
       ])
   )
 
+
+const nodeSelectionMapCache = new Map<string, any>()
+
+export const buildNodeSelectionMap = (info: GraphQLResolveInfo) => {
+  if (info.operation.name && nodeSelectionMapCache.has(info.operation.name.value)) {
+    return nodeSelectionMapCache.get(info.operation.name.value)
+  }
+  const result =
+    filterNonNodes(
+      buildSelectionMap(info)
+    )
+
+  if (!info.operation.name) throw new Error('No operation name')
+  nodeSelectionMapCache.set(info.operation.name.value, result)
+
+  return result
+}
+
+const selectionMapCache = new Map<string, any>()
+
 export const buildSelectionMap = (info: GraphQLResolveInfo) => {
-  const typeMap = info.schema.getTypeMap()
+  if (info.operation.name && selectionMapCache.has(info.operation.name.value)) {
+    return selectionMapCache.get(info.operation.name.value)
+  }
 
   const buildSelectionObject = (selection: FieldNode | FragmentDefinitionNode, currentType: GraphQLObjectType) => {
     const fields = currentType.getFields()
@@ -107,7 +129,7 @@ export const buildSelectionMap = (info: GraphQLResolveInfo) => {
 
   if (info.fieldNodes.length > 1) throw new Error('Multiple root field nodes not supported')
 
-  return (
+  const result =
     Object
       .fromEntries(
         info
@@ -117,7 +139,45 @@ export const buildSelectionMap = (info: GraphQLResolveInfo) => {
             recurse(node, operationSchema.getFields()[node.name.value].type)
           ])
       )
-  )
+
+  if (!info.operation.name) throw new Error('No operation name')
+  selectionMapCache.set(info.operation.name.value, result)
+
+  return result
+}
+
+export const mapNodeToNodeSelection = <T extends Node | Node[]>(graph: InMemoryGraphDatabase, nodeSelectionMap: any, currentNode: T) => {
+  if (Array.isArray(nodeSelectionMap)) {
+    return (
+      (currentNode as Node[])
+        .map(nodeValue =>
+          mapNodeToNodeSelection(graph, nodeSelectionMap[0], nodeValue)
+        )
+    )
+  }
+
+  const buildObjectWithValue = (nodeValue: T) => ({
+    ...nodeValue,
+    ...Object.fromEntries(
+      Object
+        .entries(nodeSelectionMap)
+        .map(([key, value]) => [
+          key,
+          nodeValue?.[key] && mapNodeToNodeSelection(graph, value, nodeValue?.[key])
+        ])
+        .filter(([_, value]) => value !== undefined)
+    )
+  })
+
+  if (!isNodeType(currentNode)) {
+    return buildObjectWithValue(currentNode)
+  }
+
+  if (currentNode._id) {
+    return graph.mapOne({ _id: currentNode._id }, data => buildObjectWithValue(data))
+  }
+
+  return graph.mapOne({ uri: currentNode.uri }, data => buildObjectWithValue(data))
 }
 
 export const mapNodeToSelection = <T extends Node>(graph: InMemoryGraphDatabase, info: GraphQLResolveInfo, currentNode: T, selection: SelectionSetNode | FragmentSpreadNode) => {  
