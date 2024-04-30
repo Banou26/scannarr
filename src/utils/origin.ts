@@ -252,6 +252,9 @@ export const subscribeToOrigins = <T extends ValidSubscriptionKeys>(
                         mergeHandles
                       })
                     )
+                    if (result.id.includes('52701')) {
+                      console.log('INSERT SCANNARR', result, handleUris, groupedHandles, _groupedHandles)
+                    }
                     if (result.__typename === 'Media' && result?.id.includes('scannarr')) {
                       console.log('insert', result, groupedHandles)
                     }

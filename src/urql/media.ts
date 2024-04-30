@@ -89,7 +89,8 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
               )
             }),
             throttleTime(100, undefined, { leading: true, trailing: true }),
-            map((result) => console.log('result2', result) || ({ media: result })),
+            map((result) => ({ media: result })),
+            // map((result) => console.log('result2', result) || ({ media: result })),
             catchError(err => {
               console.error(err)
               return { media: null }
@@ -98,6 +99,9 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
         ),
       resolve: (parent) => parent?.media
     },
+    // I need to go thru every new Media, update the graph db consequently, remove duplicate scannarr handles,
+    // to de-dupe them, i can go thru the media itself, and update their reference to the scannarr handle to the new one while merging it
+    // then map on all of the medias, get their related scannarr handles, de-dupe them, and return them
     mediaPage: {
       subscribe: (_, __, context, info) =>
         observableToAsyncIterable(
@@ -183,11 +187,16 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                             // https://myanimelist.net/anime/52701 https://anilist.co/anime/153518
                             data.uri === 'scannarr:(mal:52701)' && (
                               console.log('info', info) ||
-                              console.log('buildNodeSelectionMap(info)', buildNodeSelectionMap(info))
+                              console.log('buildNodeSelectionMap(info)', buildNodeSelectionMap(info), data)
                             )
                           ) ||
                           // mapNodeToSelection(graph, info, data, rootSelectionSet)
                           mapNodeToNodeSelection(graph, buildNodeSelectionMap(info), data)
+                            .pipe(
+                              map(node =>
+                                node.handles.find(handle => handle.origin === 'scannarr')
+                              )
+                            )
                       )
                     )
                   })
