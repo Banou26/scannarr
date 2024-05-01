@@ -148,7 +148,7 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                 console.log('scannarrNodes', scannarrNodes)
                 return ({
                   mediaPage: {
-                    nodes: scannarrNodes
+                    nodes: handleNodes
                   }
                 })
               } catch (err) {
@@ -176,8 +176,6 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                         ?.selectionSet
 
                     if (!rootSelectionSet) throw new Error('No rootSelectionSet')
-                      
-                    
 
                     return (
                       graph.mapOne(
@@ -185,18 +183,25 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                         (data) =>
                           (
                             // https://myanimelist.net/anime/52701 https://anilist.co/anime/153518
-                            data.uri === 'scannarr:(mal:52701)' && (
+                            data.uri === 'mal:52701' && (
                               console.log('info', info) ||
-                              console.log('buildNodeSelectionMap(info)', buildNodeSelectionMap(info), data)
-                            )
-                          ) ||
-                          // mapNodeToSelection(graph, info, data, rootSelectionSet)
-                          mapNodeToNodeSelection(graph, buildNodeSelectionMap(info), data)
-                            .pipe(
-                              map(node =>
-                                node.handles.find(handle => handle.origin === 'scannarr')
+                              console.log('buildNodeSelectionMap(info)', buildNodeSelectionMap(info), data) ||
+                              console.log(
+                                'result',
+                                data.handles.find(handle => handle.origin === 'scannarr'),
+                                mapNodeToNodeSelection(
+                                  graph,
+                                  buildNodeSelectionMap(info),
+                                  data.handles.find(handle => handle.origin === 'scannarr')
+                                )
                               )
                             )
+                          ) ||
+                          mapNodeToNodeSelection(
+                            graph,
+                            buildNodeSelectionMap(info),
+                            data.handles.find(handle => handle.origin === 'scannarr')
+                          )
                       )
                     )
                   })
