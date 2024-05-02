@@ -1,39 +1,52 @@
-import { Observable, Subject, combineLatest, firstValueFrom, map, mergeMap, of, scan, shareReplay, startWith, switchMap } from 'rxjs'
-import { flatten, $timestamp, $unset } from 'mongo-dot-notation'
+import type { Episode, Media, MediaExternalLink, MediaTrailer, PlaybackSource, Team, UserMedia } from '../generated/graphql'
 
+import { Observable, Subject, combineLatest, map, of, shareReplay, startWith, switchMap, throttleTime } from 'rxjs'
 import { merge } from '../utils'
-import { deepEqualSubset } from '../graph-database/comparison'
+import { isNodeTypename } from './utils'
 
-export const recursiveRemoveNullable = (obj) =>
-  Array.isArray(obj)
-    ? obj.map(recursiveRemoveNullable)
-    : (
-      typeof obj === 'object'
-        ? (
-          Object
-            .fromEntries(
-              Object
-                .entries(obj)
-                .filter(([_, value]) => value !== null && value !== undefined)
-                .map(([key, value]) => [key, recursiveRemoveNullable(value)])
-            )
-        )
-        : obj
-    )
 
-export type NodeData =
-  { _id: string, __typename: string } &
-  { [key: string]: any }
+export type NonUndefinable<T> = Exclude<T, undefined | null>
 
-export type Node<NodeDataType extends NodeData> = {
+export type RemoveNullable<T> =
+  T extends Array<infer U> ? RemoveNullable<NonUndefinable<U>>[] :
+  T extends object ? { [key in keyof T]: RemoveNullable<NonUndefinable<T[key]>> } :
+  NonUndefinable<T>
+
+export const recursiveRemoveNullable = <T>(obj: T): RemoveNullable<T> => {
+  const ref = new Set()
+
+  const recurse = (obj: any): any => {
+    if (Array.isArray(obj)) {
+      if (ref.has(obj)) return
+      ref.add(obj)
+      return obj.map(recurse)
+    }
+    if (obj && typeof obj === 'object') {
+      if (ref.has(obj)) return
+      ref.add(obj)
+      return Object.fromEntries(
+        Object
+          .entries(obj)
+          .filter(([_, value]) => value !== null && value !== undefined)
+          .map(([key, value]) => [key, recurse(value)])
+      )
+    }
+    return obj
+  }
+
+  return recurse(obj)
+}
+
+export type Node =
+  Media | Episode | UserMedia | PlaybackSource |
+  Team | MediaExternalLink | MediaTrailer
+
+export type InternalNode<NodeType extends Node> = {
   __graph_type__: 'Node'
   _id: string
-  $: Observable<NodeDataType>
-  subject: Subject<NodeDataType>
-  data: NodeDataType
-  update: (changes: Partial<NodeDataType>) => Promise<void>
-  get: () => Promise<NodeDataType>
-  map: <T2 extends (nodeData: NodeDataType, node: Node<NodeDataType>) => any>(fn: T2) => ReturnType<T2> extends Observable<infer U> ? Observable<U> : ReturnType<T2>
+  $: Observable<NodeType>
+  subject: Subject<NodeType>
+  data: NodeType
 }
 
 type ExtractObservableType<T> =
@@ -45,11 +58,6 @@ type ExtractObservableType<T> =
 export const getObservables = <T>(value: T): ExtractObservableType<T> => {
   const objects = new Set()
   const observables: Observable<T>[] = []
-  // const recurse = (value: any) =>
-  //   value instanceof Observable ? observables.push(value) :
-  //   Array.isArray(value) ? value.map(recurse) :
-  //   value && typeof value === 'object' ? Object.values(value).map(recurse) :
-  //   undefined
 
   const recurse = (value: any) => {
     if (value instanceof Observable) {
@@ -77,7 +85,7 @@ type UnwrapObservables<Value> =
 export const replaceObservablePairs = <T>(value: T, replacementPairs: [Observable<any>, any][]): UnwrapObservables<T> =>
   Array.isArray(value) ? value.map(v => replaceObservablePairs(v, replacementPairs)) :
   value instanceof Observable ? replacementPairs.find(([observable]) => observable === value)?.[1] :
-  value && typeof value === 'object' && !('__type__' in value) && value['__type__'] !== 'Node' ? Object.fromEntries(
+  value && typeof value === 'object' && !('__graph_type__' in value) && value['__graph_type__'] !== 'Node' ? Object.fromEntries(
     Object
       .entries(value)
       .map(([key, value]) => [
@@ -87,165 +95,150 @@ export const replaceObservablePairs = <T>(value: T, replacementPairs: [Observabl
   ) :
   value
 
-type Indexer<NodeType extends NodeData> = {
-  find: ({ filter, filteredNodes }: { filter: Partial<NodeType>, filteredNodes: Node<NodeType>[] }) => Node<NodeType>[]
-  findOne: ({ filter, filteredNodes }: { filter: Partial<NodeType>, filteredNodes: Node<NodeType>[] }) => Node<NodeType> | undefined
-  insertOne: (node: Node<NodeType>) => void
-}
+const isInternalNode = (value: any): value is InternalNode<Node> =>
+  value && typeof value === 'object' &&
+  '__graph_type__' in value && value.__graph_type__ === 'Node'
 
-export const makePropertyIndexer = <NodeType extends NodeData, Property extends keyof NodeType>(property: Property): Indexer<NodeType> => {
-  const nodesMap = new Map<string, Node<NodeType>[]>()
-  return {
-    find: ({ filter }) => filter[property] ? nodesMap.get(filter[property]!) ?? [] : [],
-    findOne: ({ filter }) => filter[property] ? nodesMap.get(filter[property]!)?.at(0) : undefined,
-    insertOne: (node) => nodesMap.set(node.data[property], [...nodesMap.get(node.data[property]) ?? [], node])
-  }
-}
+const isNode = (value: any): value is Node =>
+  value && typeof value === 'object' &&
+  '__typename' in value && '_id' in value
 
-const deepEqualIndexer = <NodeType extends NodeData>(): Indexer<NodeType> => {
-  let nodes: Node<NodeType>[] = []
-  return {
-    find: ({ filter, filteredNodes }) =>
-      filteredNodes.length
-        ? filteredNodes.filter(_node => deepEqualSubset(filter, _node.data))
-        : nodes.filter(_node => deepEqualSubset(filter, _node.data)),
-    findOne: ({ filter, filteredNodes }) =>
-      filteredNodes.length
-        ? filteredNodes.find(_node => deepEqualSubset(filter, _node.data))
-        : nodes.find(_node => deepEqualSubset(filter, _node.data)),
-    insertOne: (node) => {
-      nodes = [...nodes, node]
+export const isNodeType = (value: any): value is Node =>
+  value && typeof value === 'object' &&
+  '__typename' in value && (
+    value.__typename === 'Media' ||
+    value.__typename === 'Episode' ||
+    value.__typename === 'UserMedia' ||
+    value.__typename === 'PlaybackSource' ||
+    value.__typename === 'Team' ||
+    value.__typename === 'MediaExternalLink' ||
+    value.__typename === 'MediaTrailer'
+  )
+
+export type ExtractNode<T> =
+  T extends Node ? T :
+  T extends Array<infer U> ? ExtractNode<U> :
+  T extends object ? { [key in keyof T]: ExtractNode<T[key]> }[keyof T] :
+  never
+
+// isNodeTypename
+
+export const getNodesType = <T>(value: T): ExtractNode<T>[] => {
+  const objects = new Set()
+  const nodes: ExtractNode<T>[] = []
+
+  const recurse = (value: any) => {
+    if (!value || typeof value !== 'object') return
+    if (objects.has(value)) return
+    if (isNodeTypename(value.__typename)) {
+      nodes.push(value as ExtractNode<T>)
+      objects.add(value)
+      Object.values(value).map(recurse)
+      return
+    }
+    if (Array.isArray(value)) return value.map(recurse)
+    if (value && typeof value === 'object') {
+      if (objects.has(value)) return
+      objects.add(value)
+      Object.values(value).map(recurse)
     }
   }
+
+  recurse(value)
+  return nodes as ExtractNode<T>[]
 }
 
+// export const getNodesType = <T>(value: T): ExtractNode<T>[] => {
+//   const objects = new Set()
+//   const nodes: ExtractNode<T>[] = []
 
-const updateOperators = ['$set', '$unset', '$merge', '$push', '$pull'] as const
-type UpdateOperators = typeof updateOperators[number]
+//   const recurse = (value: any) => {
+//     if (!value || typeof value !== 'object') return
+//     if (objects.has(value)) return
+//     if (isNodeType(value)) {
+//       nodes.push(value as ExtractNode<T>)
+//       objects.add(value)
+//       Object.values(value).map(recurse)
+//       return
+//     }
+//     if (Array.isArray(value)) return value.map(recurse)
+//     if (value && typeof value === 'object') {
+//       if (objects.has(value)) return
+//       objects.add(value)
+//       Object.values(value).map(recurse)
+//     }
+//   }
 
-type UpdateObject<T> = {
-  $set?: Partial<T>
-  $unset?: Partial<T>
-  $merge?: Partial<T>
-  $push?: { [key in keyof T]?: T[key] }
-  $pull?: { [key in keyof T]?: T[key] }
+//   recurse(value)
+//   return nodes as ExtractNode<T>[]
+// }
+
+export const getNodes = <T>(value: T): ExtractNode<T>[] => {
+  const objects = new Set()
+  const nodes: ExtractNode<T>[] = []
+
+  const recurse = (value: any) => {
+    if (!value || typeof value !== 'object') return
+    if (objects.has(value)) return
+    if (isNode(value)) {
+      nodes.push(value as ExtractNode<T>)
+      objects.add(value)
+      Object.values(value).map(recurse)
+      return
+    }
+    if (Array.isArray(value)) return value.map(recurse)
+    if (value && typeof value === 'object') {
+      if (objects.has(value)) return
+      objects.add(value)
+      Object.values(value).map(recurse)
+    }
+  }
+
+  recurse(value)
+  return nodes as ExtractNode<T>[]
 }
 
-function updateObject<T>(_obj: T, update: UpdateObject<T>) {
-  const obj = merge(_obj, _obj) as T
-  if (update.$set) {
-      for (let key in update.$set) {
-          // Using dot notation to handle nested objects
-          const keys = key.split('.');
-          let target = obj;
-          for (let i = 0; i < keys.length - 1; i++) {
-              if (!target[keys[i]]) target[keys[i]] = {};
-              target = target[keys[i]];
-          }
-          target[keys[keys.length - 1]] = update.$set[key];
-      }
-  }
+export const replaceNodePairs = <T extends Node>(value: Node, replacementPairs: [Node, any][]): ExtractNode<T> =>
+  Array.isArray(value) ? value.map(v => replaceNodePairs(v, replacementPairs)) :
+  isNode(value) ? replacementPairs.find(([node]) => node === value)?.[1] :
+  value && typeof value === 'object' && !getNodes(value) ? Object.fromEntries(
+    Object
+      .entries(value)
+      .map(([key, value]) => [
+        key,
+        replaceNodePairs(value, replacementPairs)
+      ])
+  ) :
+  value
 
-  if (update.$unset) {
-      for (let key in update.$unset) {
-          // Assuming the path exists
-          const keys = key.split('.');
-          let target = obj;
-          for (let i = 0; i < keys.length - 1; i++) {
-              target = target[keys[i]];
-          }
-          delete target[keys[keys.length - 1]];
-      }
-  }
+type ExtractAllTypes<T> =
+  T extends Array<infer U> ? ExtractAllTypes<U>[] :
+  T extends object ? T | { [key in keyof T]: ExtractAllTypes<T[key]> }[keyof T] :
+  T
 
-  if (update.$push) {
-      for (let key in update.$push) {
-          // Assuming the path exists and is an array
-          const keys = key.split('.');
-          let target = obj;
-          for (let i = 0; i < keys.length - 1; i++) {
-              target = target[keys[i]];
-          }
-          target[keys[keys.length - 1]].push(update.$push[key]);
-      }
-  }
+type ScannarrTypes = Extract<NonNullable<ExtractAllTypes<Node>>, object>
 
-  if (update.$pull) {
-      for (let key in update.$pull) {
-          // Assuming the path exists and is an array
-          const keys = key.split('.');
-          let target = obj;
-          for (let i = 0; i < keys.length - 1; i++) {
-              target = target[keys[i]];
-          }
-          target[keys[keys.length - 1]] = target[keys[keys.length - 1]].filter(item => item !== update.$pull[key]);
-      }
-  }
-  return obj
-}
+export const makeInMemoryGraphDatabase = () => {
+  const nodes = new Map<string, InternalNode<Node>>()
 
-export const makeInMemoryGraphDatabase = <NodeType extends NodeData>(
-  { indexers: _indexers }:
-  { indexers?: Indexer<NodeType>[] }
-) => {
-  const indexers = [
-    makePropertyIndexer<NodeType, '_id'>('_id'),
-    makePropertyIndexer<NodeType, '_typename'>('_typename'),
-    ..._indexers ?? [],
-    deepEqualIndexer<NodeType>()
-  ]
-  const nodes = new Map<string, Node<NodeType>>()
+  const find = (filter: (value: Node, node: InternalNode<Node>) => boolean) =>
+    [...nodes.values()]
+      .filter(node => filter(node.data, node))
 
-  const find = (filter: Partial<NodeType>) => {
-    const allNodes = [...nodes.values()]
-    const filteredNodes =
-      indexers
-        .reduce(
-          (filteredNodes, indexer) => {
-            const indexResult = indexer.find({ filteredNodes, filter })
-            return (
-              indexResult
-                ? [indexResult]
-                : filteredNodes
-            )
-          },
-          allNodes
-        )
+  const findOne = (filter: (value: Node, node: InternalNode<Node>) => boolean) =>
+    [...nodes.values()]
+      .find(node => filter(node.data, node))
 
-    if (allNodes === filteredNodes) return undefined
-    return filteredNodes
-  }
-
-  const findNodeOne = (filter: Partial<NodeType>) => {
-    const allNodes = [...nodes.values()]
-    const filteredNodes =
-      indexers
-        .reduce(
-          (filteredNodes, indexer) => {
-            const indexResult = indexer.findOne({ filteredNodes, filter })
-            return (
-              indexResult
-                ? [indexResult]
-                : filteredNodes
-            )
-          },
-          allNodes
-        )
-
-    if (allNodes === filteredNodes) return undefined
-    return filteredNodes[0]
-  }
-
-  const mapNode = <T extends NodeType, T2 extends (nodeData: NodeType, node: Node<NodeType>) => any>(node: Node<T>, fn: T2) =>
+  const mapNode = <T extends (nodeData: Node, node: InternalNode<Node>) => Node>(node: InternalNode<Node>, fn: T) =>
     node
       .$
       .pipe(
         switchMap(data => {
           const result = fn(data, node)
           const observables = getObservables(result)
-          if (!observables.length) return of(result)
+          if (!observables?.length) return of(result)
           return (
-            combineLatest(observables as Observable<any>)
+            combineLatest(observables)
               .pipe(
                 map(results =>
                   replaceObservablePairs(
@@ -262,28 +255,44 @@ export const makeInMemoryGraphDatabase = <NodeType extends NodeData>(
       )
 
   return {
-    indexers,
     nodes,
     mapNode,
-    findOne: <T extends NodeType, T2 extends boolean>(filter: Partial<T>, { returnNode }: { returnNode?: T2 } = {}): (T2 extends true ? Node<T & { _id: string }> : T & { _id: string }) | undefined => {
-      const foundNode = findNodeOne(filter)
-      if (!foundNode) return undefined
-      return (
-        returnNode
-          ? foundNode as Node<T & { _id: string }>
-          : foundNode.data as T & { _id: string }
-      )
+    findNodeOne: <T extends InternalNode<Node>>(filter: (value: Node, node: InternalNode<Node>) => boolean) => {
+      const foundNode =
+        typeof filter === 'string'
+          ? nodes.get(filter)
+          : findOne(filter)
+
+      return foundNode as (T & { _id: string }) | undefined
     },
-    mapOne: <T2 extends (nodeData: NodeType, node: Node<NodeType>) => any>(filter: Partial<NodeType>, fn: T2) => {
-      const foundNode = findNodeOne(filter)
+    findOne: <T extends Node>(filter: (value: Node, node: InternalNode<Node>) => boolean) => {
+      const foundNode =
+        typeof filter === 'string'
+          ? nodes.get(filter)
+          : findOne(filter)
+
+      return foundNode?.data as (T & { _id: string }) | undefined
+    },
+    findNode: <T extends InternalNode<Node>>(filter: (value: Node, node: InternalNode<Node>) => boolean) =>
+      find(filter)
+        .filter(Boolean) as (T & { _id: string })[],
+    find: <T extends Node>(filter: (value: Node, node: InternalNode<Node>) => boolean) =>
+      find(filter)
+        .map(node => node.data)
+        .filter(Boolean) as (T & { _id: string })[],
+    mapOne: <T extends (nodeData: Node, node: InternalNode<Node>) => Node & { _id: string }>(filter: string | ((value: Node, node: InternalNode<Node>) => boolean), fn: T) => {
+      const foundNode =
+        typeof filter === 'string'
+          ? nodes.get(filter)
+          : findOne(filter)
       if (!foundNode) throw new Error(`No node found for ${JSON.stringify(filter)}`)
       return mapNode(foundNode, fn)
     },
-    insertOne: <T extends Omit<NodeType, '_id'>, T2 extends boolean>(_node: T, { returnNode }: { returnNode?: T2 } = {}): T2 extends true ? Node<T & { _id: string }> : T & { _id: string } => {
+    insertOne: <T extends Omit<Node, '_id'>>(_node: T) => {
       const _id = globalThis.crypto.randomUUID() as string
       const data = { ..._node, _id }
 
-      const changesObservable = new Subject<T>()
+      const changesObservable = new Subject<Node>()
       const nodeObservable =
         changesObservable
           .pipe(
@@ -294,43 +303,32 @@ export const makeInMemoryGraphDatabase = <NodeType extends NodeData>(
       if (!_id) throw new Error(`No key for ${_node.__typename}`)
   
       const node = {
-        __graph_type__: 'Node',
+        __graph_type__: 'Node' as const,
         _id,
         subject: changesObservable,
         $: nodeObservable,
-        data,
-        // update: (changes: Partial<T>) =>
-        //   firstValueFrom(nodeObservable)
-        //     .then(node =>
-        //       changesObservable.next(
-        //         merge(node, changes) as T
-        //       )
-        //     ),
-        get: () => firstValueFrom(nodeObservable),
-        map: <T2 extends (nodeData: NodeType, node: Node<NodeType>) => any>(fn: T2) => mapNode(node as Node<NodeType>, fn)
-      }
+        data
+      } as InternalNode<Node>
 
-      nodes.set(_id, node as Node<T>)
-      for (const indexer of indexers) indexer.insertOne(node)
+      nodes.set(_id, node)
 
-      return (
-        returnNode
-          ? node as Node<T & { _id: string }>
-          : data as T & { _id: string }
-      )
+      return data
     },
-    updateOne: <T extends NodeType>(filter: Partial<T>, changes: Partial<T>) => {
-      const node = findNodeOne(filter)
+    updateOne: (
+      filter: string | ((value: Node, node: InternalNode<Node>) => boolean),
+      updateFunction: (value: Node, node: InternalNode<Node>) => Node
+    ) => {
+      const node =
+        typeof filter === 'string'
+          ? nodes.get(filter)
+          : findOne(filter)
       if (!node) {
         console.log('No node found for', filter)
-        return // throw new Error(`No node found for ${JSON.stringify(filter)}`)
+        return
       }
-      firstValueFrom(node.$)
-        .then(nodeData => {
-          const newData = updateObject(nodeData, flatten(changes?.$set)) as T
-          node.data = newData
-          node.subject.next(newData)
-        })
+      node.data = Object.assign(node.data, updateFunction(node.data, node))
+      node.subject.next(node.data)
+      return node.data
     }
   }
 }

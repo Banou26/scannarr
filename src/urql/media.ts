@@ -146,6 +146,7 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
 
                 console.log('scannarrHandles', scannarrHandles)
                 console.log('scannarrNodes', scannarrNodes)
+                console.log('handleNodes', handleNodes)
                 return ({
                   mediaPage: {
                     nodes: handleNodes
@@ -197,6 +198,11 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                               )
                             )
                           ) ||
+                          (!Object.keys(mapNodeToNodeSelection(
+                            graph,
+                            buildNodeSelectionMap(info),
+                            data.handles.find(handle => handle.origin === 'scannarr')
+                          )).length ? console.log('AAAAAAAAAAAA', data) : undefined) ||
                           mapNodeToNodeSelection(
                             graph,
                             buildNodeSelectionMap(info),

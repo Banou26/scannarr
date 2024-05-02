@@ -120,6 +120,15 @@ export const makeGraphDatabase = () => {
     return combineLatest(nodes.map(node => mapNode(node, mapFunc)))
   }
 
+  const removeOne = (filter: QuerySelectors) => {
+    const node = findOne(filter)
+    if (!node) throw new Error(`removeOne node not found for filter ${JSON.stringify(filter)}`)
+    nodes.delete(node._id)
+    indexers
+      .filter(indexer => indexer.shouldBeUsedOnFilter(filter) || indexer.shouldBeUsedOnNode(node.data))
+      .forEach(indexer => indexer.removeOne(node))
+  }
+
   return {
     nodes,
     indexers,
@@ -128,6 +137,9 @@ export const makeGraphDatabase = () => {
     insertOne,
     updateOne,
     mapOne,
-    mapMany
+    mapMany,
+    removeOne
   }
 }
+
+export type GraphDatabase = ReturnType<typeof makeGraphDatabase>

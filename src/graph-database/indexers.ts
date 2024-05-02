@@ -15,14 +15,14 @@ type Indexer = {
 }
 
 export const makePropertyIndexer = (propertyPath: string): Indexer => {
+  const pathParts = propertyPath.split('.')
+  const key = pathParts.pop()!
   const nodesMap = new Map<string, InternalNode<NodeData>[]>()
   return {
     __graph_type__: 'Indexer' as const,
     __propertyPath__: propertyPath,
     shouldBeUsedOnFilter: (filter) => propertyPath in filter,
     shouldBeUsedOnNode: (node) => {
-      const pathParts = propertyPath.split('.')
-      const key = pathParts.pop()!
       const value = pathPartsToTarget(node, pathParts)
 
       if (Array.isArray(value)) return true
@@ -47,8 +47,6 @@ export const makePropertyIndexer = (propertyPath: string): Indexer => {
       return nodesMap.get(filter[propertyPath])?.[0]
     },
     insertOne: (node) => {
-      const pathParts = propertyPath.split('.')
-      const key = pathParts.pop()!
       const value = pathPartsToTarget(node.data, pathParts)
 
       if (Array.isArray(value)) {
@@ -73,7 +71,6 @@ export const makePropertyIndexer = (propertyPath: string): Indexer => {
       )
     },
     updateOne: (node, previousData, newData) => {
-      const pathParts = propertyPath.split('.')
       const value = pathPartsToTarget(previousData, pathParts)
       const newValue = pathPartsToTarget(newData, pathParts)
       // todo: handle cases like array values which would never be equal
@@ -117,7 +114,6 @@ export const makePropertyIndexer = (propertyPath: string): Indexer => {
       )
     },
     removeOne: (node) => {
-      const pathParts = propertyPath.split('.')
       const value = pathToValue(node.data, pathParts)
 
       if (Array.isArray(value)) {

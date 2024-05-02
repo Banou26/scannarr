@@ -6,14 +6,14 @@ import { Handle } from '../generated/graphql'
 import { ServerContext } from './client'
 import { HandleType } from './server'
 import { groupBy, merge } from '../utils'
-import { InMemoryGraphDatabase, Node, isNodeType, recursiveRemoveNullable } from './graph'
+import { InMemoryGraphDatabase, Node, isNodeType, recursiveRemoveNullable } from './_graph'
 import { FieldNode, FragmentSpreadNode, GraphQLList, GraphQLNonNull, GraphQLObjectType, GraphQLOutputType, GraphQLResolveInfo, SelectionNode, SelectionSetNode } from 'graphql'
 import { FragmentDefinitionNode } from 'graphql'
 
 export const isFieldNode = (node: SelectionNode): node is FieldNode => node.kind === 'Field'
 export const isFragmentSpreadNode = (node: SelectionNode): node is FragmentSpreadNode => node.kind === 'FragmentSpread'
 
-const isNodeTypename = value =>
+export const isNodeTypename = value =>
   value === 'Media' ||
   value === 'Episode' // ||
   // value === 'UserMedia' ||
