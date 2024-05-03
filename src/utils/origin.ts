@@ -228,23 +228,30 @@ export const subscribeToOrigins = <T extends ValidSubscriptionKeys>(
                         ...node,
                         ...recursiveRemoveNullable(node),
                         handles: [
-                          ...node.handles?.filter(handle => updatedNodes.includes(handle)) ?? [],
-                          ...updatedNodes
+                          ...new Set([
+                            ...node.handles?.filter(handle => updatedNodes.includes(handle)) ?? [],
+                            ...updatedNodes
+                          ])
                         ]
                       })
                     )
                     for (const node of updatedNodes) {
-                      graph.updateOne(
+                      const newRes = graph.updateOne(
                         { _id: node._id },
                         node => ({
                           ...node,
                           ...recursiveRemoveNullable(node),
                           handles: [
-                            ...node.handles?.filter(handle => handle.origin !== 'scannarr') ?? [],
-                            keptScannarrHandle
+                            ...new Set([
+                              ...node.handles?.filter(handle => handle.origin !== 'scannarr') ?? [],
+                              keptScannarrHandle
+                            ])
                           ]
                         })
                       )
+                      if (node.uri === 'mal:49889') {
+                        console.log('newREs', newRes, node)
+                      }
                     }
                   } else {
                     const result = graph.insertOne(
@@ -254,17 +261,22 @@ export const subscribeToOrigins = <T extends ValidSubscriptionKeys>(
                       })
                     )
                     for (const node of updatedNodes) {
-                      graph.updateOne(
+                      const newRes = graph.updateOne(
                         { _id: node._id },
                         node => ({
                           ...node,
                           ...recursiveRemoveNullable(node),
                           handles: [
-                            ...node.handles?.filter(handle => handle.origin !== 'scannarr') ?? [],
-                            result
+                            ...new Set([
+                              ...node.handles?.filter(handle => handle.origin !== 'scannarr') ?? [],
+                              result
+                            ])
                           ]
                         })
                       )
+                      if (node.uri === 'mal:49889') {
+                        console.log('newREs', newRes, node)
+                      }
                     }
                   }
                 }

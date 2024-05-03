@@ -2,6 +2,7 @@ import { Observable, Subject, combineLatest, shareReplay, startWith } from 'rxjs
 import { makePropertyIndexer } from './indexers'
 import { QuerySelectors, matches } from './query'
 import { mapNode } from './map'
+import { deepEqual } from './comparison'
 
 export type NodeData =
   { _id: string, __typename: string } &
@@ -15,7 +16,11 @@ export type InternalNode<T extends NodeData> = {
   data: T
 }
 
-export const makeGraphDatabase = () => {
+type MergeMap = {
+  [key: string]: (a: any, b: any) => any
+}
+
+export const makeGraphDatabase = ({ mergeMap }: { mergeMap: MergeMap }) => {
   const nodes = new Map<string, InternalNode<NodeData>>()
   const indexers = [
     makePropertyIndexer('_id'),
@@ -104,8 +109,10 @@ export const makeGraphDatabase = () => {
         || indexer.shouldBeUsedOnNode(node.data)
       )
       .forEach(indexer => indexer.updateOne(node, node.data, newNodeData))
+    const isDeepEqual = deepEqual(node.data, newNodeData)
     Object.assign(node.data, newNodeData)
-    node.subject.next(node.data)
+    if (!isDeepEqual) node.subject.next(node.data)
+    return node.data
   }
 
   const mapOne = (filter: QuerySelectors, mapFunc: (nodeData: Node, node: InternalNode<NodeData>) => Node) => {

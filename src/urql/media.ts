@@ -43,12 +43,17 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
   //     return scannarrEpisodes ?? []
   //   }
   // },
+  Media: {
+    handles: (parent, args, ctx, info) => parent.handles ?? [],
+    episodes: (parent, args, ctx, info) => parent.episodes ?? []
+  },
   Episode: {
     handles: (parent, args, ctx, info) => parent.handles ?? []
   },
   Subscription: {
     media: {
       subscribe: (_, __, context, info) =>
+        console.log('NEW REQ media', info) ||
         observableToAsyncIterable(
           mergeOriginSubscriptionResults({
             graph,
@@ -104,6 +109,7 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
     // then map on all of the medias, get their related scannarr handles, de-dupe them, and return them
     mediaPage: {
       subscribe: (_, __, context, info) =>
+        console.log('NEW REQ mediaPage', info) ||
         observableToAsyncIterable(
           subscribeToOrigins({
             graph,
@@ -125,27 +131,27 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                       graph.findOne({ uri: mediaHandle.uri })
                     )
 
-                const { handleGroups } = groupRelatedHandles({ results: handleNodes })
-                const scannarrHandles =
-                  handleGroups
-                    .map(handles =>
-                      makeScannarrHandle2({
-                        handles,
-                        mergeHandles
-                      })
-                    ) as Media[]
+                // const { handleGroups } = groupRelatedHandles({ results: handleNodes })
+                // const scannarrHandles =
+                //   handleGroups
+                //     .map(handles =>
+                //       makeScannarrHandle2({
+                //         handles,
+                //         mergeHandles
+                //       })
+                //     ) as Media[]
 
-                const scannarrNodes =
-                  scannarrHandles
-                    .map(handle =>
-                      graph.findOne({
-                        origin: 'scannarr',
-                        'handles.uri': fromScannarrUri(handle.uri)?.handleUris
-                      })
-                    )
+                // const scannarrNodes =
+                //   scannarrHandles
+                //     .map(handle =>
+                //       graph.findOne({
+                //         origin: 'scannarr',
+                //         'handles.uri': fromScannarrUri(handle.uri)?.handleUris
+                //       })
+                //     )
 
-                console.log('scannarrHandles', scannarrHandles)
-                console.log('scannarrNodes', scannarrNodes)
+                // console.log('scannarrHandles', scannarrHandles)
+                // console.log('scannarrNodes', scannarrNodes)
                 console.log('handleNodes', handleNodes)
                 return ({
                   mediaPage: {
@@ -184,16 +190,20 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                         (data) =>
                           (
                             // https://myanimelist.net/anime/52701 https://anilist.co/anime/153518
-                            data.uri === 'mal:52701' && (
+                            (data.uri === 'mal:52701' && (
                               console.log('info', info) ||
-                              console.log('buildNodeSelectionMap(info)', buildNodeSelectionMap(info), data) ||
-                              console.log(
-                                'result',
-                                data.handles.find(handle => handle.origin === 'scannarr'),
-                                mapNodeToNodeSelection(
-                                  graph,
-                                  buildNodeSelectionMap(info),
-                                  data.handles.find(handle => handle.origin === 'scannarr')
+                              console.log('buildNodeSelectionMap(info)', buildNodeSelectionMap(info), data)
+                            )) || (
+                              !data.handles.find(handle => handle.origin === 'scannarr') && (
+                                console.log(
+                                  'result',
+                                  data,
+                                  data.handles.find(handle => handle.origin === 'scannarr'),
+                                  mapNodeToNodeSelection(
+                                    graph,
+                                    buildNodeSelectionMap(info),
+                                    data.handles.find(handle => handle.origin === 'scannarr')
+                                  )
                                 )
                               )
                             )
@@ -214,7 +224,7 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
               )
             ),
             throttleTime(100, undefined, { leading: true, trailing: true }),
-            map((results) => console.log('results', results.filter(val => !val.episodes)) || ({
+            map((results) => console.log('results', results.filter(node => node.handles?.some(_node => !_node.episodes) ?? true)) || ({
               mediaPage: {
                 nodes: results.filter(Boolean)
               }

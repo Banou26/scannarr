@@ -123,31 +123,6 @@ export type ExtractNode<T> =
 
 // isNodeTypename
 
-export const getNodesType = <T>(value: T): ExtractNode<T>[] => {
-  const objects = new Set()
-  const nodes: ExtractNode<T>[] = []
-
-  const recurse = (value: any) => {
-    if (!value || typeof value !== 'object') return
-    if (objects.has(value)) return
-    if (isNodeTypename(value.__typename)) {
-      nodes.push(value as ExtractNode<T>)
-      objects.add(value)
-      Object.values(value).map(recurse)
-      return
-    }
-    if (Array.isArray(value)) return value.map(recurse)
-    if (value && typeof value === 'object') {
-      if (objects.has(value)) return
-      objects.add(value)
-      Object.values(value).map(recurse)
-    }
-  }
-
-  recurse(value)
-  return nodes as ExtractNode<T>[]
-}
-
 // export const getNodesType = <T>(value: T): ExtractNode<T>[] => {
 //   const objects = new Set()
 //   const nodes: ExtractNode<T>[] = []
@@ -155,7 +130,7 @@ export const getNodesType = <T>(value: T): ExtractNode<T>[] => {
 //   const recurse = (value: any) => {
 //     if (!value || typeof value !== 'object') return
 //     if (objects.has(value)) return
-//     if (isNodeType(value)) {
+//     if (isNodeTypename(value.__typename)) {
 //       nodes.push(value as ExtractNode<T>)
 //       objects.add(value)
 //       Object.values(value).map(recurse)
@@ -172,6 +147,31 @@ export const getNodesType = <T>(value: T): ExtractNode<T>[] => {
 //   recurse(value)
 //   return nodes as ExtractNode<T>[]
 // }
+
+export const getNodesType = <T>(value: T): ExtractNode<T>[] => {
+  const objects = new Set()
+  const nodes: ExtractNode<T>[] = []
+
+  const recurse = (value: any) => {
+    if (!value || typeof value !== 'object') return
+    if (objects.has(value)) return
+    if (isNodeType(value)) {
+      nodes.push(value as ExtractNode<T>)
+      objects.add(value)
+      Object.values(value).map(recurse)
+      return
+    }
+    if (Array.isArray(value)) return value.map(recurse)
+    if (value && typeof value === 'object') {
+      if (objects.has(value)) return
+      objects.add(value)
+      Object.values(value).map(recurse)
+    }
+  }
+
+  recurse(value)
+  return nodes as ExtractNode<T>[]
+}
 
 export const getNodes = <T>(value: T): ExtractNode<T>[] => {
   const objects = new Set()
