@@ -188,10 +188,7 @@ export const subscribeToOrigins = <T extends ValidSubscriptionKeys>(
                         if (existingNode) {
                           return graph.updateOne(
                             { _id: existingNode._id },
-                            (node) => ({
-                              ...node,
-                              ...recursiveRemoveNullable(childNode)
-                            }) as NodeData
+                            childNode
                           )!
                         }
                         return graph.insertOne(childNode)
@@ -222,36 +219,9 @@ export const subscribeToOrigins = <T extends ValidSubscriptionKeys>(
                     for (const otherScannarrHandle of foundScannarrNodes.slice(1)) {
                       graph.removeOne({ _id: otherScannarrHandle._id })
                     }
-                    graph.updateOne(
-                      { _id: keptScannarrHandle._id },
-                      node => ({
-                        ...node,
-                        ...recursiveRemoveNullable(node),
-                        handles: [
-                          ...new Set([
-                            ...node.handles?.filter(handle => updatedNodes.includes(handle)) ?? [],
-                            ...updatedNodes
-                          ])
-                        ]
-                      })
-                    )
+                    graph.updateOne({ _id: keptScannarrHandle._id }, { handles: updatedNodes })
                     for (const node of updatedNodes) {
-                      const newRes = graph.updateOne(
-                        { _id: node._id },
-                        node => ({
-                          ...node,
-                          ...recursiveRemoveNullable(node),
-                          handles: [
-                            ...new Set([
-                              ...node.handles?.filter(handle => handle.origin !== 'scannarr') ?? [],
-                              keptScannarrHandle
-                            ])
-                          ]
-                        })
-                      )
-                      if (node.uri === 'mal:49889') {
-                        console.log('newREs', newRes, node)
-                      }
+                      graph.updateOne({ _id: node._id }, { handles: [keptScannarrHandle] })
                     }
                   } else {
                     const result = graph.insertOne(
@@ -261,119 +231,10 @@ export const subscribeToOrigins = <T extends ValidSubscriptionKeys>(
                       })
                     )
                     for (const node of updatedNodes) {
-                      const newRes = graph.updateOne(
-                        { _id: node._id },
-                        node => ({
-                          ...node,
-                          ...recursiveRemoveNullable(node),
-                          handles: [
-                            ...new Set([
-                              ...node.handles?.filter(handle => handle.origin !== 'scannarr') ?? [],
-                              result
-                            ])
-                          ]
-                        })
-                      )
-                      if (node.uri === 'mal:49889') {
-                        console.log('newREs', newRes, node)
-                      }
+                      graph.updateOne({ _id: node._id }, { handles: [result] })
                     }
                   }
                 }
-
-
-                // const updatesRelatedScannarrNodesSet = new Set()
-
-                // for (const node of updatedNodes) {
-                //   const scannarrNode = graph.findOne({ origin: 'scannarr', 'handles.uri': [node.uri, ...node?.handles.] })
-                //   if (node.origin === 'scannarr') {
-                //     updatesRelatedScannarrNodesSet.add(node)
-                //   }
-                // }
-
-                // const { handleGroups } = groupRelatedHandles({
-                //   results:
-                //     [...graph.nodes.values()]
-                //       .map(node => node.data)
-                //       .filter(node => node.__typename === 'Media' && node.origin !== 'scannarr')
-                // })
-
-                // const newNodeDataNodes = getNodesType(handleGroups)
-
-                // for (const nodeData of newNodeDataNodes) {
-                //   const foundNode = graph.findOne({ uri: nodeData.uri })
-                //   if (foundNode) {
-                //     graph.updateOne(
-                //       { _id: foundNode._id },
-                //       node => ({
-                //         ...node,
-                //         ...recursiveRemoveNullable(nodeData)
-                //       })
-                //     )
-                //   } else {
-                //     graph.insertOne(nodeData)
-                //   }
-                // }
-
-                // for (const _groupedHandles of handleGroups) {
-                //   const groupedHandles = _groupedHandles.filter(node => node.origin !== 'scannarr')
-
-                //   const handleUris = fromScannarrUri(groupedHandles[0].uri)?.handleUris
-
-                //   if (handleUris) {
-                //     graph.updateOne(
-                //       {
-                //         origin: 'scannarr',
-                //         'handles.uri': handleUris
-                //       },
-                //       (node) => {
-                //         const uniqueHandles =
-                //           [
-                //             ...(
-                //               [...groupedHandles]
-                //                 .reduce((acc, handle) => {
-                //                   const key = handle.uri
-                //                   if (!acc.has(key)) {
-                //                     acc.set(key, handle)
-                //                   }
-                //                   return acc
-                //                 }, new Map<string, Handle2>())
-                //                 .values()
-                //             )
-                //           ]
-                //           .map(handle => {
-                //             const foundNode =
-                //               graph.findOne({ uri: handle.uri })
-                //               ?? graph.insertOne(handle)
-                //             return foundNode
-                //           })
-
-                //         const mergedResult = makeScannarrHandle2({
-                //           handles: uniqueHandles,
-                //           mergeHandles
-                //         })
-
-                //         return {
-                //           ...mergedResult,
-                //           _id: node._id
-                //         }
-                //       }
-                //     )
-                //   } else {
-                //     const result = graph.insertOne(
-                //       makeScannarrHandle2({
-                //         handles: groupedHandles,
-                //         mergeHandles
-                //       })
-                //     )
-                //     if (result.id.includes('52701')) {
-                //       console.log('INSERT SCANNARR', result, handleUris, groupedHandles, _groupedHandles)
-                //     }
-                //     if (result.__typename === 'Media' && result?.id.includes('scannarr')) {
-                //       console.log('insert', result, groupedHandles)
-                //     }
-                //   }
-                // }
               } catch (err) {
                 console.error(err)
               }

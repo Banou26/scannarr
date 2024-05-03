@@ -13,6 +13,7 @@ import { serverResolvers as makeUserServerResolvers } from './user'
 import { Episode, Handle, Media, MutationResolvers, QueryResolvers, Resolvers, SubscriptionResolvers, UserMedia } from '../generated/graphql'
 import { merge } from '../utils/deep-merge'
 import { makeGraphDatabase } from '../graph-database'
+import { mergeMap } from '../graph-database/update'
 
 export type SimpleRoot = QueryResolvers & MutationResolvers
 export type ResolverArgs =
@@ -65,7 +66,7 @@ export const makeScannarrServer = (
   { origins: _origins, context, mergeHandles }:
   { origins: Origin[], context: () => Promise<ServerContext>, mergeHandles: MergeHandleFunction }
 ) => {
-  const graph = makeGraphDatabase()
+  const graph = makeGraphDatabase({ mergeMap: mergeMap })
   console.log('graph', graph)
   const origins =
     _origins

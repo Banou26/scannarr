@@ -130,28 +130,6 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                     .map(mediaHandle =>
                       graph.findOne({ uri: mediaHandle.uri })
                     )
-
-                // const { handleGroups } = groupRelatedHandles({ results: handleNodes })
-                // const scannarrHandles =
-                //   handleGroups
-                //     .map(handles =>
-                //       makeScannarrHandle2({
-                //         handles,
-                //         mergeHandles
-                //       })
-                //     ) as Media[]
-
-                // const scannarrNodes =
-                //   scannarrHandles
-                //     .map(handle =>
-                //       graph.findOne({
-                //         origin: 'scannarr',
-                //         'handles.uri': fromScannarrUri(handle.uri)?.handleUris
-                //       })
-                //     )
-
-                // console.log('scannarrHandles', scannarrHandles)
-                // console.log('scannarrNodes', scannarrNodes)
                 console.log('handleNodes', handleNodes)
                 return ({
                   mediaPage: {

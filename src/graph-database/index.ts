@@ -3,6 +3,8 @@ import { makePropertyIndexer } from './indexers'
 import { QuerySelectors, matches } from './query'
 import { mapNode } from './map'
 import { deepEqual } from './comparison'
+import './update'
+import { merge } from './update'
 
 export type NodeData =
   { _id: string, __typename: string } &
@@ -16,8 +18,12 @@ export type InternalNode<T extends NodeData> = {
   data: T
 }
 
-type MergeMap = {
-  [key: string]: (a: any, b: any) => any
+export type MergeMap = {
+  // key is the typename
+  [key: string]: {
+    // key is property in the typename, returns true if the value has been updated
+    [key: string]: (previousValue: any, newValue: any) => boolean
+  }
 }
 
 export const makeGraphDatabase = ({ mergeMap }: { mergeMap: MergeMap }) => {
@@ -98,20 +104,19 @@ export const makeGraphDatabase = ({ mergeMap }: { mergeMap: MergeMap }) => {
     return data
   }
 
-  const updateOne = (filter: QuerySelectors, updateFunc: (data: NodeData) => NodeData) => {
+  const updateOne = (filter: QuerySelectors, data: NodeData) => {
     const node = findOne(filter)
     if (!node) throw new Error(`updateOne node not found for filter ${JSON.stringify(filter)}`)
-    const newNodeData = updateFunc(node.data)
     indexers
       .filter(indexer =>
         indexer.shouldBeUsedOnFilter(filter)
-        || indexer.shouldBeUsedOnNode(newNodeData)
+        || indexer.shouldBeUsedOnNode(data)
         || indexer.shouldBeUsedOnNode(node.data)
       )
-      .forEach(indexer => indexer.updateOne(node, node.data, newNodeData))
-    const isDeepEqual = deepEqual(node.data, newNodeData)
-    Object.assign(node.data, newNodeData)
-    if (!isDeepEqual) node.subject.next(node.data)
+      .forEach(indexer => indexer.updateOne(node, node.data, data))
+    const { changed, result } = merge(node.data, data, mergeMap)
+    Object.assign(node.data, result)
+    if (changed) node.subject.next(node.data)
     return node.data
   }
 

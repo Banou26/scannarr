@@ -76,22 +76,26 @@ export const makePropertyIndexer = (propertyPath: string): Indexer => {
       // todo: handle cases like array values which would never be equal
       if (value === newValue) return
 
-      if (Array.isArray(value)) {
-        value.forEach(value => {
-          nodesMap.set(
-            value,
-            (nodesMap.get(value) ?? []).filter(_node => _node._id !== node._id)
-          )
-        })
-        newValue.forEach(value => {
-          nodesMap.set(
-            value,
-            [
-              ...nodesMap.get(value) ?? [],
-              node
-            ]
-          )
-        })
+      if (Array.isArray(value) || Array.isArray(newValue)) {
+        if (value && Array.isArray(value)) {
+          value.forEach(value => {
+            nodesMap.set(
+              value,
+              (nodesMap.get(value) ?? []).filter(_node => _node._id !== node._id)
+            )
+          })
+        }
+        if (newValue && Array.isArray(newValue)) {
+          newValue.forEach(value => {
+            nodesMap.set(
+              value,
+              [
+                ...nodesMap.get(value) ?? [],
+                node
+              ]
+            )
+          })
+        }
         return
       }
 

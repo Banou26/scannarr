@@ -1,210 +1,146 @@
-import { toPathEntry } from './path'
+import { Media, ResolversParentTypes, Scalars } from '../generated/graphql'
+import { deepEqual } from './comparison'
 
-type FieldsUpdateOperators = {
-  /** Sets the value of a field to current date, either as a Date or a Timestamp. */
-  $currentDate?: Date
-  /** Increments the value of the field by the specified amount. */
-  $inc?: number
-  /** Only updates the field if the specified value is less than the existing field value. */
-  $min?: any
-  /** Only updates the field if the specified value is greater than the existing field value. */
-  $max?: any
-  /** Multiplies the value of the field by the specified amount. */
-  $mul?: number
-  /** Renames a field. */
-  $rename?: string
-  /** Sets the value of a field in a document. */
-  $set?: any
-  /** Sets the value of a field if an update results in an insert of a document. Has no effect on update operations that modify existing documents. */
-  $setOnInsert?: any
-  /** Removes the specified field from a document. */
-  $unset?: boolean
+type Typename = Exclude<
+  keyof ResolversParentTypes,
+  keyof Scalars |
+  'Query' |
+  'Mutation' |
+  'Subscription'
+>
+
+type AllTypenameObject = ResolversParentTypes[Typename]
+
+type _TypenameObject = Extract<AllTypenameObject, { __typename?: string | undefined }>
+
+type TypenameObject = _TypenameObject extends { __typename?: infer T } ? { __typename: T } & _TypenameObject : never
+
+export type MergeExtra = {
+  mergeMap: MergeMap
+  recurse: (a: TypenameObject, b: TypenameObject) => [string, TypenameObject]
 }
 
-type FieldsUpdateOperator = keyof FieldsUpdateOperators
-
-type ArrayUpdateOperators = {
-  // $?: any
-  // '$[]'?: any
-  // '$[<identifier>]'?: any
-  /** Adds an element to an array. */
-  $push?: any
-  /** Adds each element in an array to an array. */
-  $pushAll?: any[]
-  /** Adds multiple elements to an array. */
-  $addToSet?: any
-  /** Removes the first or last item of an array. */
-  $pop?: 1 | -1
-  /** Removes all occurrences of a value from an array. */
-  $pull?: any
-  /** Removes multiple values from an array. */
-  $pullAll?: any[]
-  
-
-  // $each?: any[]
-  // $position?: number
-  // $slice?: number
-  // $sort?: number
-}
-
-type ArrayUpdateOperator = keyof ArrayUpdateOperators
-
-type UpdateOperators = FieldsUpdateOperators & ArrayUpdateOperators
-
-type UpdateOperator = FieldsUpdateOperator & ArrayUpdateOperator
-
-type UpdateOperatorValue = UpdateOperators[UpdateOperator]
-
-const fieldsUpdateOperators = [
-  '$currentDate',
-  '$inc',
-  '$min',
-  '$max',
-  '$mul',
-  '$rename',
-  '$set',
-  '$setOnInsert',
-  '$unset'
-] as FieldsUpdateOperator[]
-
-const arrayUpdateOperators = [
-  // '$',
-  // '$[]',
-  // '$[<identifier>]',
-  '$push',
-  '$pushAll',
-  '$addToSet',
-  '$pop',
-  '$pull',
-  '$pullAll'
-] as ArrayUpdateOperator[]
-
-export const update = (document: any, update: UpdateOperators): any => ({
-  ...document,
-  ...Object
-      .entries(update)
-      .reduce((acc, [operatorType, operatorValue]) => ({
-        ...acc,
-        ...fieldsUpdateOperators.includes(operatorType as FieldsUpdateOperator) ? updateField(operatorType as FieldsUpdateOperator, document, operatorType)
-        : arrayUpdateOperators.includes(operatorType as ArrayUpdateOperator) ? updateArray(operatorType as ArrayUpdateOperator, document, operatorType)
-        : { [operatorType]: updateDocument(document[operatorType], operatorValue) }
-      }), document)
-})
-
-const updateDocument = (target: any, update: UpdateOperators): any =>
-  typeof update === 'object'
-    ? updateObject(target, update)
-    : update
-
-const updateObject = (target: any, update: UpdateOperators): any => ({
-  ...target,
-  ...Object.fromEntries(
-    Object
-      .entries(update)
-      .map(([key, value]) => [
-        key,
-        fieldsUpdateOperators.includes(key as FieldsUpdateOperator) ? updateField(key as FieldsUpdateOperator, target, key)
-        : arrayUpdateOperators.includes(key as ArrayUpdateOperator) ? updateArray(key as ArrayUpdateOperator, target, key)
-        : updateDocument(target[key], value)
-      ])
-  )
-})
-
-const updateCurrentDate = <T extends string, T2 extends Record<T, Date>>(target: T2, key: T) => ({
-  ...target,
-  [key]: new Date()
-})
-
-const updateIncrement = <T extends string, T2 extends Record<T, number>>(target: T2, key: T): any => ({
-  ...target,
-  [key]: target[key] + 1
-})
-
-const updateMinimum = <T extends string, T2 extends Record<T, number>>(target: T2, key: T, value: number) => ({
-  ...target,
-  [key]: Math.min(target[key], value)
-})
-
-const updateMaximum = (target: any, key: string, value: number) => ({
-  ...target,
-  [key]: Math.max(target[key], value)
-}) 
-
-const updateMultiply = <T extends string, T2 extends Record<T, number>>(target: T2, key: T, value: number) => ({
-  ...target,
-  [key]: target[key] * value
-})
-
-const updateRename = (target: any, key: string, value: string): any => {
-  const { [key]: _, ...rest } = target
-  return {
-    ...rest,
-    [value]: target[key]
+export type MergeMap = {
+  // key is the typename
+  [typename in Typename]?: {
+    // key is property in the typename, returns true if the value has been updated
+    [keyField in keyof ResolversParentTypes[typename]]?: {
+      // compare if both values are equal
+      compare: (
+        previousValue: ResolversParentTypes[typename][keyField],
+        newValue: ResolversParentTypes[typename][keyField],
+        extra: MergeExtra
+      ) => boolean
+      // merge the values
+      merge: (
+        previousValue: ResolversParentTypes[typename][keyField],
+        newValue: ResolversParentTypes[typename][keyField],
+        extra: MergeExtra
+      ) =>
+        ResolversParentTypes[typename][keyField]
+    }
   }
 }
 
-const updateSet = (target: any, key: string) => ({
-  ...target,
-  [key]: key
-})
+/**
+ * Returns a new object with the values from b merged deeply
+ * into a potentially using some custom merge included in the mergeMap and
+ * returns both the result and if any values have changed
+ */
+export const merge = (a: TypenameObject, b: TypenameObject, mergeMap: MergeMap) => {
+  const referenceMap = new Map<TypenameObject, TypenameObject>()
+  let changed = false
 
-const updateSetOnInsert = (target: any, key: string) => ({
-  ...target,
-  [key]: key
-})
+  const recurse = (a: TypenameObject, b: TypenameObject) => {
+    const reference = referenceMap.get(a)
+    if (reference) return reference
 
-const updateUnset = (target: any, key: string) => {
-  const { [key]: _, ...rest } = target
-  return rest
+    const correspondingMergeMap = mergeMap[a.__typename]
+    const result = { ...a }
+
+    referenceMap.set(a, result)
+
+    Object.assign(
+      result,
+      Object
+        .fromEntries(
+          Object
+            .entries(b)
+            .map(([key, value]) => {
+              const previousValue = a[key]
+              if (value && typeof value === 'object') {
+                if (correspondingMergeMap && key in correspondingMergeMap) {
+                  if (correspondingMergeMap[key].compare(previousValue, value, { mergeMap, recurse })) return [key, value]
+                  changed = true
+                  return [key, correspondingMergeMap[key].merge(previousValue, value, { mergeMap, recurse })]
+                }
+                if (Array.isArray(value)) {
+                  if (!previousValue) {
+                    changed = true
+                    return [key, value]
+                  }
+                  if (
+                    value.every(newNode => previousValue.some(node => node._id === newNode._id)) &&
+                    previousValue.every(node => value.some(newNode => newNode._id === node._id))
+                  ) {
+                    return [key, previousValue]
+                  }
+                  changed = true
+
+                  const [unpairedValues, pairedValues] = value.reduce<[Media[], Media[]]>(
+                    ([unpairedValues, pairedValues], newNode) => {
+                      const existingNode = previousValue.find(node => node._id === newNode._id)
+                      if (existingNode) {
+                        pairedValues.push(recurse(existingNode, newNode))
+                      } else {
+                        unpairedValues.push(newNode)
+                      }
+                      return [unpairedValues, pairedValues]
+                    },
+                    [[], []]
+                  )
+
+                  return [
+                    key,
+                    [
+                      ...pairedValues,
+                      ...unpairedValues
+                    ]
+                  ]
+                }
+                return [key, recurse(value, value)]
+              } else {
+                if (correspondingMergeMap && key in correspondingMergeMap) {
+                  if (correspondingMergeMap[key].compare(previousValue, value, { mergeMap, recurse })) return [key, value]
+                  changed = true
+                  return [key, correspondingMergeMap[key].merge(previousValue, value, { mergeMap, recurse })]
+                }
+                if (previousValue !== value) changed = true
+                return [key, value]
+              }
+            })
+        )
+    )
+
+    return result
+  }
+  const result = recurse(a, b)
+  return { result: result, changed }
 }
 
-const updatePush = (target: any, key: string, value: any) => ({
-  ...target,
-  [key]: [...target[key], value]
-})
-
-const updatePushAll = (target: any, key: string, values: any[]) => ({
-  ...target,
-  [key]: [...target[key], ...values]
-})
-
-const updateAddToSet = (target: any, key: string, value: any) => ({
-  ...target,
-  [key]: [...new Set([...target[key], value])]
-})
-
-const updatePop = (target: any, key: string) => ({
-  ...target,
-  [key]: target[key].slice(0, -1)
-})
-
-const updatePull = (target: any, key: string) => ({
-  ...target,
-  [key]: target.filter((item: any) => item !== key)
-})
-
-const updatePullAll = (target: any, key: string) => ({
-  ...target,
-  [key]: target.filter((item: any) => !key.includes(item))
-})
-
-const updateField = (operator: FieldsUpdateOperator, value: UpdateOperatorValue, path: string): any => {
-  if (operator === '$currentDate') return updateCurrentDate(target, key)
-  if (operator === '$inc') return updateIncrement(target, key)
-  if (operator === '$min') return updateMinimum(target, key)
-  if (operator === '$max') return updateMaximum(target, key)
-  if (operator === '$mul') return updateMultiply(target, key)
-  if (operator === '$rename') return updateRename(target, key)
-  if (operator === '$set') return updateSet(target, key)
-  if (operator === '$setOnInsert') return updateSetOnInsert(target, key)
-  if (operator === '$unset') return updateUnset(target, key)
-}
-
-const updateArray = (operator: ArrayUpdateOperator, path: string): any => {
-  if (operator === '$push') return updatePush(target, key)
-  if (operator === '$pushAll') return updatePushAll(target, key)
-  if (operator === '$addToSet') return updateAddToSet(target, key)
-  if (operator === '$pop') return updatePop(target, key)
-  if (operator === '$pull') return updatePull(target, key)
-  if (operator === '$pullAll') return updatePullAll(target, key)
-}
+export const mergeMap = {
+  Media: {
+    _id: {
+      compare: (previousValue, newValue) => previousValue === newValue,
+      merge: (previousValue, newValue) => newValue ?? previousValue
+    },
+    handles: {
+      compare: (previousValue, newValue) =>
+        newValue.every(newNode => previousValue?.some(node => node._id === newNode._id)),
+      merge: (previousValue, newValue, { recurse }) => [
+        ...previousValue?.filter(node => newValue.some(newNode => newNode._id !== node._id)) ?? [],
+        ...newValue ?? []
+      ] as Media[]
+    }
+  }
+} satisfies MergeMap
