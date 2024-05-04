@@ -228,12 +228,66 @@ export const subscribeToOrigins = <T extends ValidSubscriptionKeys>(
                         ].filter(uri => !uri.includes('scannarr'))
                       )
                     ])
-                    // console.log(
-                    //   'old & new uri',
-                    //   keptScannarrHandle.uri,
-                    //   newScannarrUri
+
+                    if (keptScannarrHandle.__typename === 'Media') {
+                      const episodeNodes =
+                        (updatedNodes as Media[])
+                          .flatMap((media) => media.episodes ?? [])
+                
+                      // const { handleGroups: episodeHandleGroups } = groupRelatedHandles({ results: episodeNodes })
+                
+                      const groupEpisodesByEpisodeNumber = (episodes: Media[]) => {
+                        const episodesByEpisodeNumber = new Map<number, Media[]>()
+                        for (const episode of episodes) {
+                          if (!episodesByEpisodeNumber.has(episode.number)) {
+                            episodesByEpisodeNumber.set(episode.number, [])
+                          }
+                          episodesByEpisodeNumber.get(episode.number)?.push(episode)
+                        }
+                        return [...episodesByEpisodeNumber.values()]
+                      }
+                
+                      const episodesByEpisodeNumber = groupEpisodesByEpisodeNumber(episodeNodes)
+                
+                      const scannarrEpisodeHandles =
+                        episodesByEpisodeNumber
+                            .map(handles =>
+                              makeScannarrHandle2({
+                                handles,
+                                mergeHandles
+                              })
+                            )
+
+                      graph.updateOne(
+                        { _id: keptScannarrHandle._id },
+                        {
+                          uri: newScannarrUri,
+                          handles: updatedNodes,
+                          episodes: scannarrEpisodeHandles
+                        }
+                      )
+                    } else {
+                      graph.updateOne({ _id: keptScannarrHandle._id }, { uri: newScannarrUri, handles: updatedNodes })
+                    }
+
+
+                    // console.log('MERGEDHANDLES', mergeHandles([
+                    //   keptScannarrHandle,
+                    //   ...updatedNodes
+                    // ]))
+                    // graph.updateOne(
+                    //   { _id: keptScannarrHandle._id },
+                    //   {
+                    //     origin: 'scannarr',
+                    //     uri: newScannarrUri,
+                    //     ...mergeHandles([
+                    //       keptScannarrHandle,
+                    //       ...updatedNodes
+                    //     ])
+                    //   }
                     // )
-                    graph.updateOne({ _id: keptScannarrHandle._id }, { uri: newScannarrUri, handles: updatedNodes })
+
+                    
                     for (const node of updatedNodes) {
                       graph.updateOne({ _id: node._id }, { handles: [keptScannarrHandle] })
                     }

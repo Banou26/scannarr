@@ -184,14 +184,22 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                   result => result._id
                 )
 
-              return ({
+              const resultNodes =
+                [...groupById
+                  .values()]
+                  .map(group => group[0])
+
+              const erroringNode = resultNodes.filter(node => !node.origin)
+
+              if (erroringNode.length) {
+                console.log('AAAAAAAAAAAAAAAAAAAAAAA resultNodes', erroringNode)
+              }
+
+              return {
                 mediaPage: {
-                  nodes:
-                    [...groupById
-                      .values()]
-                      .map(group => group[0])
+                  nodes: resultNodes
                 }
-              })
+              }
             }),
             catchError(err => {
               console.error(err)
