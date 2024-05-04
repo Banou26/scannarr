@@ -188,7 +188,7 @@ export const subscribeToOrigins = <T extends ValidSubscriptionKeys>(
                         if (existingNode) {
                           return graph.updateOne(
                             { _id: existingNode._id },
-                            childNode
+                            recursiveRemoveNullable(childNode)
                           )!
                         }
                         return graph.insertOne(childNode)

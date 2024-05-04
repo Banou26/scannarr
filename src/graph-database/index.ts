@@ -107,14 +107,11 @@ export const makeGraphDatabase = ({ mergeMap }: { mergeMap: MergeMap }) => {
   const updateOne = (filter: QuerySelectors, data: NodeData) => {
     const node = findOne(filter)
     if (!node) throw new Error(`updateOne node not found for filter ${JSON.stringify(filter)}`)
-    indexers
-      .filter(indexer =>
-        indexer.shouldBeUsedOnFilter(filter)
-        || indexer.shouldBeUsedOnNode(data)
-        || indexer.shouldBeUsedOnNode(node.data)
-      )
-      .forEach(indexer => indexer.updateOne(node, node.data, data))
+    const previousNodeIndexMap = indexers.map(indexer => ({ index: indexer.get(node), indexer }))
     const { changed, result } = merge(node.data, data, mergeMap)
+    for (const { indexer, index } of previousNodeIndexMap) {
+      indexer.updateOne(node, index, result)
+    }
     Object.assign(node.data, result)
     if (changed) node.subject.next(node.data)
     return node.data

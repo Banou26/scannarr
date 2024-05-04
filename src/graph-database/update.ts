@@ -16,6 +16,8 @@ type _TypenameObject = Extract<AllTypenameObject, { __typename?: string | undefi
 type TypenameObject = _TypenameObject extends { __typename?: infer T } ? { __typename: T } & _TypenameObject : never
 
 export type MergeExtra = {
+  previousParent: TypenameObject
+  parent: TypenameObject
   mergeMap: MergeMap
   recurse: (a: TypenameObject, b: TypenameObject) => [string, TypenameObject]
 }
@@ -70,9 +72,9 @@ export const merge = (a: TypenameObject, b: TypenameObject, mergeMap: MergeMap) 
               const previousValue = a[key]
               if (value && typeof value === 'object') {
                 if (correspondingMergeMap && key in correspondingMergeMap) {
-                  if (correspondingMergeMap[key].compare(previousValue, value, { mergeMap, recurse })) return [key, value]
+                  if (correspondingMergeMap[key].compare(previousValue, value, { previousParent: a, parent: b, mergeMap, recurse })) return [key, value]
                   changed = true
-                  return [key, correspondingMergeMap[key].merge(previousValue, value, { mergeMap, recurse })]
+                  return [key, correspondingMergeMap[key].merge(previousValue, value, { previousParent: a, parent: b, mergeMap, recurse })]
                 }
                 if (Array.isArray(value)) {
                   if (!previousValue) {
@@ -111,9 +113,9 @@ export const merge = (a: TypenameObject, b: TypenameObject, mergeMap: MergeMap) 
                 return [key, recurse(value, value)]
               } else {
                 if (correspondingMergeMap && key in correspondingMergeMap) {
-                  if (correspondingMergeMap[key].compare(previousValue, value, { mergeMap, recurse })) return [key, value]
+                  if (correspondingMergeMap[key].compare(previousValue, value, { previousParent: a, parent: b, mergeMap, recurse })) return [key, value]
                   changed = true
-                  return [key, correspondingMergeMap[key].merge(previousValue, value, { mergeMap, recurse })]
+                  return [key, correspondingMergeMap[key].merge(previousValue, value, { previousParent: a, parent: b, mergeMap, recurse })]
                 }
                 if (previousValue !== value) changed = true
                 return [key, value]
@@ -137,10 +139,14 @@ export const mergeMap = {
     handles: {
       compare: (previousValue, newValue) =>
         newValue.every(newNode => previousValue?.some(node => node._id === newNode._id)),
-      merge: (previousValue, newValue, { recurse }) => [
+      merge: (previousValue, newValue, { previousParent, recurse }) => [
         ...previousValue?.filter(node => newValue.some(newNode => newNode._id !== node._id)) ?? [],
         ...newValue ?? []
-      ] as Media[]
+      ].filter(handle =>
+        previousParent.origin === 'scannarr' && handle.origin === 'scannarr'
+          ? false
+          : true
+      ) as Media[]
     }
   }
 } satisfies MergeMap
