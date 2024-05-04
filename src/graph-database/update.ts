@@ -1,4 +1,5 @@
 import { Media, ResolversParentTypes, Scalars } from '../generated/graphql'
+import { groupBy } from '../utils'
 import { deepEqual } from './comparison'
 
 type Typename = Exclude<
@@ -139,14 +140,24 @@ export const mergeMap = {
     handles: {
       compare: (previousValue, newValue) =>
         newValue.every(newNode => previousValue?.some(node => node._id === newNode._id)),
-      merge: (previousValue, newValue, { previousParent, recurse }) => [
-        ...previousValue?.filter(node => newValue.some(newNode => newNode._id !== node._id)) ?? [],
-        ...newValue ?? []
-      ].filter(handle =>
-        previousParent.origin === 'scannarr' && handle.origin === 'scannarr'
-          ? false
-          : true
-      ) as Media[]
+      merge: (previousValue, newValue, { previousParent, recurse }) => {
+        const results = [
+          ...previousValue?.filter(node => newValue.some(newNode => newNode._id !== node._id)) ?? [],
+          ...newValue ?? []
+        ].filter(handle =>
+          previousParent.origin === 'scannarr' && handle.origin === 'scannarr'
+            ? false
+            : true
+        ).filter(Boolean) as Media[]
+
+        const groupByUri =
+          groupBy(
+            results,
+            result => result.uri
+          )
+
+        return [...groupByUri.values()].map(nodes => nodes[0])
+      }
     }
   }
 } satisfies MergeMap

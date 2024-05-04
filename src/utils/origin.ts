@@ -9,7 +9,7 @@ import { GraphDatabase } from '../graph-database'
 import { ExtractNode, NodeData, getNodes, getNodesType, recursiveRemoveNullable, replaceNodePairs } from '../urql/_graph'
 import { merge } from './deep-merge'
 import { keyResolvers } from '../urql/client'
-import { fromScannarrUri } from './uri'
+import { fromScannarrUri, toScannarrUri } from './uri'
 
 type KeyResolvers = typeof keyResolvers
 type KeyResolversMap = {
@@ -219,7 +219,21 @@ export const subscribeToOrigins = <T extends ValidSubscriptionKeys>(
                     for (const otherScannarrHandle of foundScannarrNodes.slice(1)) {
                       graph.removeOne({ _id: otherScannarrHandle._id })
                     }
-                    graph.updateOne({ _id: keptScannarrHandle._id }, { handles: updatedNodes })
+
+                    const newScannarrUri = toScannarrUri([
+                      ...new Set(
+                        [
+                          ...fromScannarrUri(keptScannarrHandle.uri)?.handleUris ?? [],
+                          ...updatedNodes.map(node => node.uri)
+                        ].filter(uri => !uri.includes('scannarr'))
+                      )
+                    ])
+                    // console.log(
+                    //   'old & new uri',
+                    //   keptScannarrHandle.uri,
+                    //   newScannarrUri
+                    // )
+                    graph.updateOne({ _id: keptScannarrHandle._id }, { uri: newScannarrUri, handles: updatedNodes })
                     for (const node of updatedNodes) {
                       graph.updateOne({ _id: node._id }, { handles: [keptScannarrHandle] })
                     }

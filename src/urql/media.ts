@@ -9,7 +9,7 @@ import { makeScannarrHandle2, groupRelatedHandles, mapNodeToSelection, isFieldNo
 import { ServerContext } from './client'
 import { observableToAsyncIterable } from '../utils/observableToAsyncIterable'
 import { mergeOriginSubscriptionResults, subscribeToOrigins } from '../utils/origin'
-import { fromScannarrUri, groupBy, isScannarrUri } from '../utils'
+import { fromScannarrUri, groupBy, isScannarrUri, toScannarrUri } from '../utils'
 import { combineLatest, lastValueFrom, of } from 'rxjs'
 
 export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolverParameters) => ({
@@ -166,31 +166,6 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                       graph.mapOne(
                         { _id: node._id },
                         (data) =>
-                          (
-                            // https://myanimelist.net/anime/52701 https://anilist.co/anime/153518
-                            (data.uri === 'mal:52701' && (
-                              console.log('info', info) ||
-                              console.log('buildNodeSelectionMap(info)', buildNodeSelectionMap(info), data)
-                            )) || (
-                              !data.handles.find(handle => handle.origin === 'scannarr') && (
-                                console.log(
-                                  'result',
-                                  data,
-                                  data.handles.find(handle => handle.origin === 'scannarr'),
-                                  mapNodeToNodeSelection(
-                                    graph,
-                                    buildNodeSelectionMap(info),
-                                    data.handles.find(handle => handle.origin === 'scannarr')
-                                  )
-                                )
-                              )
-                            )
-                          ) ||
-                          (!Object.keys(mapNodeToNodeSelection(
-                            graph,
-                            buildNodeSelectionMap(info),
-                            data.handles.find(handle => handle.origin === 'scannarr')
-                          )).length ? console.log('AAAAAAAAAAAA', data) : undefined) ||
                           mapNodeToNodeSelection(
                             graph,
                             buildNodeSelectionMap(info),
@@ -202,11 +177,22 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
               )
             ),
             throttleTime(100, undefined, { leading: true, trailing: true }),
-            map((results) => console.log('results', results.filter(node => node.handles?.some(_node => !_node.episodes) ?? true)) || ({
-              mediaPage: {
-                nodes: results.filter(Boolean)
-              }
-            })),
+            map((results) => {
+              const groupById =
+                groupBy(
+                  results,
+                  result => result._id
+                )
+
+              return ({
+                mediaPage: {
+                  nodes:
+                    [...groupById
+                      .values()]
+                      .map(group => group[0])
+                }
+              })
+            }),
             catchError(err => {
               console.error(err)
               return {
@@ -229,13 +215,13 @@ export const cacheResolvers = ({ context }: { context?: () => Promise<ServerCont
           .resolve(
             {
               __typename: 'Media',
-              uri: info.parentKey.slice('Media:'.length, info.parentKey.indexOf('.coverImage'))
+              _id: info.parentKey.slice('Media:'.length, info.parentKey.indexOf('.coverImage'))
             },
             `coverImage`
           )
 
       const coverImageRef = (coverImageRefs as string[])?.at(Number(info.parentKey.split('.').at(-1)))
-      
+
       if (!coverImageRef) return null
 
       return (
