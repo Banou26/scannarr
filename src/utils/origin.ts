@@ -288,6 +288,7 @@ export const subscribeToOrigins = <T extends ValidSubscriptionKeys>(
 
                     
                     for (const node of updatedNodes) {
+                      // console.log('node', node, keptScannarrHandle)
                       graph.updateOne({ _id: node._id }, { handles: [keptScannarrHandle] })
                     }
                   } else {

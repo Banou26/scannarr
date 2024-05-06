@@ -171,6 +171,11 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                             buildNodeSelectionMap(info),
                             data.handles.find(handle => handle.origin === 'scannarr')
                           )
+                      ).pipe(
+                        tap(res => {
+                          if (res.origin) return
+                          console.log('AAAAAAAAAAAAAAAAAAAAAAAAA', res, node)
+                        })
                       )
                     )
                   })
@@ -178,11 +183,6 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
             ),
             throttleTime(25, undefined, { leading: true, trailing: true }),
             map((results) => {
-              const erroringNode = results.filter(node => !node.origin)
-              if (erroringNode.length) {
-                console.log('AAAAAAAAAAAAAAAAAAAAAAA resultNodes', erroringNode)
-              }
-
               const groupById =
                 groupBy(
                   results,

@@ -140,7 +140,7 @@ export const mergeMap = {
     handles: {
       compare: (previousValue, newValue) =>
         newValue.every(newNode => previousValue?.some(node => node._id === newNode._id)),
-      merge: (previousValue, newValue, { previousParent, recurse }) => {
+      merge: (previousValue, newValue, { previousParent, parent, recurse }) => {
         const results = [
           ...previousValue?.filter(node => newValue.some(newNode => newNode._id !== node._id)) ?? [],
           ...newValue ?? []
@@ -155,6 +155,16 @@ export const mergeMap = {
             results,
             result => result.uri
           )
+
+        if (previousParent.uri === 'mal:54789' || parent.uri === 'mal:54789') {
+          console.log('parent', parent)
+          console.log('previousParent', previousParent)
+          console.log('previousValue', previousValue)
+          console.log('newValue', newValue)
+          console.log('results', results)
+          console.log('groupByUri', groupByUri)
+          console.log('result ARR', [...groupByUri.values()].map(nodes => nodes[0]))
+        }
 
         return [...groupByUri.values()].map(nodes => nodes[0])
       }

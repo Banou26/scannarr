@@ -170,14 +170,26 @@ export const mapNodeToNodeSelection = <T extends Node | Node[]>(graph: InMemoryG
   })
 
   if (!isNodeType(currentNode)) {
-    return buildObjectWithValue(currentNode)
+    const res = buildObjectWithValue(currentNode)
+    if (Object.keys(res).length === 0) {
+      console.log('FFFFFFFFFFFFFFFFFFFF1', res, currentNode)
+    }
+    return res
   }
 
   if (currentNode._id) {
-    return graph.mapOne({ _id: currentNode._id }, data => buildObjectWithValue(data))
+    const res = graph.mapOne({ _id: currentNode._id }, data => buildObjectWithValue(data))
+    if (Object.keys(res).length === 0) {
+      console.log('FFFFFFFFFFFFFFFFFFFF2', res, currentNode)
+    }
+    return res
   }
 
-  return graph.mapOne({ uri: currentNode.uri }, data => buildObjectWithValue(data))
+  const res = graph.mapOne({ uri: currentNode.uri }, data => buildObjectWithValue(data))
+  if (Object.keys(res).length === 0) {
+    console.log('FFFFFFFFFFFFFFFFFFFF3', res, currentNode)
+  }
+  return res
 }
 
 export const mapNodeToSelection = <T extends Node>(graph: InMemoryGraphDatabase, info: GraphQLResolveInfo, currentNode: T, selection: SelectionSetNode | FragmentSpreadNode) => {  
