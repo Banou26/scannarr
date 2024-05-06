@@ -176,8 +176,13 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                   })
               )
             ),
-            throttleTime(100, undefined, { leading: true, trailing: true }),
+            throttleTime(25, undefined, { leading: true, trailing: true }),
             map((results) => {
+              const erroringNode = results.filter(node => !node.origin)
+              if (erroringNode.length) {
+                console.log('AAAAAAAAAAAAAAAAAAAAAAA resultNodes', erroringNode)
+              }
+
               const groupById =
                 groupBy(
                   results,
@@ -188,12 +193,6 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                 [...groupById
                   .values()]
                   .map(group => group[0])
-
-              const erroringNode = resultNodes.filter(node => !node.origin)
-
-              if (erroringNode.length) {
-                console.log('AAAAAAAAAAAAAAAAAAAAAAA resultNodes', erroringNode)
-              }
 
               return {
                 mediaPage: {

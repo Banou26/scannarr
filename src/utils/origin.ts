@@ -182,7 +182,6 @@ export const subscribeToOrigins = <T extends ValidSubscriptionKeys>(
                 const updateNodes = [
                   ...new Set(
                     getNodesType(result.data)
-                      .filter((node): node is NonNullable<typeof node> => Boolean(node))
                       .map(childNode => {
                         const existingNode = graph.findOne({ uri: childNode.uri })
                         if (existingNode) {
@@ -194,9 +193,9 @@ export const subscribeToOrigins = <T extends ValidSubscriptionKeys>(
                         return graph.insertOne(childNode)
                       })
                   )
-                ].filter(Boolean)
-                const newNodeDataNodes = getNodesType(updateNodes).filter(node => node._id)
-                const { handleGroups: updatedNodesGroups } = groupRelatedHandles({ results: newNodeDataNodes })
+                ]
+
+                const { handleGroups: updatedNodesGroups } = groupRelatedHandles({ results: updateNodes })
 
                 for (const updatedNodes of updatedNodesGroups as NodeData[][]) {
                   const nodeUris = updatedNodes.map(node => node.uri)
