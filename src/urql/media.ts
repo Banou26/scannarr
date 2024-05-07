@@ -89,7 +89,12 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                     origin: 'scannarr',
                     'handles.uri': handleUris
                   },
-                  (data) => mapNodeToSelection(graph, info, data, rootSelectionSet)
+                  (data) =>
+                    mapNodeToNodeSelection(
+                      graph,
+                      buildNodeSelectionMap(info),
+                      data
+                    )
                 )
               )
             }),
@@ -109,7 +114,7 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
     // then map on all of the medias, get their related scannarr handles, de-dupe them, and return them
     mediaPage: {
       subscribe: (_, __, context, info) =>
-        console.log('NEW REQ mediaPage', info) ||
+        // console.log('NEW REQ mediaPage', info) ||
         observableToAsyncIterable(
           subscribeToOrigins({
             graph,
@@ -130,7 +135,7 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                     .map(mediaHandle =>
                       graph.findOne({ uri: mediaHandle.uri })
                     )
-                console.log('handleNodes', handleNodes)
+                // console.log('handleNodes', handleNodes)
                 return ({
                   mediaPage: {
                     nodes: handleNodes
@@ -174,7 +179,7 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                       ).pipe(
                         tap(res => {
                           if (res.origin) return
-                          console.log('AAAAAAAAAAAAAAAAAAAAAAAAA', res, node)
+                          // console.log('AAAAAAAAAAAAAAAAAAAAAAAAA', res, node)
                         })
                       )
                     )

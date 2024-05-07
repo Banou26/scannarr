@@ -171,24 +171,24 @@ export const mapNodeToNodeSelection = <T extends Node | Node[]>(graph: InMemoryG
 
   if (!isNodeType(currentNode)) {
     const res = buildObjectWithValue(currentNode)
-    if (Object.keys(res).length === 0) {
-      console.log('FFFFFFFFFFFFFFFFFFFF1', res, currentNode)
-    }
+    // if (Object.keys(res).length === 0) {
+    //   console.log('FFFFFFFFFFFFFFFFFFFF1', res, currentNode)
+    // }
     return res
   }
 
   if (currentNode._id) {
     const res = graph.mapOne({ _id: currentNode._id }, data => buildObjectWithValue(data))
-    if (Object.keys(res).length === 0) {
-      console.log('FFFFFFFFFFFFFFFFFFFF2', res, currentNode)
-    }
+    // if (Object.keys(res).length === 0) {
+    //   console.log('FFFFFFFFFFFFFFFFFFFF2', res, currentNode)
+    // }
     return res
   }
 
   const res = graph.mapOne({ uri: currentNode.uri }, data => buildObjectWithValue(data))
-  if (Object.keys(res).length === 0) {
-    console.log('FFFFFFFFFFFFFFFFFFFF3', res, currentNode)
-  }
+  // if (Object.keys(res).length === 0) {
+  //   console.log('FFFFFFFFFFFFFFFFFFFF3', res, currentNode)
+  // }
   return res
 }
 

@@ -1,4 +1,4 @@
-import { Observable, Subject, combineLatest, shareReplay, startWith } from 'rxjs'
+import { Observable, Subject, combineLatest, map, shareReplay, startWith } from 'rxjs'
 import { makePropertyIndexer } from './indexers'
 import { QuerySelectors, matches } from './query'
 import { mapNode } from './map'
@@ -83,7 +83,8 @@ export const makeGraphDatabase = ({ mergeMap }: { mergeMap: MergeMap }) => {
       changesObservable
         .pipe(
           startWith(data),
-          shareReplay(1)
+          // shareReplay(1)
+          map(() => node.data)
         )
 
     if (!_id) throw new Error(`No key for ${nodeData.__typename}`)
@@ -111,6 +112,9 @@ export const makeGraphDatabase = ({ mergeMap }: { mergeMap: MergeMap }) => {
     const { changed, result } = merge(node.data, data, mergeMap)
     for (const { indexer, index } of previousNodeIndexMap) {
       indexer.updateOne(node, index, result)
+    }
+    if (node.data.uri === 'mal:54789' && node.data.handles.length && !result.handles.length) {
+      console.log('WRONG UPDATING NODE WITH DATA', node.data, result)
     }
     Object.assign(node.data, result)
     if (changed) node.subject.next(node.data)
