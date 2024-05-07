@@ -177,7 +177,7 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                   })
               )
             ),
-            throttleTime(25, undefined, { leading: true, trailing: true }),
+            throttleTime(100, undefined, { leading: true, trailing: true }),
             map((results) => {
               const groupById =
                 groupBy(
