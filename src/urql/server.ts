@@ -67,7 +67,6 @@ export const makeScannarrServer = (
   { origins: Origin[], context: () => Promise<ServerContext>, mergeHandles: MergeHandleFunction }
 ) => {
   const graph = makeGraphDatabase({ mergeMap: mergeMap })
-  console.log('graph', graph)
   const origins =
     _origins
       .map(origin => {

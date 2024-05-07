@@ -53,7 +53,6 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
   Subscription: {
     media: {
       subscribe: (_, __, context, info) =>
-        console.log('NEW REQ media', info) ||
         observableToAsyncIterable(
           mergeOriginSubscriptionResults({
             graph,
@@ -69,7 +68,6 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
             name: 'media'
           }).pipe(
             switchMap((result) => {
-              console.log('result', result)
               const media = result?.media
 
               const rootSelectionSet =

@@ -113,9 +113,9 @@ export const makeGraphDatabase = ({ mergeMap }: { mergeMap: MergeMap }) => {
     for (const { indexer, index } of previousNodeIndexMap) {
       indexer.updateOne(node, index, result)
     }
-    if (node.data.uri === 'mal:54789' && node.data.handles.length && !result.handles.length) {
-      console.log('WRONG UPDATING NODE WITH DATA', node.data, result)
-    }
+    // if (node.data.uri === 'mal:54789' && node.data.handles.length && !result.handles.length) {
+    //   console.log('WRONG UPDATING NODE WITH DATA', node.data, result)
+    // }
     Object.assign(node.data, result)
     if (changed) node.subject.next(node.data)
     return node.data
