@@ -1,8 +1,8 @@
-import { getOriginResult, getOriginResults, groupRelatedHandles, makeScannarrHandle2 } from './utils'
+import { buildNodeSelectionMap, getOriginResult, getOriginResults, groupRelatedHandles, isFieldNode, isFragmentSpreadNode, makeScannarrHandle2, mapNodeToNodeSelection } from './utils'
 import { ServerContext } from './client'
-import { Resolvers, UserMedia, UserMediaPage } from '../generated/graphql'
-import { observableToAsyncIterable, subscribeToOrigins } from '../utils'
-import { map } from 'rxjs'
+import { Resolvers, UserMediaPage } from '../generated/graphql'
+import { groupBy, observableToAsyncIterable, subscribeToOrigins } from '../utils'
+import { catchError, combineLatest, map, switchMap, tap, throttleTime } from 'rxjs'
 import { ServerResolverParameters } from './server'
 
 export const serverResolvers = ({ graph, origins, context, mergeHandles }: ServerResolverParameters & { origins: any[], context?: () => Promise<ServerContext> }) => ({
@@ -43,99 +43,122 @@ export const serverResolvers = ({ graph, origins, context, mergeHandles }: Serve
     }
   },
   Subscription: {
-    // userMedia: {
-    //   subscribe: (_, __, context) =>
-    //     observableToAsyncIterable(
-    //       subscribeToOrigins({ origins, context, name: 'userMedia' })
-    //         .pipe(
-    //           map(_results => {
-    //             const resultsData =
-    //               _results
-    //                 .map(result => result.data)
-    //                 .filter((data) => Boolean(data))
-    //                 .filter(data => Boolean(data?.userMedia))
-    //                 .map(data => data?.userMedia as UserMedia)
-    //             if (!resultsData.length) return
-        
-    //             const mediaScannarrHandle = makeScannarrHandle2({
-    //               handles:
-    //                 resultsData
-    //                   .map(userMedia => userMedia?.media),
-    //               mergeHandles
-    //             })
-                
-    //             return {
-    //               'userMedia': {
-    //                 ...makeScannarrHandle2({
-    //                   handles: resultsData,
-    //                   mergeHandles
-    //                 }),
-    //                 media: mediaScannarrHandle
-    //               }
-    //             }
-    //           })
-    //         )
-    //     ),
-    //   resolve: (parent) => parent.userMedia
-    // },
-    // @ts-expect-error
     userMediaPage: {
-      subscribe: (_, __, context) =>
+      subscribe: (_, __, context, info) =>
         observableToAsyncIterable(
           subscribeToOrigins({
             graph,
             origins,
             context,
-            name: 'userMediaPage'
-          }).pipe(
+            name: 'userMediaPage',
+            mergeHandles
+          })
+          .pipe(
             map(results => {
-              const userMedias =
-                results
-                  .map(result => result.data?.userMediaPage as UserMediaPage)
-                  .flatMap(userMediaPage => userMediaPage?.nodes ?? [])
-
-              const { handleGroups } = groupRelatedHandles({
-                results:
-                  userMedias
-                    .map(userMedia => userMedia.media)
-              })
-
-              const scannarrHandles =
-                handleGroups
-                  .map(handles =>
-                    makeScannarrHandle2({
-                      handles,
-                      mergeHandles
-                    })
-                  )
-
               try {
-                const userMediaScannarHandles = scannarrHandles.map(media => {
-                  const matchingUserMedias =
-                    userMedias.filter(userMedia =>
-                      media.handles.some(handle =>
-                        handle.uri === userMedia.media.uri
-                      )
+                const handles =
+                  results
+                    .map(result => result.data?.userMediaPage as UserMediaPage)
+                    .flatMap(userMediaPage => userMediaPage?.nodes ?? [])
+
+                const handleNodes =
+                  handles
+                    .map(mediaHandle =>
+                      graph.findOne({ uri: mediaHandle.media.uri })
                     )
-                  const scannarrHandles =
-                    makeScannarrHandle2({
-                      handles: matchingUserMedias,
-                      mergeHandles
-                    })
-  
-                  return ({
-                    ...scannarrHandles,
-                    media
-                  })
-                })
-  
-                return {
-                  userMediaPage: {
-                    nodes: userMediaScannarHandles
+                return ({
+                  mediaPage: {
+                    nodes: handleNodes
                   }
-                }
+                })
               } catch (err) {
                 console.error(err)
+                return ({
+                  mediaPage: {
+                    nodes: []
+                  }
+                })
+              }
+            }),
+            switchMap(({ mediaPage }) =>
+              combineLatest(
+                mediaPage
+                  .nodes
+                  .map(node => {
+                    const _rootSelectionSet =
+                      info
+                        .fieldNodes
+                        .find(node => node.name.value === 'userMediaPage')
+                        ?.selectionSet
+                        ?.selections
+                        .filter(isFieldNode)
+                        ?.find(node => node.name.value === 'nodes')
+                        ?.selectionSet
+                        // ?.selections
+                        // .filter(isFieldNode)
+                        // ?.find(node => node.name.value === 'media')
+                        // ?.selectionSet
+                    
+                    const fragment =
+                      info
+                        .fieldNodes
+                        .find(node => node.name.value === 'userMediaPage')
+                        ?.selectionSet
+                        ?.selections
+                        .filter(isFieldNode)
+                        ?.find(node => node.name.value === 'nodes')
+                        ?.selectionSet
+                        ?.selections
+                        .find(isFragmentSpreadNode)
+
+                    const rootSelectionSet = _rootSelectionSet ?? info.fragments[fragment.name.value].selectionSet
+
+                    if (!rootSelectionSet) throw new Error('No rootSelectionSet')
+
+                    return (
+                      graph.mapOne(
+                        { _id: node._id },
+                        (data) =>
+                          mapNodeToNodeSelection(
+                            graph,
+                            buildNodeSelectionMap(info),
+                            data.handles.find(handle => handle.origin === 'scannarr')
+                          )
+                      ).pipe(
+                        map(media => ({
+                          ...node,
+                          media
+                        }))
+                      )
+                    )
+                  })
+              )
+            ),
+            throttleTime(25, undefined, { leading: true, trailing: true }),
+            map((results) => {
+              const groupById =
+                groupBy(
+                  results,
+                  result => result._id
+                )
+
+              const resultNodes =
+                [...groupById
+                  .values()]
+                  .map(group => group[0])
+
+              return {
+                userMediaPage: {
+                  nodes: resultNodes
+                }
+              }
+            }),
+            catchError(err => {
+              console.error(err)
+              return {
+                mediaPage: {
+                  nodes: []
+                }
               }
             })
           )
