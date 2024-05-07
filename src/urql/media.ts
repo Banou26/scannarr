@@ -112,7 +112,6 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
     // then map on all of the medias, get their related scannarr handles, de-dupe them, and return them
     mediaPage: {
       subscribe: (_, __, context, info) =>
-        // console.log('NEW REQ mediaPage', info) ||
         observableToAsyncIterable(
           subscribeToOrigins({
             graph,
@@ -133,7 +132,6 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                     .map(mediaHandle =>
                       graph.findOne({ uri: mediaHandle.uri })
                     )
-                // console.log('handleNodes', handleNodes)
                 return ({
                   mediaPage: {
                     nodes: handleNodes
@@ -174,11 +172,6 @@ export const serverResolvers = ({ graph, origins, mergeHandles }: ServerResolver
                             buildNodeSelectionMap(info),
                             data.handles.find(handle => handle.origin === 'scannarr')
                           )
-                      ).pipe(
-                        tap(res => {
-                          if (res.origin) return
-                          // console.log('AAAAAAAAAAAAAAAAAAAAAAAAA', res, node)
-                        })
                       )
                     )
                   })

@@ -86,36 +86,6 @@ export const getHandles = <T>(value: T): NonUndefinable<ExtractHandleType<T>>[] 
 
 type ValidSubscriptionKeys = Exclude<keyof SubscriptionResolvers, '_empty'>
 
-// type SubscriptionResolverValue<T extends ValidSubscriptionKeys> =
-//   Extract<
-//       Awaited<
-//         ReturnType<
-//           ReturnType<
-//             Awaited<
-//               ReturnType<
-//                 Exclude<
-//                   ReturnType<
-//                     Extract<
-//                       SubscriptionResolvers[T],
-//                       Function
-//                     >
-//                   >,
-//                   SubscriptionResolverObject<any, any, any, any>
-//                 >['subscribe']
-//               >
-//             >[typeof Symbol['asyncIterator']]
-//           >['next']
-//         >
-//       >,
-//       IteratorYieldResult<any>
-//     >['value']
-
-
-
-// type SubscriptionResolverInnerValue<T extends ValidSubscriptionKeys> = SubscriptionResolverValue<T>[keyof SubscriptionResolverValue<T>]
-
-// type SubscriptionResolverHandleValue<T extends ValidSubscriptionKeys> = NonUndefinable<Awaited<SubscriptionResolverInnerValue<T>>>
-
 type QueryNameToData<T extends ValidSubscriptionKeys> =
   T extends 'media' ? Media :
   T extends 'mediaPage' ? { mediaPage: MediaPage } :
@@ -125,31 +95,6 @@ type QueryNameToData<T extends ValidSubscriptionKeys> =
   T extends 'playbackSourcePage' ? { playbackSourcePage: PlaybackSourcePage } :
   T extends 'userMediaPage' ? { userMediaPage: UserMediaPage } :
   never
-
-// export const getNodesType2 = <T>(value: T): ExtractNode<T>[] => {
-//   const objects = new Set()
-//   const nodes: ExtractNode<T>[] = []
-
-//   const recurse = (value: any) => {
-//     if (!value || typeof value !== 'object') return
-//     if (objects.has(value)) return
-//     if (isNodeTypename(value)) {
-//       nodes.push(value as ExtractNode<T>)
-//       objects.add(value)
-//       Object.values(value).map(recurse)
-//       return
-//     }
-//     if (Array.isArray(value)) return value.map(recurse)
-//     if (value && typeof value === 'object') {
-//       if (objects.has(value)) return
-//       objects.add(value)
-//       Object.values(value).map(recurse)
-//     }
-//   }
-
-//   recurse(value)
-//   return nodes as ExtractNode<T>[]
-// }
 
 export const subscribeToOrigins = <T extends ValidSubscriptionKeys>(
   { graph, name, context, origins, mergeHandles }:
@@ -233,8 +178,6 @@ export const subscribeToOrigins = <T extends ValidSubscriptionKeys>(
                         (updatedNodes as Media[])
                           .flatMap((media) => media.episodes ?? [])
                 
-                      // const { handleGroups: episodeHandleGroups } = groupRelatedHandles({ results: episodeNodes })
-                
                       const groupEpisodesByEpisodeNumber = (episodes: Media[]) => {
                         const episodesByEpisodeNumber = new Map<number, Media[]>()
                         for (const episode of episodes) {
@@ -268,27 +211,8 @@ export const subscribeToOrigins = <T extends ValidSubscriptionKeys>(
                     } else {
                       graph.updateOne({ _id: keptScannarrHandle._id }, { uri: newScannarrUri, handles: updatedNodes })
                     }
-
-
-                    // console.log('MERGEDHANDLES', mergeHandles([
-                    //   keptScannarrHandle,
-                    //   ...updatedNodes
-                    // ]))
-                    // graph.updateOne(
-                    //   { _id: keptScannarrHandle._id },
-                    //   {
-                    //     origin: 'scannarr',
-                    //     uri: newScannarrUri,
-                    //     ...mergeHandles([
-                    //       keptScannarrHandle,
-                    //       ...updatedNodes
-                    //     ])
-                    //   }
-                    // )
-
                     
                     for (const node of updatedNodes) {
-                      // console.log('node', node, keptScannarrHandle)
                       graph.updateOne({ _id: node._id }, { handles: [keptScannarrHandle] })
                     }
                   } else {

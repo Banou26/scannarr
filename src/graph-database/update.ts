@@ -55,11 +55,6 @@ export const merge = (a: TypenameObject, b: TypenameObject, mergeMap: MergeMap) 
   let changed = false
 
   const recurse = (a: TypenameObject, b: TypenameObject) => {
-    // if (a.uri === 'mal:54789' || b.uri === 'mal:54789') {
-    //   console.log('a', a)
-    //   console.log('b', b)
-    // }
-
     const reference = referenceMap.get(a)
     if (reference) return reference
 
@@ -76,17 +71,8 @@ export const merge = (a: TypenameObject, b: TypenameObject, mergeMap: MergeMap) 
             .entries(b)
             .map(([key, value]) => {
               const previousValue = a[key]
-
-              // if (a.uri === 'mal:54789' || b.uri === 'mal:54789') {
-              //   console.log('entry', key, previousValue, value, correspondingMergeMap)
-              // }
-
               if (value && typeof value === 'object') {
                 if (correspondingMergeMap && key in correspondingMergeMap) {
-                  
-                  // if (a.uri === 'mal:54789' || b.uri === 'mal:54789') {
-                  //   console.log('entry', key, previousValue, value, correspondingMergeMap[key].compare(previousValue, value, { previousParent: a, parent: b, mergeMap, recurse }))
-                  // }
                   if (correspondingMergeMap[key].compare(previousValue, value, { previousParent: a, parent: b, mergeMap, recurse })) return [key, previousValue]
                   changed = true
                   return [key, correspondingMergeMap[key].merge(previousValue, value, { previousParent: a, parent: b, mergeMap, recurse })]
@@ -174,26 +160,6 @@ export const mergeMap = {
             results,
             result => result.uri
           )
-
-        // if (previousParent.uri === 'mal:54789' || parent.uri === 'mal:54789') {
-        //   try {
-        //     console.log('parent', parent)
-        //     console.log('previousParent', previousParent)
-        //     console.log('previousValue', previousValue)
-        //     console.log('newValue', newValue)
-        //     console.log('results', results)
-        //     console.log('groupByUri', groupByUri)
-        //     console.log('result ARR', [...groupByUri.values()].map(nodes => nodes[0]))
-        //   } catch (err) {
-        //     console.error('err', err)
-        //   }
-        // }
-        
-        // if (previousParent?.uri === 'mal:54789' || parent?.uri === 'mal:54789') {
-        //   console.log('previousValue', previousValue)
-        //   console.log('newValue', newValue)
-        //   console.log('result ARR', [...groupByUri.values()].map(nodes => nodes[0]))
-        // }
 
         return [...groupByUri.values()].map(nodes => nodes[0])
       }
