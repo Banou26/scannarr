@@ -307,32 +307,37 @@ export const indexHandles = <T extends Handle[]>({ results: _results }: { result
   }
 }
 
-// refactor: replace this with a simpler function, i was too lazy and chatgpt'd it lol
-function mergeRelatedArrays(arrays) {
-  const findArrayWithId = (id, excludeIndex) => {
-      return arrays.findIndex((arr, index) => {
-          if (index !== excludeIndex && arr.includes(id)) {
-              return true
-          }
-          return false
-      })
-  }
+function mergeRelatedArrays(arrays: string[][]): [string, Set<string>][] {
+  const mergedMap = new Map<string, Set<string>>();
 
-  for (let i = 0; i < arrays.length; i++) {
-      const currentArray = arrays[i]
+  for (const arr of arrays) {
+    let mergedSet: Set<string> | undefined;
 
-      for (const id of currentArray) {
-          const matchingArrayIndex = findArrayWithId(id, i)
-          if (matchingArrayIndex !== -1) {
-              arrays[i] = [...new Set([...currentArray, ...arrays[matchingArrayIndex]])]
-              arrays.splice(matchingArrayIndex, 1)
-              i = 0
-              break
+    for (const uri of arr) {
+      if (mergedSet === undefined) {
+        mergedSet = mergedMap.get(uri);
+        if (mergedSet === undefined) {
+          mergedSet = new Set(arr);
+          mergedMap.set(uri, mergedSet);
+        }
+      } else {
+        const existingSet = mergedMap.get(uri);
+        if (existingSet !== undefined) {
+          for (const n of mergedSet) {
+            existingSet.add(n);
           }
+          mergedSet = existingSet;
+        } else {
+          for (const n of arr) {
+            mergedSet.add(n);
+          }
+          mergedMap.set(uri, mergedSet);
+        }
       }
+    }
   }
 
-  return arrays
+  return [...mergedMap.entries()]
 }
 
 export const groupRelatedHandles = <T extends Handle>({ results: _results }: { results: T[] }) => {
@@ -349,9 +354,23 @@ export const groupRelatedHandles = <T extends Handle>({ results: _results }: { r
 
   const groups = mergeRelatedArrays(_groups)
 
+  const handleLookup: Record<string, T> = {}
+  for (const handle of results) {
+    handleLookup[handle.uri] = handle
+  }
+
   const handleGroups =
     groups
-      .map((uris) => results.filter((handle) => uris.includes(handle.uri)))
+      .map(([uri, set]) => {
+        const groupHandles: T[] = []
+        for (const uri of set) {
+          const handle = handleLookup[uri]
+          if (handle) {
+            groupHandles.push(handle)
+          }
+        }
+        return groupHandles
+      })
       .sort((a, b) => b.length - a.length)
 
   return {
