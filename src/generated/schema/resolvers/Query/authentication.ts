@@ -1,2 +1,0 @@
-import type   { QueryResolvers } from './../../types.generated';
-        export const authentication: NonNullable<QueryResolvers['authentication']> = async (_parent, _arg, _ctx) => { /* Implement Query.authentication resolver logic here */ };

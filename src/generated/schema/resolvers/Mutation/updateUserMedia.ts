@@ -1,2 +1,0 @@
-import type   { MutationResolvers } from './../../types.generated';
-        export const updateUserMedia: NonNullable<MutationResolvers['updateUserMedia']> = async (_parent, _arg, _ctx) => { /* Implement Mutation.updateUserMedia resolver logic here */ };
