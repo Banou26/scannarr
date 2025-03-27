@@ -5,7 +5,8 @@
   "main": "build/index.js",
   "author": "Banou26",
   "scripts": {
-    "dev": "vite --port 1234"
+    "dev": "vite --port 1234",
+    "generate-sql-schema": "drizzle-kit generate --name=init"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "^5.0.5",
@@ -17,8 +18,9 @@
     "vite": "^6.2.3"
   },
   "dependencies": {
-    "@electric-sql/pglite": "^0.2.17",
     "@graphql-yoga/plugin-defer-stream": "^3.13.2",
+    "@libsql/client": "^0.15.1",
+    "@libsql/client-wasm": "^0.15.1",
     "@urql/devtools": "^2.0.3",
     "@urql/exchange-graphcache": "^7.2.3",
     "drizzle-orm": "^0.41.0",

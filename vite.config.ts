@@ -4,7 +4,7 @@ import pkg from './package.json'
 
 export default defineConfig({
   optimizeDeps: {
-    exclude: ['@electric-sql/pglite'],
+    exclude: ['@libsql/client-wasm'],
   },
   worker: {
     format: 'es',
