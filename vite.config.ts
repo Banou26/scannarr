@@ -4,7 +4,7 @@ import pkg from './package.json'
 
 export default defineConfig({
   optimizeDeps: {
-    exclude: ['@libsql/client-wasm'],
+    exclude: ['wa-sqlite', 'sqlocal'],
   },
   worker: {
     format: 'es',

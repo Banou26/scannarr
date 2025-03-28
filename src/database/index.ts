@@ -1,22 +1,11 @@
-import { drizzle } from 'drizzle-orm/libsql'
-import { createClient } from "@libsql/client-wasm"
+import SQLiteESMFactory from 'wa-sqlite/dist/wa-sqlite.mjs'
+import * as SQLite from 'wa-sqlite'
 
-// @ts-expect-error
-import initSQL from '../../drizzle/_init.sql?raw'
-import { users } from './schema'
-import * as schema from './schema'
+const module = await SQLiteESMFactory()
+const sqlite3 = SQLite.Factory(module)
+const db = await sqlite3.open_v2('myDB')
 
-const db = await createClient({ url: ':memory:' })
-export const database = drizzle({
-  client: db,
-  schema
+await sqlite3.exec(db, `SELECT 'Hello, world!'`, (row, columns) => {
+  console.log(row)
 })
-
-await database.run(initSQL).execute()
-
-export {
-  users
-}
-// await database.run(`INSERT INTO "users" ("name", "age", "email") VALUES ('John Doe', 42, 'john@doe.com')`).execute()
-
-export default database
+await sqlite3.close(db)
