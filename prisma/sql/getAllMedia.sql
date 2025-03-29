@@ -1,0 +1,1 @@
+SELECT m.* FROM media m
