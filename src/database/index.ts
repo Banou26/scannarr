@@ -1,107 +1,68 @@
+import type { TypedSql } from '../../prisma/generated/runtime/library'
+
 import SQLiteESMFactory from 'wa-sqlite/dist/wa-sqlite.mjs'
 import * as SQLite from 'wa-sqlite'
 
+// @ts-expect-error
 import initMigration from '../../prisma/init.sql?raw'
-import type { PrivateResultType } from '../../prisma/generated/runtime/library'
-import { getAllMedia } from '../../prisma/generated/sql'
 
 const module = await SQLiteESMFactory()
 const sqlite3 = SQLite.Factory(module)
 const db = await sqlite3.open_v2('myDB')
 
-console.log('initMigration', initMigration)
+await sqlite3.exec(db, initMigration)
 
-await sqlite3.exec(db, initMigration, (row, columns) => {
-  console.log(row, columns)
-})
-
-/**
- * Run a query with placeholders and parameters
- * This function is for queries that don't return data (INSERT, UPDATE, DELETE, etc.)
- * @param {string} sql - SQL query with placeholders (?)
- * @param {Array} params - Array of parameters to bind
- * @returns {Promise<number>} - Number of changes made by the query
- */
-export async function runQuery(sql, params = []) {
-  if (!db || !sqlite3) {
-    throw new Error('Database not initialized. Call initDatabase() first.');
-  }
-  
-  try {
-    // Use the statements iterator to handle the SQL
-    for await (const stmt of sqlite3.statements(db, sql)) {
-      // Bind parameters if any
-      if (params.length > 0) {
-        sqlite3.bind_collection(stmt, params);
-      }
-      
-      // Execute the statement
-      await sqlite3.step(stmt);
+const run = async (sql, params = [] as any[]) => {
+  for await (const stmt of sqlite3.statements(db, sql)) {
+    if (params.length > 0) {
+      sqlite3.bind_collection(stmt, params)
     }
-    
-    // Return the number of changes
-    return sqlite3.changes(db);
-  } catch (error) {
-    console.error('Error executing SQL query:', error);
-    throw error;
+    await sqlite3.step(stmt)
   }
+  return sqlite3.changes(db)
 }
 
-/**
- * Execute a query and return all results (for SELECT queries)
- * @param {string} sql - SQL query with placeholders (?)
- * @param {Array} params - Array of parameters to bind
- * @returns {Promise<Array>} - Array of result objects
- */
-export async function getQueryResults(sql, params = []) {
-  if (!db || !sqlite3) {
-    throw new Error('Database not initialized. Call initDatabase() first.');
-  }
-  
-  try {
-    const results: Record<string, SQLiteCompatibleType>[] = [];
-    
-    // Use the statements iterator to handle the SQL
-    for await (const stmt of sqlite3.statements(db, sql)) {
-      // Bind parameters if any
+export const runQuery = async <T2 extends unknown[], T3 extends Record<string, SQLiteCompatibleType>, T extends (...args: T2) => TypedSql<T2, T3>>(sql: T, params: T2) => {
+    for await (const stmt of sqlite3.statements(db, sql(...params).sql)) {
       if (params.length > 0) {
-        sqlite3.bind_collection(stmt, params);
+        sqlite3.bind_collection(stmt, params as SQLiteCompatibleType[])
       }
-      
-      // Get column names
-      const columnNames = sqlite3.column_names(stmt);
-      
-      // Execute the statement and collect results
-      while (await sqlite3.step(stmt) === SQLite.SQLITE_ROW) {
-        // Use the row() function to get all columns at once
-        const rowData = sqlite3.row(stmt);
-        
-        // Convert array to object with column names
-        const rowObj: Record<string, SQLiteCompatibleType> = {};
-        for (let i = 0; i < columnNames.length; i++) {
-          rowObj[columnNames[i]] = rowData[i];
-        }
-        
-        results.push(rowObj);
-      }
+      await sqlite3.step(stmt)
     }
-    
-    return results;
-  } catch (error) {
-    console.error('Error executing query:', error);
-    throw error;
-  }
+    return sqlite3.changes(db)
 }
 
-// type test = ReturnType<typeof assetLatestPools>[typeof PrivateResultType]
+export async function getQueryResults<T2 extends unknown[], T3 extends Record<string, SQLiteCompatibleType>, T extends (...args: T2) => TypedSql<T2, T3>>(sql: T, params: T2) {
+  const results: T3[] = []
+    
+  for await (const stmt of sqlite3.statements(db, sql(...params).sql)) {
+    if (params.length > 0) {
+      sqlite3.bind_collection(stmt, params as SQLiteCompatibleType[])
+    }
+    
+    const columnNames = sqlite3.column_names(stmt)
+    
+    while (await sqlite3.step(stmt) === SQLite.SQLITE_ROW) {
+      const rowData = sqlite3.row(stmt)
+      
+      results.push(
+        Object.fromEntries(
+          columnNames.map((columnName, index) => [columnName, rowData[index]])
+        ) as T3
+      )
+    }
+  }
+  
+  return results
+}
 
-console.log('exec',
-  await runQuery(`INSERT INTO media (id, name) VALUES (?, ?)`, ['1', 'test'])
-)
-
-console.log('assetLatestPools', await getQueryResults(`SELECT m.* FROM media m`))
-
-// await sqlite3.exec(db, initMigration, (row, columns) => {
-//   console.log(row, columns)
-// })
-
+export async function transaction(callback) {
+  try {
+    await run('BEGIN TRANSACTION')
+    await callback()
+    await run('COMMIT')
+  } catch (error) {
+    await run('ROLLBACK')
+    throw error
+  }
+}
