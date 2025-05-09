@@ -8,14 +8,15 @@
     "dev": "vite --port 1234",
     "test": "vitest",
     "generate-db": "npm run migrate && npm run migrate-apply && npm run generate",
-    "generate": "shx rm -rf prisma/generated && prisma generate --sql && shx rm prisma/generated/runtime/library.js && shx cp src/prisma-runtile-library.js prisma/generated/runtime/library.js",
+    "generate": "prisma generate --sql && shx rm prisma/generated/runtime/library.js && shx cp src/prisma-runtime-library.js prisma/generated/runtime/library.js",
+    "generate2": "shx rm -rf prisma/generated && prisma generate --sql && shx rm prisma/generated/runtime/library.js && shx cp src/prisma-runtime-library.js prisma/generated/runtime/library.js",
     "migrate": "npx prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script > prisma/init.sql",
     "migrate-apply": "npx prisma db push"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "^5.0.5",
     "gql.tada": "^1.8.10",
-    "prisma": "^6.5.0",
+    "prisma": "^6.7.0",
     "shx": "^0.4.0",
     "typescript": "^5.8.2",
     "vite": "^6.2.3",
@@ -23,7 +24,7 @@
   },
   "dependencies": {
     "@graphql-yoga/plugin-defer-stream": "^3.13.2",
-    "@prisma/client": "^6.5.0",
+    "@prisma/client": "^6.7.0",
     "@urql/devtools": "^2.0.3",
     "@urql/exchange-graphcache": "^7.2.3",
     "graphql": "^16.10.0",
