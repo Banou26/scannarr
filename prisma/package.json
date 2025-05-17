@@ -2,145 +2,166 @@
   "name": "prisma-client-generated",
   "main": "index.js",
   "types": "index.d.ts",
-  "browser": "index-browser.js",
+  "browser": "default.js",
   "exports": {
-    "./client": {
+    "./generated/client": {
       "require": {
-        "node": "./index.js",
-        "edge-light": "./wasm.js",
-        "workerd": "./wasm.js",
-        "worker": "./wasm.js",
-        "browser": "./index-browser.js",
-        "default": "./index.js"
+        "node": "./generated/index.js",
+        "edge-light": "./generated/wasm.js",
+        "workerd": "./generated/wasm.js",
+        "worker": "./generated/wasm.js",
+        "browser": "./generated/index-browser.js",
+        "default": "./generated/index.js"
       },
       "import": {
-        "node": "./index.js",
-        "edge-light": "./wasm.js",
-        "workerd": "./wasm.js",
-        "worker": "./wasm.js",
-        "browser": "./index-browser.js",
-        "default": "./index.js"
+        "node": "./generated/index.js",
+        "edge-light": "./generated/wasm.js",
+        "workerd": "./generated/wasm.js",
+        "worker": "./generated/wasm.js",
+        "browser": "./generated/index-browser.js",
+        "default": "./generated/index.js"
       },
-      "default": "./index.js"
+      "default": "./generated/index.js"
     },
-    "./package.json": "./package.json",
+    "./generated/package.json": "./generated/package.json",
     ".": {
       "require": {
-        "node": "./index.js",
-        "edge-light": "./wasm.js",
-        "workerd": "./wasm.js",
-        "worker": "./wasm.js",
-        "browser": "./index-browser.js",
-        "default": "./index.js"
+        "node": "./generated/index.js",
+        "edge-light": "./generated/wasm.js",
+        "workerd": "./generated/wasm.js",
+        "worker": "./generated/wasm.js",
+        "browser": "./generated/index-browser.js",
+        "default": "./generated/index.js"
       },
       "import": {
-        "node": "./index.js",
-        "edge-light": "./wasm.js",
-        "workerd": "./wasm.js",
-        "worker": "./wasm.js",
-        "browser": "./index-browser.js",
-        "default": "./index.js"
+        "node": "./generated/index.js",
+        "edge-light": "./generated/wasm.js",
+        "workerd": "./generated/wasm.js",
+        "worker": "./generated/wasm.js",
+        "browser": "./generated/index-browser.js",
+        "default": "./generated/index.js"
       },
-      "default": "./index.js"
+      "default": "./generated/index.js"
     },
-    "./edge": {
-      "types": "./edge.d.ts",
-      "require": "./edge.js",
-      "import": "./edge.js",
-      "default": "./edge.js"
+    "./generated/edge": {
+      "types": "./generated/edge.d.ts",
+      "require": "./generated/edge.js",
+      "import": "./generated/edge.js",
+      "default": "./generated/edge.js"
     },
-    "./react-native": {
-      "types": "./react-native.d.ts",
-      "require": "./react-native.js",
-      "import": "./react-native.js",
-      "default": "./react-native.js"
+    "./generated/react-native": {
+      "types": "./generated/react-native.d.ts",
+      "require": "./generated/react-native.js",
+      "import": "./generated/react-native.js",
+      "default": "./generated/react-native.js"
     },
-    "./extension": {
-      "types": "./extension.d.ts",
-      "require": "./extension.js",
-      "import": "./extension.js",
-      "default": "./extension.js"
+    "./generated/extension": {
+      "types": "./generated/extension.d.ts",
+      "require": "./generated/extension.js",
+      "import": "./generated/extension.js",
+      "default": "./generated/extension.js"
     },
-    "./index-browser": {
-      "types": "./index.d.ts",
-      "require": "./index-browser.js",
-      "import": "./index-browser.js",
-      "default": "./index-browser.js"
+    "./generated/index-browser": {
+      "types": "./generated/index.d.ts",
+      "require": "./generated/index-browser.js",
+      "import": "./generated/index-browser.js",
+      "default": "./generated/index-browser.js"
     },
-    "./index": {
-      "types": "./index.d.ts",
-      "require": "./index.js",
-      "import": "./index.js",
-      "default": "./index.js"
+    "./generated/index": {
+      "types": "./generated/index.d.ts",
+      "require": "./generated/index.js",
+      "import": "./generated/index.js",
+      "default": "./generated/index.js"
     },
-    "./wasm": {
-      "types": "./wasm.d.ts",
-      "require": "./wasm.js",
-      "import": "./wasm.mjs",
-      "default": "./wasm.mjs"
+    "./generated/wasm": {
+      "types": "./generated/wasm.d.ts",
+      "require": "./generated/wasm.js",
+      "import": "./generated/wasm.mjs",
+      "default": "./generated/wasm.mjs"
     },
-    "./runtime/client": {
-      "types": "./runtime/client.d.ts",
-      "require": "./runtime/client.js",
-      "import": "./runtime/client.mjs",
-      "default": "./runtime/client.mjs"
+    "./generated/runtime/client": {
+      "types": "./generated/runtime/client.d.ts",
+      "require": "./generated/runtime/client.js",
+      "import": "./generated/runtime/client.mjs",
+      "default": "./generated/runtime/client.mjs"
     },
-    "./runtime/library": {
-      "types": "./runtime/library.d.ts",
-      "require": "./runtime/library.js",
-      "import": "./runtime/library.mjs",
-      "default": "./runtime/library.mjs"
+    "./generated/runtime/library": {
+      "types": "./generated/runtime/library.d.ts",
+      "require": "./generated/runtime/library.js",
+      "import": "./generated/runtime/library.mjs",
+      "default": "./generated/runtime/library.mjs"
     },
-    "./runtime/binary": {
-      "types": "./runtime/binary.d.ts",
-      "require": "./runtime/binary.js",
-      "import": "./runtime/binary.mjs",
-      "default": "./runtime/binary.mjs"
+    "./generated/runtime/binary": {
+      "types": "./generated/runtime/binary.d.ts",
+      "require": "./generated/runtime/binary.js",
+      "import": "./generated/runtime/binary.mjs",
+      "default": "./generated/runtime/binary.mjs"
     },
-    "./runtime/wasm": {
-      "types": "./runtime/wasm.d.ts",
-      "require": "./runtime/wasm.js",
-      "import": "./runtime/wasm.mjs",
-      "default": "./runtime/wasm.mjs"
+    "./generated/runtime/wasm": {
+      "types": "./generated/runtime/wasm.d.ts",
+      "require": "./generated/runtime/wasm.js",
+      "import": "./generated/runtime/wasm.mjs",
+      "default": "./generated/runtime/wasm.mjs"
     },
-    "./runtime/edge": {
-      "types": "./runtime/edge.d.ts",
-      "require": "./runtime/edge.js",
-      "import": "./runtime/edge-esm.js",
-      "default": "./runtime/edge-esm.js"
+    "./generated/runtime/edge": {
+      "types": "./generated/runtime/edge.d.ts",
+      "require": "./generated/runtime/edge.js",
+      "import": "./generated/runtime/edge-esm.js",
+      "default": "./generated/runtime/edge-esm.js"
     },
-    "./runtime/react-native": {
-      "types": "./runtime/react-native.d.ts",
-      "require": "./runtime/react-native.js",
-      "import": "./runtime/react-native.js",
-      "default": "./runtime/react-native.js"
+    "./generated/runtime/react-native": {
+      "types": "./generated/runtime/react-native.d.ts",
+      "require": "./generated/runtime/react-native.js",
+      "import": "./generated/runtime/react-native.js",
+      "default": "./generated/runtime/react-native.js"
     },
-    "./generator-build": {
-      "require": "./generator-build/index.js",
-      "import": "./generator-build/index.js",
-      "default": "./generator-build/index.js"
+    "./generated/generator-build": {
+      "require": "./generated/generator-build/index.js",
+      "import": "./generated/generator-build/index.js",
+      "default": "./generated/generator-build/index.js"
     },
-    "./sql": {
+    "./generated/sql": {
       "require": {
-        "types": "./sql/index.d.ts",
-        "edge-light": "./sql/index.edge.js",
-        "workerd": "./sql/index.edge.js",
-        "worker": "./sql/index.edge.js",
-        "node": "./sql/index.js",
-        "default": "./sql/index.js"
+        "types": "./generated/sql.d.ts",
+        "node": "./generated/sql.js",
+        "default": "./generated/sql.js"
       },
       "import": {
-        "types": "./sql/index.d.ts",
-        "edge-light": "./sql/index.edge.mjs",
-        "workerd": "./sql/index.edge.mjs",
-        "worker": "./sql/index.edge.mjs",
-        "node": "./sql/index.mjs",
-        "default": "./sql/index.mjs"
+        "types": "./generated/sql.d.ts",
+        "node": "./generated/sql.mjs",
+        "default": "./generated/sql.mjs"
       },
-      "default": "./sql/index.js"
+      "default": "./generated/sql.js"
     },
-    "./*": "./*"
+    "./generated/*": "./generated/*"
   },
-  "version": "6.7.0",
-  "sideEffects": false
+  "version": "6.8.2",
+  "sideEffects": false,
+  "imports": {
+    "#wasm-engine-loader": {
+      "edge-light": "./generated/wasm-edge-light-loader.mjs",
+      "workerd": "./generated/wasm-worker-loader.mjs",
+      "worker": "./generated/wasm-worker-loader.mjs",
+      "default": "./generated/wasm-worker-loader.mjs"
+    },
+    "#main-entry-point": {
+      "require": {
+        "node": "./generated/index.js",
+        "edge-light": "./generated/wasm.js",
+        "workerd": "./generated/wasm.js",
+        "worker": "./generated/wasm.js",
+        "browser": "./generated/index-browser.js",
+        "default": "./generated/index.js"
+      },
+      "import": {
+        "node": "./generated/index.js",
+        "edge-light": "./generated/wasm.js",
+        "workerd": "./generated/wasm.js",
+        "worker": "./generated/wasm.js",
+        "browser": "./generated/index-browser.js",
+        "default": "./generated/index.js"
+      },
+      "default": "./generated/index.js"
+    }
+  }
 }
