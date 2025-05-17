@@ -22,12 +22,19 @@
 
 // const Prisma = await import('../prisma/generated/edge')
 
-
-import * as Prisma from 'prisma-client-generated/generated/edge'
+import * as process from 'process'
+import * as Prisma from 'prisma-client-generated/generated/index'
+import { PrismaBetterSQLite3AdapterFactory } from './adapter'
 const { PrismaClient } = Prisma
 // import { PrismaClient } from 'prisma-client-generated/generated/client'
 
-const prisma = new PrismaClient({ datasourceUrl: 'file:./dev.db' })
+console.log('process', process)
+
+const env = {}
+
+import { PrismaD1 } from '@prisma/adapter-d1'
+const adapter = new PrismaD1(env.DB)
+const prisma = new PrismaClient({ adapter })
 
 const op = await prisma.media.create({
   data: {
@@ -37,6 +44,18 @@ const op = await prisma.media.create({
 })
 
 console.log('op', op)
+
+// const adapter = new PrismaBetterSQLite3AdapterFactory({ url: '' })
+// const prisma = new PrismaClient({ adapter })
+
+// const op = await prisma.media.create({
+//   data: {
+//     id: '1',
+//     name: 'test',
+//   }
+// })
+
+// console.log('op', op)
 
 // import './patch'
 // import * as Prisma from 'prisma-client-generated'

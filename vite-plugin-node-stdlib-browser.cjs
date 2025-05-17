@@ -32,6 +32,10 @@ const plugin = () => ({
     plugins: [
       {
         ...inject({
+          child_process: [
+            require.resolve('./src/child_process_polyfill.js'),
+            'global'
+          ],
           global: [
             require.resolve('node-stdlib-browser/helpers/esbuild/shim'),
             'global'
