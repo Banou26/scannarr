@@ -1,12 +1,12 @@
 generator client {
   provider        = "prisma-client-js"
-  output = "./generated"
-  previewFeatures = ["driverAdapters", "typedSql"] // change from default
+  output          = "./generated"
+  previewFeatures = ["driverAdapters", "typedSql"]
 }
 
 datasource db {
-  provider = "sqlite" // d1 is sql base database
-  url      = "file:./dev.db"
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
 model media {
