@@ -1,8 +1,3 @@
-import { getQueryResults, runQuery } from './database'
-import { getAllMedia, insertMedia } from '../prisma/generated/sql'
+import store from './livestore/store'
 
-console.log('exec',
-  await runQuery(insertMedia, ['1', 'test'])
-)
-
-console.log('assetLatestPools', await getQueryResults(getAllMedia, ['test']))
+console.log('store', store)
