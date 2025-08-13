@@ -5,6 +5,10 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   plugins: [
     react(),
-    livestoreDevtoolsPlugin({ schemaPath: './src/livestore/schema.ts' })
+    livestoreDevtoolsPlugin({
+      schemaPath: './src/livestore/schema.ts',
+      mode: { _tag: 'web' },
+      path: '/test'
+    })
   ]
 })
