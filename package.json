@@ -6,9 +6,9 @@
   "author": "Banou26",
   "scripts": {
     "codegen": "concurrently \"npm run _codegen\"",
-    "_codegen": "node _codegen.mjs && graphql-codegen --config codegen.ts & node _codegen.js",
+    "_codegen": "node _codegen.mjs && graphql-codegen --config codegen.ts & node _codegen.cjs",
     "codegen-watch": "concurrently \"npm run _codegen-watch\"",
-    "_codegen-watch": "node _codegen.mjs && graphql-codegen -w --config codegen.ts & node _codegen.js",
+    "_codegen-watch": "node _codegen.mjs && graphql-codegen -w --config codegen.ts & node _codegen.cjs",
     "copy-seal": "npx --yes copyfiles -u 3 ./node_modules/seal-wasm/build/*.wasm build",
     "dev": "nodemon -e ts,tsx --watch src --exec \"npm run _codegen && npm run build && npm run types \"",
     "types": "tsc",
@@ -16,7 +16,7 @@
     "lint": "eslint --fix",
     "_dev": "vite build --watch",
     "build": "vite build && tsc",
-    "test": "node _codegen.js && tsx bin/test.ts",
+    "test": "node _codegen.cjs && tsx bin/test.ts",
     "test-watch": "tsx watch bin/test.ts"
   },
   "devDependencies": {

@@ -1,0 +1,24 @@
+name: Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          # Same major as build.yaml and publish.yaml, so the suite runs on the
+          # runtime this package is built and published with.
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      # npm test runs `node _codegen.cjs` first, which restores the "type": "module"
+      # field the codegen scripts strip, then runs the japa runner in bin/test.ts.
+      - run: npm test
